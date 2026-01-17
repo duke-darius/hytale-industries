@@ -1,0 +1,22 @@
+{
+    "Group": "DukeDarius",
+    "Name": "HytaleIndustries",
+    "Version": "0.0.3",
+    "Description": "Automated Industries for Hytale",
+    "Authors": [
+        {
+            "Name": "Duke Darius"
+        }
+    ],
+    "Website": "dukedarius.dev",
+    "ServerVersion": "*",
+    "Dependencies": {
+        "Hytale:BlockStateModule": "*"
+    },
+    "OptionalDependencies": {
+        
+    },
+    "DisabledByDefault": false,
+    "Main": "dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin",
+    "IncludesAssetPack": true
+}

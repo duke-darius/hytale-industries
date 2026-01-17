@@ -1,0 +1,187 @@
+$C = "../Common.ui";
+
+// Compact card layout - big icon for what you GET, small for what you PAY
+// Uses ItemSlot for proper item rendering with quality backgrounds
+Group {
+  Anchor: (Width: 230, Height: 185);
+  Padding: (Horizontal: 5, Vertical: 5);
+
+  ItemSlotButton #TradeButton {
+    Anchor: (Full: 0);
+    LayoutMode: Full;
+    Padding: 2;
+    Style: (
+      Default: (
+        Background: #252f3a,
+      ),
+      Hovered: (
+        Background: #c9a050,
+      ),
+      Pressed: (
+        Background: #a08040,
+      ),
+      Disabled: (
+        Background: #1a1e24,
+      ),
+      Sounds: $C.@ButtonSounds,
+    );
+
+    // Inner card content area
+    Group #CardContent {
+      Anchor: (Full: 0);
+      LayoutMode: Top;
+      Background: #1c2835;
+
+      // TOP: What you GET (big, prominent) - uses ItemSlot for quality background
+      Group #OutputSection {
+        Anchor: (Height: 80);
+        Padding: (Top: 4);
+        LayoutMode: CenterMiddle;
+        
+        Group #OutputSlotContainer {
+          Anchor: (Width: 68, Height: 68);
+          
+          // Border (neutral color for output)
+          Group #OutputSlotBorder {
+            Anchor: (Full: 0);
+            Background: #1a2530;
+            Padding: 2;
+            
+            // ItemSlot renders slot background, quality overlay, and icon (64x64 inner)
+            ItemSlot #OutputSlot {
+              Anchor: (Full: 0);
+              ShowQualityBackground: true;
+            }
+          }
+          
+          // Quantity overlay (bottom-right corner, inside border)
+          Label #OutputQuantity {
+            Anchor: (Right: 8, Bottom: 5);
+            Style: (
+              FontSize: 15,
+              TextColor: #ffffff,
+              HorizontalAlignment: End,
+              VerticalAlignment: End,
+              RenderBold: true,
+            );
+          }
+        }
+      }
+
+      // DIVIDER
+      Group #DividerSection {
+        Anchor: (Height: 8);
+        LayoutMode: CenterMiddle;
+        
+        Group #DividerLine {
+          Anchor: (Width: 140, Height: 1);
+          Background: #252F3A;
+        }
+      }
+
+      // COST - icon centered, Cost label offset left
+      Group #CostSection {
+        Anchor: (Height: 64);
+        Padding: (Top: 12);
+        LayoutMode: Full;
+
+        // "Cost:" label positioned to the left, vertically centered with icon
+        Label #CostLabel {
+          Anchor: (Left: 28, Top: -1, Width: 46, Height: 48);
+          Style: (
+            FontSize: 14,
+            TextColor: #8a9aaa,
+            HorizontalAlignment: End,
+            VerticalAlignment: Center,
+          );
+          Text: "Cost:";
+        }
+
+        // Icon + "Have: X" centered
+        Group #InputSection {
+          Anchor: (Full: 0);
+          LayoutMode: MiddleCenter;
+          
+          // Container for input slot + border + quantity
+          Group #InputSlotContainer {
+            Anchor: (Width: 52, Height: 52);
+            
+            // Border (server sets color based on player inventory)
+            Group #InputSlotBorder {
+              Anchor: (Full: 0);
+              Background: #2a5a3a;
+              Padding: 2;
+              
+              // ItemSlot shows quality background so you see item rarity
+              ItemSlot #InputSlot {
+                Anchor: (Full: 0);
+                ShowQualityBackground: true;
+              }
+            }
+            
+            // Quantity overlay (bottom-right corner, inside border)
+            Label #InputQuantity {
+              Anchor: (Right: 6, Bottom: 4);
+              Style: (
+                FontSize: 12,
+                TextColor: #ffffff,
+                HorizontalAlignment: End,
+                VerticalAlignment: End,
+                RenderBold: true,
+              );
+            }
+          }
+          
+          // "Have: X" label centered below icon
+          Label #HaveNeedLabel {
+            Anchor: (Height: 18);
+            Padding: (Top: 4);
+            Style: (
+              FontSize: 13,
+              TextColor: #3d913f,
+              HorizontalAlignment: Center,
+              VerticalAlignment: Center,
+            );
+            Text: "Have: 0";
+          }
+        }
+      }
+
+      // BOTTOM: Stock display
+      Group #StockSection {
+        Anchor: (Height: 16);
+        LayoutMode: Full;
+        Padding: (Right: 8, Top: 2);
+        
+        Label #Stock {
+          Anchor: (Right: 0, Bottom: 0, Height: 14);
+          Style: (
+            FontSize: 12,
+            TextColor: #7a8a9a,
+            HorizontalAlignment: End,
+            VerticalAlignment: Center,
+          );
+        }
+      }
+    }
+    
+    // Out of stock overlay - hidden by default, shown by server
+    Group #OutOfStockOverlay {
+      Anchor: (Full: 0);
+      Background: #0a0e12(0.75);
+      LayoutMode: CenterMiddle;
+      Visible: false;
+      
+      Label #OutOfStockLabel {
+        Style: (
+          FontSize: 14,
+          TextColor: #cc4444,
+          HorizontalAlignment: Center,
+          VerticalAlignment: Center,
+          RenderBold: true,
+        );
+        Text: "OUT OF STOCK";
+      }
+    }
+  }
+}

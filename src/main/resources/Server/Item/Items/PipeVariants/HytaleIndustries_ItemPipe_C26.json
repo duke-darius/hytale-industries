@@ -1,0 +1,138 @@
+{
+    "Icon": "Icons/ItemsGenerated/HytaleIndustries_ItemPipe.png",
+    "TranslationProperties": {
+        "Name": "Item Pipe (Variant)",
+        "Description": "Internal connected-block variant. Do not use directly."
+    },
+    "ItemEntity": {
+        
+    },
+    "Variant": true,
+    "Interactions": {
+        "Secondary": "HytaleIndustries_PlaceItemPipe_Root"
+    },
+    "InteractionConfig": {
+        
+    },
+    "BlockType": {
+        "Parent": "Debug_Model",
+        "DrawType": "Model",
+        "CustomModelTexture": [
+            {
+                "Texture": "Blocks/HytaleIndustries_ItemPipes/HytaleIndustries_ItemPipes_Pipe.png",
+                "Weight": 1
+            }
+        ],
+        "Flags": {
+            "IsUsable": true,
+            "IsStackable": true
+        },
+        "TintUp": [
+            "#007BFF"
+        ],
+        "TintDown": [
+            "#007BFF"
+        ],
+        "TintNorth": [
+            "#007BFF"
+        ],
+        "TintSouth": [
+            "#007BFF"
+        ],
+        "TintWest": [
+            "#007BFF"
+        ],
+        "TintEast": [
+            "#007BFF"
+        ],
+        "Interactions": {
+            "Use": "HytaleIndustries_ConfigurePipe_Root"
+        },
+        "State": {
+            "Id": "itemPipe",
+            "Definitions": {
+                "Extract": {
+                    "TintUp": [
+                        "#FFA500"
+                    ],
+                    "TintDown": [
+                        "#FFA500"
+                    ],
+                    "TintNorth": [
+                        "#FFA500"
+                    ],
+                    "TintSouth": [
+                        "#FFA500"
+                    ],
+                    "TintWest": [
+                        "#FFA500"
+                    ],
+                    "TintEast": [
+                        "#FFA500"
+                    ],
+                    "CustomModel": "Blocks/HytaleIndustries_ItemPipes/variants_extract/HytaleIndustries_ItemPipes_Pipe_C26_Extract.blockymodel"
+                }
+            }
+        },
+        "ConnectedBlockRuleSet": {
+            "Type": "Pipe"
+        },
+        "Material": "Solid",
+        "Opacity": "Solid",
+        "Supporting": {
+            "Up": [
+                {
+                    "FaceType": "Full",
+                    "Filler": null
+                }
+            ],
+            "Down": [
+                {
+                    "FaceType": "Full",
+                    "Filler": null
+                }
+            ],
+            "North": [
+                {
+                    "FaceType": "Full",
+                    "Filler": null
+                }
+            ],
+            "South": [
+                {
+                    "FaceType": "Full",
+                    "Filler": null
+                }
+            ],
+            "East": [
+                {
+                    "FaceType": "Full",
+                    "Filler": null
+                }
+            ],
+            "West": [
+                {
+                    "FaceType": "Full",
+                    "Filler": null
+                }
+            ]
+        },
+        "Gathering": {
+            "Breaking": {
+                "GatherType": "HytaleIndustries_Pipe",
+                "Quality": 0,
+                "ItemId": "HytaleIndustries_ItemPipe",
+                "Quantity": 1
+            }
+        },
+        "IgnoreSupportWhenPlaced": true,
+        "Group": "@Tech",
+        "Support": {
+            
+        },
+        "MaxSupportDistance": 0,
+        "SupportsRequiredFor": "Any",
+        "CustomModel": "Blocks/HytaleIndustries_ItemPipes/variants/HytaleIndustries_ItemPipes_Pipe_C26.blockymodel"
+    },
+    "MaxStack": 64
+}

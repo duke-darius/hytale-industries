@@ -1,0 +1,182 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.3'
+}
+
+ext {
+    hytaleHome = "${System.getProperty("user.home")}/AppData/Roaming/Hytale"
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+    withSourcesJar()
+    withJavadocJar()
+}
+
+// Quiet warnings about missing Javadocs.
+javadoc {
+    options.addStringOption('Xdoclint:-missing', '-quiet')
+}
+
+// Adds the Hytale server as a build dependency, allowing you to reference and
+// compile against their code. This requires you to have Hytale installed using
+// the official launcher for now.
+dependencies {
+    implementation(files("$hytaleHome/install/$patchline/package/game/latest/Server/HytaleServer.jar"))
+}
+
+// Create the working directory to run the server if it does not already exist.
+def serverRunDir = file("$projectDir/run")
+if (!serverRunDir.exists()) {
+    serverRunDir.mkdirs()
+}
+
+// Updates the manifest.json file with the latest properties defined in the
+// build.properties file. Currently we update the version and if packs are
+// included with the plugin.
+tasks.register('updatePluginManifest') {
+    def manifestFile = file('src/main/resources/manifest.json')
+    doLast {
+        if (!manifestFile.exists()) {
+            throw new GradleException("Could not find manifest.json at ${manifestFile.path}!")
+        }
+        def manifestJson = new groovy.json.JsonSlurper().parseText(manifestFile.text)
+        manifestJson.Version = version
+        manifestJson.IncludesAssetPack = includes_pack.toBoolean()
+        manifestFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(manifestJson))
+    }
+}
+
+// Generate connected-block item variants for pipes.
+// We generate into src/main/resources so the dev run configuration (which points --mods at src/main)
+// sees the assets without requiring a packaged jar.
+tasks.register('generatePipeVariants') {
+    def outDir = file('src/main/resources/Server/Item/Items/PipeVariants')
+    outputs.dir(outDir)
+
+    doLast {
+        outDir.mkdirs()
+
+        // Base fields shared by all pipe variants.
+        def base = [
+                Icon: 'Icons/ItemsGenerated/HytaleIndustries_ItemPipe.png',
+                TranslationProperties: [
+                        Name: 'Item Pipe (Variant)',
+                        Description: 'Internal connected-block variant. Do not use directly.'
+                ],
+                ItemEntity: [:],
+                Variant: true,
+                Interactions: [
+                        Secondary: 'HytaleIndustries_PlaceItemPipe_Root'
+                ],
+                InteractionConfig: [:],
+                BlockType: [
+                        Parent: 'Debug_Model',
+                        DrawType: 'Model',
+                        // CustomModel differs per variant.
+                        CustomModelTexture: [[
+                                Texture: 'Blocks/HytaleIndustries_ItemPipes/HytaleIndustries_ItemPipes_Pipe.png',
+                                Weight: 1
+                        ]],
+                        Flags: [
+                                IsUsable: true,
+                                IsStackable: true
+                        ],
+                        TintUp: ['#007BFF'],
+                        TintDown: ['#007BFF'],
+                        TintNorth: ['#007BFF'],
+                        TintSouth: ['#007BFF'],
+                        TintWest: ['#007BFF'],
+                        TintEast: ['#007BFF'],
+                        Interactions: [
+                                Use: 'HytaleIndustries_ConfigurePipe_Root'
+                        ],
+                        State: [
+                                Id: 'itemPipe',
+                                Definitions: [
+                                        Extract: [
+                                                TintUp: ['#FFA500'],
+                                                TintDown: ['#FFA500'],
+                                                TintNorth: ['#FFA500'],
+                                                TintSouth: ['#FFA500'],
+                                                TintWest: ['#FFA500'],
+                                                TintEast: ['#FFA500']
+                                                // CustomModel differs per variant.
+                                        ]
+                                ]
+                        ],
+                        ConnectedBlockRuleSet: [
+                                Type: 'Pipe'
+                        ],
+                        Material: 'Solid',
+                        Opacity: 'Solid',
+                        Supporting: [
+                                Up: [[FaceType: 'Full', Filler: null]],
+                                Down: [[FaceType: 'Full', Filler: null]],
+                                North: [[FaceType: 'Full', Filler: null]],
+                                South: [[FaceType: 'Full', Filler: null]],
+                                East: [[FaceType: 'Full', Filler: null]],
+                                West: [[FaceType: 'Full', Filler: null]]
+                        ],
+                        Gathering: [
+                                Breaking: [
+                                        GatherType: 'HytaleIndustries_Pipe',
+                                        Quality: 0,
+                                        ItemId: 'HytaleIndustries_ItemPipe',
+                                        Quantity: 1
+                                ]
+                        ],
+                        IgnoreSupportWhenPlaced: true,
+                        Group: '@Tech',
+                        Support: [:],
+                        MaxSupportDistance: 0,
+                        SupportsRequiredFor: 'Any'
+                ],
+                MaxStack: 64
+        ]
+
+        (0..63).each { mask ->
+            def hex = String.format('%02X', mask)
+
+            def json = base.collectEntries { k, v -> [(k): v] }
+            json.BlockType = json.BlockType.collectEntries { k, v -> [(k): v] }
+            json.BlockType.State = json.BlockType.State.collectEntries { k, v -> [(k): v] }
+            json.BlockType.State.Definitions = json.BlockType.State.Definitions.collectEntries { k, v -> [(k): v] }
+            json.BlockType.State.Definitions.Extract = json.BlockType.State.Definitions.Extract.collectEntries { k, v -> [(k): v] }
+
+            json.BlockType.CustomModel = "Blocks/HytaleIndustries_ItemPipes/variants/HytaleIndustries_ItemPipes_Pipe_C${hex}.blockymodel"
+            json.BlockType.State.Definitions.Extract.CustomModel = "Blocks/HytaleIndustries_ItemPipes/variants_extract/HytaleIndustries_ItemPipes_Pipe_C${hex}_Extract.blockymodel"
+
+            def outFile = new File(outDir, "HytaleIndustries_ItemPipe_C${hex}.json")
+            outFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(json)) + System.lineSeparator()
+        }
+    }
+}
+
+// Makes sure the plugin manifest is up to date.
+tasks.named('processResources') {
+    dependsOn 'updatePluginManifest'
+    dependsOn 'generatePipeVariants'
+}
+
+// sourcesJar reads from src/main/resources directly, so ensure variants are generated first.
+tasks.named('sourcesJar') {
+    dependsOn 'generatePipeVariants'
+}
+
+// Creates a run configuration in IDEA that will run the Hytale server with
+// your plugin and the default assets.
+idea.project.settings.runConfigurations {
+    'HytaleServer'(org.jetbrains.gradle.ext.Application) {
+        mainClass = 'com.hypixel.hytale.Main'
+        moduleName = project.idea.module.name + '.main'
+        programParameters = "--allow-op --assets=$hytaleHome/install/$patchline/package/game/latest/Assets.zip"
+        if (includes_pack.toBoolean()) {
+            programParameters += " --mods=${sourceSets.main.java.srcDirs.first().parentFile.absolutePath}"
+        }
+        if (load_user_mods.toBoolean()) {
+            programParameters += " --mods=$hytaleHome/UserData/Mods"
+        }
+        workingDirectory = serverRunDir.absolutePath
+    }
+}
