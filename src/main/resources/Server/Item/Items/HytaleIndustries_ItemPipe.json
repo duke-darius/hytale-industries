@@ -127,5 +127,27 @@
     "MaxSupportDistance": 0,
     "SupportsRequiredFor": "Any"
   },
-  "MaxStack": 64
+  "MaxStack": 64,
+  "Recipe":  {
+    "OutputQuantity": 12,
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_ItemPipe",
+      "Quantity": 12
+    },
+    "BenchRequirement": [ {
+      "Id": "Furniture_Bench",
+      "Type": "Crafting",
+      "Categories": ["Furniture_Misc"]
+    } ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 2
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 1
+      }
+    ]
+  }
 }
