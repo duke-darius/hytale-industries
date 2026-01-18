@@ -6,11 +6,13 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -18,6 +20,7 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
+import com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBlocksUtil;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -29,6 +32,8 @@ import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import javax.annotation.Nullable;
 
 public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUIPage.ConfigurePipeUIEventData> {
+
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
 
     private final int x;
@@ -76,13 +81,14 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
             return;
         }
 
-        // Update the pipe BlockState component IN PLACE (avoid WorldChunk.setState which re-adds entities
-        // and can trip a server-side NPE when BlockState.chunk is transient).
-        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(x, y, z);
+        // Mutate the BlockState component safely and persist it.
+        int lx = x & 31;
+        int lz = z & 31;
+
+        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(lx, y, lz);
         if (stateRef == null) {
             return;
         }
-
         ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
         if (type == null) {
             return;
@@ -94,25 +100,13 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         }
 
         pipe.cycleConnectionState(dir);
+        stateRef.getStore().replaceComponent(stateRef, type, pipe);
         chunk.markNeedsSaving();
 
-        // Force a refresh of connected blocks visuals by invalidating this block and adjacent pipes.
-        invalidateBlock(chunk, x, y, z);
-        for (Direction d : Direction.values()) {
-            int nx = x + d.dx;
-            int ny = y + d.dy;
-            int nz = z + d.dz;
-            if (ny < 0 || ny >= 320) {
-                continue;
-            }
-            BlockType bt = chunk.getWorld().getBlockType(nx, ny, nz);
-            if (bt != null && bt.getState() != null && ItemPipeBlockState.STATE_ID.equals(bt.getState().getId())) {
-                WorldChunk nChunk = chunk.getWorld().getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));
-                if (nChunk != null) {
-                    invalidateBlock(nChunk, nx, ny, nz);
-                }
-            }
-        }
+        LOGGER.atInfo().log("Pipe UI changed " + dir + " at (" + x + "," + y + "," + z + ") state sideConfig now " + pipe.getConnectionState(dir));
+        // Refresh just this pipe's connected-block model, while restoring its sideConfig afterward.
+        refreshSinglePipeWithRestore(world, x, y, z);
+        // Do not force connected-block swap here; models will update on a natural block update.
 
         UICommandBuilder commands = new UICommandBuilder();
         UIEventBuilder events = new UIEventBuilder();
@@ -134,7 +128,7 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         setNeighborSlot(cmd, world, x, y, z, Direction.Up, "#UpBlockButton", "#UpBlock");
         setNeighborSlot(cmd, world, x, y, z, Direction.Down, "#DownBlockButton", "#DownBlock");
 
-        // Color the border/background for each side based on the current side config.
+        // Color the border/background based on the current pipe BlockState component.
         ItemPipeBlockState pipe = getPipeState(world, x, y, z);
         setSideBackground(cmd, pipe, Direction.North, "#NorthBlockBorder");
         setSideBackground(cmd, pipe, Direction.South, "#SouthBlockBorder");
@@ -191,7 +185,10 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
             return null;
         }
 
-        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(x, y, z);
+        int lx = x & 31;
+        int lz = z & 31;
+
+        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(lx, y, lz);
         if (stateRef == null) {
             return null;
         }
@@ -204,21 +201,108 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         return stateRef.getStore().getComponent(stateRef, type);
     }
 
-    private static void invalidateBlock(@NonNullDecl WorldChunk chunk, int x, int y, int z) {
-        int id = chunk.getBlock(x, y, z);
-        if (id == 0) {
-            return;
-        }
-        BlockType bt = chunk.getBlockType(x, y, z);
-        if (bt == null) {
-            return;
-        }
-        int rot = chunk.getRotationIndex(x, y, z);
-        int filler = chunk.getFiller(x, y, z);
+    private static void refreshSinglePipeWithRestore(@NonNullDecl World world, int x, int y, int z) {
+        Vector3i pos = new Vector3i(x, y, z);
+        Vector3i placementNormal = new Vector3i(0, 1, 0);
 
-        // 64 = invalidate, 256 = perform block update, 4 = no particles, 2 = don't touch state, 8/16 = no filler ops.
-        int settings = 64 | 256 | 4 | 2 | 8 | 16;
-        chunk.setBlock(x, y, z, id, bt, rot, filler, settings);
+        // Save sideConfig for this pipe.
+        int savedCfg = dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.get(x, y, z);
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) {
+            return;
+        }
+        int lx = x & 31;
+        int lz = z & 31;
+
+        // Force a full setBlock with settings to trigger connected-block evaluation.
+        BlockType current = chunk.getBlockType(lx, y, lz);
+        if (current != null) {
+            int blockId = chunk.getBlock(lx, y, lz);
+            int rotIndex = chunk.getRotationIndex(lx, y, lz);
+            int settings = 64 | 256 | 4 | 2; // invalidate, block update, no particles, keep state
+            boolean changed = chunk.setBlock(lx, y, lz, blockId, current, rotIndex, 0, settings);
+            LOGGER.atInfo().log("Force WorldChunk.setBlock at " + pos + " changed=" + changed + " rot=" + rotIndex);
+
+            if (!changed) {
+                // Compute desired variant and apply directly.
+                var desiredOpt = ConnectedBlocksUtil.getDesiredConnectedBlockType(world, pos, current, rotIndex, new Vector3i(0, 1, 0), false);
+                if (desiredOpt.isPresent()) {
+                    var r = desiredOpt.get();
+                    int newId = BlockType.getAssetMap().getIndex(r.blockTypeKey());
+                    if (newId != Integer.MIN_VALUE) {
+                        BlockType newType = BlockType.getAssetMap().getAsset(newId);
+                        int newRot = r.rotationIndex();
+                        boolean forced = chunk.setBlock(lx, y, lz, newId, newType, newRot, 0, settings);
+                        LOGGER.atInfo().log("Force apply desired variant at " + pos + " type=" + r.blockTypeKey() + " rot=" + newRot + " changed=" + forced);
+                    }
+                }
+            }
+        }
+
+        // Restore saved sideConfig to this pipe (in case block swap recreated BlockState) and put back in store.
+        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(lx, y, lz);
+        if (stateRef != null) {
+            ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
+            if (type != null) {
+                ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
+                if (pipe != null) {
+                    pipe.setRawSideConfig(savedCfg);
+                    stateRef.getStore().replaceComponent(stateRef, type, pipe);
+                }
+            }
+        }
+        dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.set(x, y, z, savedCfg);
+    }
+
+    private static void applyConnectedResult(
+            @NonNullDecl World world,
+            @NonNullDecl Vector3i placementNormal,
+            @NonNullDecl Vector3i pos,
+            @NonNullDecl ConnectedBlocksUtil.ConnectedBlockResult result
+    ) {
+        // Apply main block.
+        int blockId = BlockType.getAssetMap().getIndex(result.blockTypeKey());
+        if (blockId == Integer.MIN_VALUE) {
+            return;
+        }
+
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
+        if (chunk == null) {
+            return;
+        }
+
+        RotationTuple rot = RotationTuple.get(result.rotationIndex());
+        ConnectedBlocksUtil.setConnectedBlockAndNotifyNeighbors(blockId, rot, pos, placementNormal, chunk, chunk.getBlockChunk());
+
+        // Apply any additional blocks (some connected-block rulesets place extra blocks).
+        var extras = result.getAdditionalConnectedBlocks();
+        if (extras == null || extras.isEmpty()) {
+            return;
+        }
+
+        for (var e : extras.entrySet()) {
+            Vector3i p = e.getKey();
+            var pair = e.getValue();
+            if (p == null || pair == null) {
+                continue;
+            }
+
+            String key = pair.left();
+            int rIndex = pair.rightInt();
+
+            int id = BlockType.getAssetMap().getIndex(key);
+            if (id == Integer.MIN_VALUE) {
+                continue;
+            }
+
+            WorldChunk c = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(p.x, p.z));
+            if (c == null) {
+                continue;
+            }
+
+            RotationTuple rt = RotationTuple.get(rIndex);
+            ConnectedBlocksUtil.setConnectedBlockAndNotifyNeighbors(id, rt, p, placementNormal, c, c.getBlockChunk());
+        }
     }
 
     private static void setNeighborSlot(

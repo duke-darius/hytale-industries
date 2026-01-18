@@ -6,10 +6,15 @@ import com.hypixel.hytale.logger.backend.HytaleLoggerBackend;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
+import dev.dukedarius.HytaleIndustries.Commands.GetPipeStateCommand;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
 import dev.dukedarius.HytaleIndustries.ConnectedBlockRuleSets.PipeConnectedBlockRuleSet;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 
+import dev.dukedarius.HytaleIndustries.Commands.SetPipeSideCommand;
 import javax.annotation.Nonnull;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.LogRecord;
@@ -28,7 +33,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
 
     private CopyOnWriteArrayList<LogRecord> logs = new CopyOnWriteArrayList<>();
-    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+    public static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -42,11 +47,19 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         Interaction.CODEC.register("HytaleIndustries_ConfigurePipe", ConfigurePipeInteraction.class, ConfigurePipeInteraction.CODEC);
 
         this.getBlockStateRegistry().registerBlockState(ItemPipeBlockState.class, ItemPipeBlockState.STATE_ID, ItemPipeBlockState.CODEC);
+        this.getCommandRegistry().registerCommand(new GetPipeStateCommand());
+        this.getCommandRegistry().registerCommand(new SetPipeSideCommand());
 
     }
 
     @Override
     protected void shutdown() {
+        for (PlayerRef playerRef : Universe.get().getPlayers()) {
+            var packetHandler = playerRef.getPacketHandler();
 
+            if(packetHandler.stillActive()) {
+                packetHandler.disconnect("Server is shutting down");
+            }
+        }
     }
 }

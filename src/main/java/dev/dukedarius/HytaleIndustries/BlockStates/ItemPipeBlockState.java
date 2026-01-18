@@ -5,6 +5,8 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
@@ -16,8 +18,10 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.state.TickableBlockState;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
@@ -76,8 +80,31 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         }
     }
 
+    private int getSideConfig() {
+        WorldChunk c = getChunk();
+        if (c != null) {
+            // Authoritative side config is stored outside the BlockState component because connected-block updates
+            // recreate components and wipe custom fields.
+            return PipeSideConfigStore.getOrDefault(getBlockX(), getBlockY(), getBlockZ(), sideConfig);
+        }
+        return sideConfig;
+    }
+
+    public int getRawSideConfig() {
+        return sideConfig;
+    }
+
+    public void setRawSideConfig(int raw) {
+        sideConfig = raw;
+        WorldChunk c = getChunk();
+        if (c != null) {
+            PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), raw);
+        }
+    }
+
     public ConnectionState getConnectionState(Direction dir) {
-        int v = (sideConfig >>> (dir.index * 2)) & 0b11;
+        int cfg = getSideConfig();
+        int v = (cfg >>> (dir.index * 2)) & 0b11;
         return switch (v) {
             case 1 -> ConnectionState.Extract;
             case 2 -> ConnectionState.None;
@@ -93,7 +120,15 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
             case Extract -> 1;
             case None -> 2;
         };
-        sideConfig = (sideConfig & ~mask) | (v << shift);
+
+        int cfg = getSideConfig();
+        cfg = (cfg & ~mask) | (v << shift);
+        sideConfig = cfg;
+
+        WorldChunk c = getChunk();
+        if (c != null) {
+            PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), cfg);
+        }
     }
 
     public ConnectionState cycleConnectionState(Direction dir) {
@@ -104,6 +139,15 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         };
         setConnectionState(dir, next);
         return next;
+    }
+
+    public static ConnectionState getConnectionStateFromSideConfig(int sideConfig, Direction dir) {
+        int v = (sideConfig >>> (dir.index * 2)) & 0b11;
+        return switch (v) {
+            case 1 -> ConnectionState.Extract;
+            case 2 -> ConnectionState.None;
+            default -> ConnectionState.Default;
+        };
     }
 
     public boolean isSideConnected(Direction dir) {
@@ -206,11 +250,18 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         if (chunk == null) {
             return null;
         }
-        BlockState state = chunk.getState(x, y, z);
-        if (state instanceof ItemPipeBlockState pipe) {
-            return pipe;
+
+        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(x, y, z);
+        if (stateRef == null) {
+            return null;
         }
-        return null;
+
+        ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
+        if (type == null) {
+            return null;
+        }
+
+        return stateRef.getStore().getComponent(stateRef, type);
     }
 
     private static boolean canTraverseFromPipe(@Nonnull World world, int x, int y, int z, @Nonnull Direction dir) {

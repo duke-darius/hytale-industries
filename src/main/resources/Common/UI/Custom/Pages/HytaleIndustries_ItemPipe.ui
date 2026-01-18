@@ -19,12 +19,6 @@ Group {
       LayoutMode: Top;
       Padding: (Left: 10, Right: 10, Top: 10, Bottom: 10);
 
-      // 3x3 layout:
-      // * U *
-      // W N E
-      // D S *
-      // where * is empty space.
-
       // Row 1: * U *
       Group {
         LayoutMode: Left;
@@ -36,6 +30,7 @@ Group {
         Group {
           Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
           ItemSlotButton #UpBlockButton {
+            TooltipText: "Up";
             Anchor: (Full: 0);
             LayoutMode: Full;
             Group #UpBlockBorder {
@@ -65,6 +60,7 @@ Group {
         Group {
           Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
           ItemSlotButton #WestBlockButton {
+            TooltipText: "West";
             Anchor: (Full: 0);
             LayoutMode: Full;
             Group #WestBlockBorder {
@@ -84,6 +80,7 @@ Group {
         Group {
           Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
           ItemSlotButton #NorthBlockButton {
+            TooltipText: "North";
             Anchor: (Full: 0);
             LayoutMode: Full;
             Group #NorthBlockBorder {
@@ -103,6 +100,7 @@ Group {
         Group {
           Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
           ItemSlotButton #EastBlockButton {
+            TooltipText: "East";
             Anchor: (Full: 0);
             LayoutMode: Full;
             Group #EastBlockBorder {
@@ -129,6 +127,7 @@ Group {
         Group {
           Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
           ItemSlotButton #DownBlockButton {
+            TooltipText: "Down";
             Anchor: (Full: 0);
             LayoutMode: Full;
             Group #DownBlockBorder {
@@ -148,6 +147,7 @@ Group {
         Group {
           Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
           ItemSlotButton #SouthBlockButton {
+            TooltipText: "South";
             Anchor: (Full: 0);
             LayoutMode: Full;
             Group #SouthBlockBorder {

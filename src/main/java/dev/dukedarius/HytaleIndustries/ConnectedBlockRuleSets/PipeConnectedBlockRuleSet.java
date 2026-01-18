@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.Direction;
+import dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -74,15 +75,7 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
     private static int computeConnectionMask(World world, Vector3i pos) {
         int mask = 0;
 
-        // Our per-side config lives in the pipe BlockState.
-        ItemPipeBlockState pipe = null;
-        WorldChunk pipeChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
-        if (pipeChunk != null) {
-            BlockState s = pipeChunk.getState(pos.x, pos.y, pos.z);
-            if (s instanceof ItemPipeBlockState p) {
-                pipe = p;
-            }
-        }
+        int pipeCfg = PipeSideConfigStore.get(pos.x, pos.y, pos.z);
 
         // N,S,E,W,U,D -> bits 0..5
         // Note: we consider pipes connectable to:
@@ -91,23 +84,22 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
         // but "None" disables a face entirely.
 
         // North/South in the model variants follow the conventional "north = -Z" mapping.
-        if (isConnectable(world, pos, pipe, Direction.North)) mask |= 1 << 0; // north
-        if (isConnectable(world, pos, pipe, Direction.South)) mask |= 1 << 1; // south
+        if (isConnectable(world, pos, pipeCfg, Direction.North)) mask |= 1 << 0; // north
+        if (isConnectable(world, pos, pipeCfg, Direction.South)) mask |= 1 << 1; // south
 
         // East/West are swapped in the authored model variants (C04 vs C08), so swap X here
         // to make end-caps and corners connect correctly.
-        if (isConnectable(world, pos, pipe, Direction.East)) mask |= 1 << 3; // east
-        if (isConnectable(world, pos, pipe, Direction.West)) mask |= 1 << 2; // west
+        if (isConnectable(world, pos, pipeCfg, Direction.East)) mask |= 1 << 3; // east
+        if (isConnectable(world, pos, pipeCfg, Direction.West)) mask |= 1 << 2; // west
 
-        if (isConnectable(world, pos, pipe, Direction.Up)) mask |= 1 << 4; // up
-        if (isConnectable(world, pos, pipe, Direction.Down)) mask |= 1 << 5; // down
+        if (isConnectable(world, pos, pipeCfg, Direction.Up)) mask |= 1 << 4; // up
+        if (isConnectable(world, pos, pipeCfg, Direction.Down)) mask |= 1 << 5; // down
 
         return mask;
     }
 
-    private static boolean isConnectable(World world, Vector3i pos, @Nullable ItemPipeBlockState pipe, Direction dir) {
-        // If we don't have the pipe state, fall back to old behavior.
-        if (pipe != null && !pipe.isSideConnected(dir)) {
+    private static boolean isConnectable(World world, Vector3i pos, int pipeCfg, Direction dir) {
+        if (ItemPipeBlockState.getConnectionStateFromSideConfig(pipeCfg, dir) == ItemPipeBlockState.ConnectionState.None) {
             return false;
         }
 
@@ -131,19 +123,16 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
             return false;
         }
 
-        BlockType neighbor = chunk.getBlockType(x, y, z);
+        BlockType neighbor = chunk.getBlockType(x & 31, y, z & 31);
         if (isPipeBlockType(neighbor)) {
-            // Respect the neighbor's opposite face as well.
-            BlockState neighborState = chunk.getState(x, y, z);
-            if (neighborState instanceof ItemPipeBlockState other) {
-                return other.isSideConnected(dir.opposite());
-            }
-            return true;
+            int otherCfg = PipeSideConfigStore.get(x, y, z);
+            return ItemPipeBlockState.getConnectionStateFromSideConfig(otherCfg, dir.opposite()) != ItemPipeBlockState.ConnectionState.None;
         }
 
-        BlockState state = chunk.getState(x, y, z);
+        BlockState state = chunk.getState(x & 31, y, z & 31);
         return state instanceof ItemContainerBlockState;
     }
+
 
     private static boolean isPipeBlockType(@Nullable BlockType blockType) {
         return blockType != null
