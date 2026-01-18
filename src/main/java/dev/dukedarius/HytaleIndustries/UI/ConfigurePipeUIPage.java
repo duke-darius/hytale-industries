@@ -78,6 +78,7 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
 
         WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
         if (chunk == null) {
+            dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
             return;
         }
 
@@ -190,6 +191,7 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
 
         Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(lx, y, lz);
         if (stateRef == null) {
+            dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
             return null;
         }
 
@@ -197,8 +199,12 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         if (type == null) {
             return null;
         }
-
-        return stateRef.getStore().getComponent(stateRef, type);
+        ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
+        if (pipe == null) {
+            dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
+            return null;
+        }
+        return pipe;
     }
 
     private static void refreshSinglePipeWithRestore(@NonNullDecl World world, int x, int y, int z) {
@@ -331,20 +337,34 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         var blockId = world.getBlock(nx, ny, nz);
         if (blockId == 0) {
             // Keep slot clickable, just clear its contents.
+            cmd.set(slotSelector + ".Visible", false);
             cmd.set(slotSelector + ".ItemId", "");
             cmd.set(slotSelector + ".Quantity", 0);
             return;
         }
 
         var blockType = world.getBlockType(nx, ny, nz);
-        if (blockType == null || blockType.getId() == null) {
+        String id = (blockType != null) ? blockType.getId() : null;
+
+        if (id == null) {
             cmd.set(slotSelector + ".ItemId", "");
             cmd.set(slotSelector + ".Quantity", 0);
             return;
         }
+        // Normalize: remove leading '*' (variant indicator) and strip state/animation suffix.
+        if (id.startsWith("*")) {
+            id = id.substring(1);
+        }
+        int stateIdx = id.indexOf("_State_");
+        if (stateIdx > 0) {
+            id = id.substring(0, stateIdx);
+        }
+
+
 
         // In Hytale, ItemSlot expects an ItemId. BlockType ids are backed by an Item, so this works in practice.
-        cmd.set(slotSelector + ".ItemId", blockType.getId());
+        cmd.set(slotSelector + ".ItemId", id);
+//        cmd.set(slotSelector + ".ItemId", blockType.getId());
         cmd.set(slotSelector + ".Quantity", 1);
     }
 

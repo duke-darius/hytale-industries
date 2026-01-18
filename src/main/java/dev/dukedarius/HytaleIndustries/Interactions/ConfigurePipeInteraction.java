@@ -17,6 +17,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
 import dev.dukedarius.HytaleIndustries.UI.ConfigurePipeUIPage;
 import dev.dukedarius.HytaleIndustries.Pipes.PipeSelectionStore;
+import dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
@@ -69,4 +70,5 @@ public class ConfigurePipeInteraction extends SimpleBlockInteraction {
     protected void simulateInteractWithBlock(@NonNullDecl InteractionType interactionType, @NonNullDecl InteractionContext interactionContext, @NullableDecl ItemStack itemStack, @NonNullDecl World world, @NonNullDecl Vector3i vector3i) {
 
     }
+
 }

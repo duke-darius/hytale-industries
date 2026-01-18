@@ -21,6 +21,8 @@ import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.core.util.FillerBlockUtil;
+import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -230,7 +232,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
                 continue;
             }
 
-            long excludedInventoryKey = packBlockPos(sx, sy, sz);
+            long excludedInventoryKey = packBlockPos(sourceInv.x, sourceInv.y, sourceInv.z);
             ItemContainer destination = findNearestInventory(world, pipeX, pipeY, pipeZ, excludedInventoryKey);
             if (destination == null) {
                 continue;
@@ -293,32 +295,98 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
     private static final class SourceInventory {
         final ItemContainer container;
         final BlockType blockType;
+        final int x;
+        final int y;
+        final int z;
 
-        SourceInventory(@Nonnull ItemContainer container, @Nullable BlockType blockType) {
+        SourceInventory(@Nonnull ItemContainer container, @Nullable BlockType blockType, int x, int y, int z) {
             this.container = container;
             this.blockType = blockType;
+            this.x = x;
+            this.y = y;
+            this.z = z;
         }
     }
 
     @Nullable
     private static SourceInventory getInventoryIfLoaded(@Nonnull World world, int x, int y, int z) {
-        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        int[] origin = resolveFillerOrigin(world, x, y, z);
+        int ox = origin[0], oy = origin[1], oz = origin[2];
+
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(ox, oz));
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(ox, oz));
+        }
         if (chunk == null) {
             return null;
         }
 
-        BlockState state = chunk.getState(x, y, z);
-        if (!(state instanceof ItemContainerBlockState inv)) {
+        BlockState state = chunk.getState(ox, oy, oz);
+        ItemContainerBlockState inv = null;
+        if (state instanceof ItemContainerBlockState icbs) {
+            inv = icbs;
+        } else {
+            // Fallback: load the block state from the component entity if present.
+            Ref<ChunkStore> ref = chunk.getBlockComponentEntity(ox & 31, oy, oz & 31);
+            if (ref != null) {
+                BlockState bs = BlockState.getBlockState(ref, ref.getStore());
+                if (bs instanceof ItemContainerBlockState ic) {
+                    inv = ic;
+                }
+            }
+        }
+        if (inv == null) {
+            // Multiblock fallback: search nearby blocks of the same block type for an ItemContainer.
+            BlockType neighborType = chunk.getBlockType(ox, oy, oz);
+            if (neighborType == null || neighborType.getId() == null) {
+                return null;
+            }
+            String typeId = neighborType.getId();
+            int[][] offsets = {
+                    {0, 0, 0},
+                    {1, 0, 0}, {-1, 0, 0},
+                    {0, 0, 1}, {0, 0, -1},
+                    {1, 0, 1}, {1, 0, -1}, {-1, 0, 1}, {-1, 0, -1},
+                    {0, 1, 0}, {0, -1, 0}
+            };
+            for (int[] off : offsets) {
+                int sx = ox + off[0];
+                int sy = oy + off[1];
+                int sz = oz + off[2];
+                if (sy < 0 || sy >= WORLD_MAX_Y_EXCLUSIVE) continue;
+                WorldChunk sc = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(sx, sz));
+                if (sc == null) {
+                    sc = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(sx, sz));
+                }
+                if (sc == null) continue;
+                BlockType bt = sc.getBlockType(sx & 31, sy, sz & 31);
+                if (bt == null || bt.getId() == null || !bt.getId().equals(typeId)) continue;
+                BlockState st = sc.getState(sx & 31, sy, sz & 31);
+                if (st instanceof ItemContainerBlockState inv2) {
+                    ItemContainer container2 = inv2.getItemContainer();
+                    if (container2 == null) continue;
+                    return new SourceInventory(container2, bt, sx, sy, sz);
+                }
+                // Fallback via component entity
+                Ref<ChunkStore> ref2 = sc.getBlockComponentEntity(sx & 31, sy, sz & 31);
+                if (ref2 != null) {
+                    BlockState bs2 = BlockState.getBlockState(ref2, ref2.getStore());
+                    if (bs2 instanceof ItemContainerBlockState ic3 && ic3.getItemContainer() != null) {
+                        return new SourceInventory(ic3.getItemContainer(), bt, sx, sy, sz);
+                    }
+                }
+            }
             return null;
         }
+
 
         ItemContainer container = inv.getItemContainer();
         if (container == null) {
             return null;
         }
 
-        BlockType blockType = chunk.getBlockType(x, y, z);
-        return new SourceInventory(container, blockType);
+        BlockType blockType = chunk.getBlockType(ox, oy, oz);
+        return new SourceInventory(container, blockType, ox, oy, oz);
     }
 
     @Nonnull
@@ -422,29 +490,35 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
                     continue;
                 }
 
-                WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));
+                int[] origin = resolveFillerOrigin(world, nx, ny, nz);
+                int ox = origin[0], oy = origin[1], oz = origin[2];
+
+                WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(ox, oz));
+                if (chunk == null) {
+                    chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(ox, oz));
+                }
                 if (chunk == null) {
                     continue;
                 }
+                BlockType neighborType = chunk.getBlockType(ox, oy, oz);
 
-                BlockType neighborType = chunk.getBlockType(nx, ny, nz);
                 if (isPipe(neighborType)) {
                     // Respect the neighbor's opposite face.
-                    if (!canTraverseFromPipe(world, nx, ny, nz, dir.opposite())) {
+                    if (!canTraverseFromPipe(world, ox, oy, oz, dir.opposite())) {
                         continue;
                     }
 
-                    long nkey = packBlockPos(nx, ny, nz);
+                    long nkey = packBlockPos(ox, oy, oz);
                     if (visited.add(nkey)) {
                         queue.enqueue(nkey);
                     }
                     continue;
                 }
 
-                // Non-pipe: see if it's an inventory. "None" disables connecting to inventories too.
-                BlockState state = chunk.getState(nx, ny, nz);
+                // Non-pipe: see if it's an inventory (multiblock-aware). "None" disables connecting to inventories too.
+                BlockState state = chunk.getState(ox, oy, oz);
                 if (state instanceof ItemContainerBlockState inv) {
-                    long invKey = packBlockPos(nx, ny, nz);
+                    long invKey = packBlockPos(ox, oy, oz);
                     if (invKey != excludedInventoryKey) {
                         return inv.getItemContainer();
                     }
@@ -482,5 +556,24 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
 
     private static int unpackY(long packed) {
         return (int) (packed & 0xFFFL);
+    }
+
+    // Resolve filler blocks to their origin block coordinates; returns {x,y,z}.
+    private static int[] resolveFillerOrigin(@Nonnull World world, int x, int y, int z) {
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
+        }
+        if (chunk == null) {
+            return new int[]{x, y, z};
+        }
+        int filler = chunk.getFiller(x & 31, y, z & 31);
+        if (filler == 0) {
+            return new int[]{x, y, z};
+        }
+        int dx = FillerBlockUtil.unpackX(filler);
+        int dy = FillerBlockUtil.unpackY(filler);
+        int dz = FillerBlockUtil.unpackZ(filler);
+        return new int[]{x - dx, y - dy, z - dz};
     }
 }

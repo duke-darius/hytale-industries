@@ -2,7 +2,6 @@ package dev.dukedarius.HytaleIndustries.ConnectedBlockRuleSets;
 
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
@@ -10,12 +9,16 @@ import com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBl
 import com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBlocksUtil;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
+import com.hypixel.hytale.server.core.util.FillerBlockUtil;
+import com.hypixel.hytale.math.vector.Vector3i;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.Direction;
 import dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.logging.Level;
 
 public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
 
@@ -74,6 +77,16 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
 
     private static int computeConnectionMask(World world, Vector3i pos) {
         int mask = 0;
+        WorldChunk chunkForSelf = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
+        if (chunkForSelf == null) {
+            PipeSideConfigStore.clear(pos.x, pos.y, pos.z);
+            return 0;
+        }
+        BlockType selfType = chunkForSelf.getBlockType(pos.x & 31, pos.y, pos.z & 31);
+        if (!isPipeBlockType(selfType)) {
+            PipeSideConfigStore.clear(pos.x, pos.y, pos.z);
+            return 0;
+        }
 
         int pipeCfg = PipeSideConfigStore.get(pos.x, pos.y, pos.z);
 
@@ -112,7 +125,10 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
             return false;
         }
 
-        long chunkIndex = ChunkUtil.indexChunkFromBlock(x, z);
+        int[] origin = resolveFillerOrigin(world, x, y, z);
+        int ox = origin[0], oy = origin[1], oz = origin[2];
+
+        long chunkIndex = ChunkUtil.indexChunkFromBlock(ox, oz);
 
         // We need state lookups for ItemContainerBlockState, which requires an in-memory chunk.
         WorldChunk chunk = world.getChunkIfInMemory(chunkIndex);
@@ -123,14 +139,46 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
             return false;
         }
 
-        BlockType neighbor = chunk.getBlockType(x & 31, y, z & 31);
+        BlockType neighbor = chunk.getBlockType(ox & 31, oy, oz & 31);
         if (isPipeBlockType(neighbor)) {
-            int otherCfg = PipeSideConfigStore.get(x, y, z);
+            int otherCfg = PipeSideConfigStore.get(ox, oy, oz);
             return ItemPipeBlockState.getConnectionStateFromSideConfig(otherCfg, dir.opposite()) != ItemPipeBlockState.ConnectionState.None;
         }
 
-        BlockState state = chunk.getState(x & 31, y, z & 31);
-        return state instanceof ItemContainerBlockState;
+        BlockState state = chunk.getState(ox & 31, oy, oz & 31);
+        if (state instanceof ItemContainerBlockState) {
+            return true;
+        }
+
+        // Multiblock support: some inventories only have the ItemContainerBlockState on one block of the multiblock.
+        // If the neighbor block type is the same across a small footprint, search nearby blocks of the same type
+        // for an ItemContainerBlockState.
+        if (neighbor != null && neighbor.getId() != null) {
+            String neighborId = neighbor.getId();
+            int[][] offsets = {
+                    {0, 0, 0},
+                    {1, 0, 0}, {-1, 0, 0},
+                    {0, 0, 1}, {0, 0, -1},
+                    {1, 0, 1}, {1, 0, -1}, {-1, 0, 1}, {-1, 0, -1},
+                    {0, 1, 0}, {0, -1, 0}
+            };
+            for (int[] off : offsets) {
+                int sx = ox + off[0];
+                int sy = oy + off[1];
+                int sz = oz + off[2];
+                if (sy < 0 || sy >= 320) continue;
+                WorldChunk sc = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(sx, sz));
+                if (sc == null) continue;
+                BlockType t = sc.getBlockType(sx & 31, sy, sz & 31);
+                if (t == null || t.getId() == null || !t.getId().equals(neighborId)) continue;
+                BlockState st = sc.getState(sx & 31, sy, sz & 31);
+                if (st instanceof ItemContainerBlockState) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
 
@@ -138,5 +186,21 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
         return blockType != null
                 && blockType.getState() != null
                 && ItemPipeBlockState.STATE_ID.equals(blockType.getState().getId());
+    }
+
+    // Resolve filler blocks to their origin block coordinates; returns {x,y,z}.
+    private static int[] resolveFillerOrigin(@Nonnull World world, int x, int y, int z) {
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) {
+            return new int[]{x, y, z};
+        }
+        int filler = chunk.getFiller(x & 31, y, z & 31);
+        if (filler == 0) {
+            return new int[]{x, y, z};
+        }
+        int dx = FillerBlockUtil.unpackX(filler);
+        int dy = FillerBlockUtil.unpackY(filler);
+        int dz = FillerBlockUtil.unpackZ(filler);
+        return new int[]{x - dx, y - dy, z - dz};
     }
 }
