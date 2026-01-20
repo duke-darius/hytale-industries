@@ -84,6 +84,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         }
     }
 
+
     private int getSideConfig() {
         WorldChunk c = getChunk();
         if (c != null) {
@@ -217,7 +218,10 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         if (ny < WORLD_MIN_Y || ny >= WORLD_MAX_Y_EXCLUSIVE) {
             return false;
         }
-        long chunkIndex = ChunkUtil.indexChunkFromBlock(nx, nz);
+        int[] origin = resolveFillerOrigin(world, nx, ny, nz);
+        int ox = origin[0], oy = origin[1], oz = origin[2];
+
+        long chunkIndex = ChunkUtil.indexChunkFromBlock(ox, oz);
         WorldChunk chunk = world.getChunkIfInMemory(chunkIndex);
         if (chunk == null) {
             chunk = world.getChunkIfLoaded(chunkIndex);
@@ -225,8 +229,18 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         if (chunk == null) {
             return false;
         }
-        BlockState st = chunk.getState(nx & 31, ny, nz & 31);
-        return st instanceof ItemContainerBlockState;
+        BlockState st = chunk.getState(ox & 31, oy, oz & 31);
+        if (st instanceof ItemContainerBlockState) {
+            return true;
+        }
+
+        // Fallback: check component entity for container at origin.
+        Ref<ChunkStore> ref = chunk.getBlockComponentEntity(ox & 31, oy, oz & 31);
+        if (ref != null) {
+            BlockState bs = BlockState.getBlockState(ref, ref.getStore());
+            return bs instanceof ItemContainerBlockState;
+        }
+        return false;
     }
 
     private boolean reconcileNeighborFaces() {
