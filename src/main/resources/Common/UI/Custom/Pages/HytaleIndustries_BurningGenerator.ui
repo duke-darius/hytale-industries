@@ -1,0 +1,35 @@
+$C = "../Common.ui";
+
+Group {
+  // Modal container-style UI (same style as the pipe config page).
+  Anchor: (Width: 320, Height: 190);
+
+  $C.@Container {
+    Anchor: (Full: 0);
+
+    #Title {
+      Group {
+        $C.@Title {
+          @Text = "Burning Generator";
+        }
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Left: 12, Right: 12, Top: 12, Bottom: 12);
+
+      $C.@Title #HeText {
+        @Alignment = Start;
+        @Text = "HE: 0 / 10000";
+      }
+
+      Group { Anchor: (Height: 12, Left: 0, Top: 0); }
+
+      $C.@TextButton #ViewContainerButton {
+        @Text = "View container";
+        Anchor: (Left: 0, Right: 0);
+      }
+    }
+  }
+}

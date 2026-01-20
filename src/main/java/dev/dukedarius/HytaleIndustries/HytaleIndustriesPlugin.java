@@ -10,11 +10,16 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import dev.dukedarius.HytaleIndustries.Commands.GetPipeStateCommand;
+import dev.dukedarius.HytaleIndustries.BlockStates.BurningGeneratorBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.SmallBatteryBlockState;
 import dev.dukedarius.HytaleIndustries.ConnectedBlockRuleSets.PipeConnectedBlockRuleSet;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 
 import dev.dukedarius.HytaleIndustries.Commands.SetPipeSideCommand;
+import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteraction;
+import dev.dukedarius.HytaleIndustries.Interactions.OpenSmallBatteryInteraction;
+
 import javax.annotation.Nonnull;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.LogRecord;
@@ -45,8 +50,13 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
         // interaction registers
         Interaction.CODEC.register("HytaleIndustries_ConfigurePipe", ConfigurePipeInteraction.class, ConfigurePipeInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenBurningGenerator", OpenBurningGeneratorInteraction.class, OpenBurningGeneratorInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenSmallBattery", OpenSmallBatteryInteraction.class, OpenSmallBatteryInteraction.CODEC);
 
         this.getBlockStateRegistry().registerBlockState(ItemPipeBlockState.class, ItemPipeBlockState.STATE_ID, ItemPipeBlockState.CODEC);
+        this.getBlockStateRegistry().registerBlockState(BurningGeneratorBlockState.class, BurningGeneratorBlockState.STATE_ID, BurningGeneratorBlockState.CODEC);
+        this.getBlockStateRegistry().registerBlockState(SmallBatteryBlockState.class, SmallBatteryBlockState.STATE_ID, SmallBatteryBlockState.CODEC);
+
         this.getCommandRegistry().registerCommand(new GetPipeStateCommand());
         this.getCommandRegistry().registerCommand(new SetPipeSideCommand());
 

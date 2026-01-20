@@ -1,0 +1,88 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_BurningGenerator.png",
+  "TranslationProperties": {
+    "Name": "Burning Generator",
+    "Description": "Consumes fuel items to generate HE."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlaceBurningGenerator_Root"
+  },
+  "InteractionConfig": {},
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.png",
+        "Weight": 1
+      }
+    ],
+    "Flags": {
+      "IsUsable": true,
+      "IsStackable": true
+    },
+    "Interactions": {
+      "Use": "HytaleIndustries_OpenBurningGenerator_Root"
+    },
+    "State": {
+      "Id": "burningGenerator",
+      "Definitions": {}
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "HytaleIndustries_BurningGenerator",
+        "Quality": 0,
+        "ItemId": "HytaleIndustries_BurningGenerator",
+        "Quantity": 1
+      }
+    },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Supporting": {
+      "Up": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "Down": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "North": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "South": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "East": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "West": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ]
+    },
+    "IgnoreSupportWhenPlaced": true,
+    "Group": "@Tech",
+    "Support": {},
+    "MaxSupportDistance": 0,
+    "SupportsRequiredFor": "Any"
+  },
+  "MaxStack": 64
+}
