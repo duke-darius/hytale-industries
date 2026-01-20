@@ -28,7 +28,11 @@
     },
     "State": {
       "Id": "burningGenerator",
-      "Definitions": {}
+      "Definitions": {
+        "testState": {
+          "CustomModelAnimation": "Blocks/Animations/HytaleIndustries_BurningGenerator_Test.blockyanim"
+        }
+      }
     },
     "Gathering": {
       "Breaking": {
@@ -84,5 +88,10 @@
     "MaxSupportDistance": 0,
     "SupportsRequiredFor": "Any"
   },
-  "MaxStack": 64
+  "MaxStack": 64,
+  "State": {
+    "burningGenerator": {
+      "BlockType": "HytaleIndustries_BurningGenerator"
+    }
+  }
 }

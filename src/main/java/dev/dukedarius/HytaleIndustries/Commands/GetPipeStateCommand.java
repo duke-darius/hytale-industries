@@ -26,9 +26,9 @@ public class GetPipeStateCommand extends AbstractPlayerCommand {
 
     public GetPipeStateCommand() {
         super("getPipeState", "Print ItemPipeBlockState at x y z: sideConfig and per-side states");
-        this.withOptionalArg("x", "X coordinate of the block", ArgTypes.INTEGER);
-        this.withOptionalArg("y", "Y coordinate of the block", ArgTypes.INTEGER);
-        this.withOptionalArg("z", "Z coordinate of the block", ArgTypes.INTEGER);
+        this.withRequiredArg("x", "X coordinate of the block", ArgTypes.INTEGER);
+        this.withRequiredArg("y", "Y coordinate of the block", ArgTypes.INTEGER);
+        this.withRequiredArg("z", "Z coordinate of the block", ArgTypes.INTEGER);
     }
 
 
@@ -42,6 +42,7 @@ public class GetPipeStateCommand extends AbstractPlayerCommand {
     ) {
         String[] parts = context.getInputString().trim().split("\\s+");
         int x, y, z;
+        context.sendMessage(Message.raw(context.getInputString()));
         if (parts.length >= 4) {
             try {
                 x = Integer.parseInt(parts[1]);

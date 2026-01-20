@@ -1,0 +1,20 @@
+$C = "../Common.ui";
+
+Group {
+  Anchor: (Width: 600, Height: 250);
+  LayoutMode: Top;
+  Background: (Color: #2a2a2a);
+
+
+  Label #Title { @Text = "Pipe HUD"; Style: (TextColor: #FFFFFF); }
+  Label #Coords { @Text = "Coords:"; Style: (TextColor: #CCCCCC); }
+  Label #Raw { @Text = "Raw:"; Style: (TextColor: #CCCCCC); }
+  Label #StateId { @Text = "State Id:"; Style: (TextColor: #CCCCCC); }
+  Label #North { @Text = "North:"; Style: (TextColor: #80C0FF); }
+  Label #South { @Text = "South:"; Style: (TextColor: #80C0FF); }
+  Label #East { @Text = "East:"; Style: (TextColor: #80C0FF); }
+  Label #West { @Text = "West:"; Style: (TextColor: #80C0FF); }
+  Label #Up { @Text = "Up:"; Style: (TextColor: #80C0FF); }
+  Label #Down { @Text = "Down:"; Style: (TextColor: #80C0FF); }
+
+}

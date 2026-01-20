@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import dev.dukedarius.HytaleIndustries.Commands.GetPipeStateCommand;
+import dev.dukedarius.HytaleIndustries.Commands.PipeHUDCommand;
 import dev.dukedarius.HytaleIndustries.BlockStates.BurningGeneratorBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.SmallBatteryBlockState;
@@ -17,6 +18,7 @@ import dev.dukedarius.HytaleIndustries.ConnectedBlockRuleSets.PipeConnectedBlock
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 
 import dev.dukedarius.HytaleIndustries.Commands.SetPipeSideCommand;
+import dev.dukedarius.HytaleIndustries.Commands.SetGeneratorStateCommand;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenSmallBatteryInteraction;
 
@@ -59,6 +61,8 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
         this.getCommandRegistry().registerCommand(new GetPipeStateCommand());
         this.getCommandRegistry().registerCommand(new SetPipeSideCommand());
+        this.getCommandRegistry().registerCommand(new PipeHUDCommand());
+        this.getCommandRegistry().registerCommand(new SetGeneratorStateCommand());
 
     }
 

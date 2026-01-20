@@ -45,10 +45,12 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
             Vector3i placementNormal,
             boolean isPlacement
     ) {
-        // Preserve the current state (default vs Extract).
-        boolean extract = ItemPipeBlockState.EXTRACT_STATE.equals(currentBlockType.getStateForBlock(currentBlockType));
-
         int mask = computeConnectionMask(world, testedCoordinate);
+
+        // Visual state is derived from the pipe's per-side config (Default/Extract/None),
+        // not from the current block type, so that changing a single side updates the model.
+        int pipeCfg = PipeSideConfigStore.get(testedCoordinate.x, testedCoordinate.y, testedCoordinate.z);
+        String stateSuffix = computeVisualStateSuffix(pipeCfg);
 
         // Players can place blocks with different rotation indices (yaw), but our generated
         // connection variants are authored in world-space (N/S/E/W/U/D). If we propagate the
@@ -61,10 +63,10 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
         String key;
         if (mask == 0) {
             String baseKey = "HytaleIndustries_ItemPipe";
-            key = extract ? ("*" + baseKey + "_" + ItemPipeBlockState.EXTRACT_STATE) : baseKey;
+            key = (stateSuffix != null) ? ("*" + baseKey + "_" + stateSuffix) : baseKey;
         } else {
             String baseKey = VARIANT_PREFIX + String.format("%02X", mask);
-            key = extract ? ("*" + baseKey + "_" + ItemPipeBlockState.EXTRACT_STATE) : baseKey;
+            key = (stateSuffix != null) ? ("*" + baseKey + "_" + stateSuffix) : baseKey;
         }
 
         // If the target block type isn't loaded, do NOT return it (ConnectedBlocksUtil will NPE on null BlockType).
@@ -73,6 +75,32 @@ public class PipeConnectedBlockRuleSet extends ConnectedBlockRuleSet {
         }
 
         return Optional.of(new ConnectedBlocksUtil.ConnectedBlockResult(key, outRotationIndex));
+    }
+
+    private static String computeVisualStateSuffix(int pipeCfg) {
+        // If exactly one side is configured to Extract, use a directional state (ExtractNorth, etc.)
+        // so the model can highlight that single arm. If multiple sides are Extract, fall back
+        // to the generic "Extract" state.
+        int extractCount = 0;
+        Direction only = null;
+
+        for (Direction d : Direction.values()) {
+            if (ItemPipeBlockState.getConnectionStateFromSideConfig(pipeCfg, d) == ItemPipeBlockState.ConnectionState.Extract) {
+                extractCount++;
+                if (extractCount == 1) {
+                    only = d;
+                }
+                if (extractCount > 1) {
+                    return ItemPipeBlockState.EXTRACT_STATE;
+                }
+            }
+        }
+
+        if (extractCount == 1 && only != null) {
+            return ItemPipeBlockState.EXTRACT_STATE + only.name();
+        }
+
+        return null;
     }
 
     private static int computeConnectionMask(World world, Vector3i pos) {

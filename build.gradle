@@ -82,12 +82,6 @@ tasks.register('generatePipeVariants') {
                                 IsUsable: true,
                                 IsStackable: true
                         ],
-                        TintUp: ['#007BFF'],
-                        TintDown: ['#007BFF'],
-                        TintNorth: ['#007BFF'],
-                        TintSouth: ['#007BFF'],
-                        TintWest: ['#007BFF'],
-                        TintEast: ['#007BFF'],
                         Interactions: [
                                 Use: 'HytaleIndustries_ConfigurePipe_Root'
                         ],
@@ -95,12 +89,6 @@ tasks.register('generatePipeVariants') {
                                 Id: 'itemPipe',
                                 Definitions: [
                                         Extract: [
-                                                TintUp: ['#FFA500'],
-                                                TintDown: ['#FFA500'],
-                                                TintNorth: ['#FFA500'],
-                                                TintSouth: ['#FFA500'],
-                                                TintWest: ['#FFA500'],
-                                                TintEast: ['#FFA500']
                                                 // CustomModel differs per variant.
                                         ]
                                 ]

@@ -38,6 +38,8 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
     // Per-side configuration encoded as 2 bits per direction (N,S,W,E,U,D).
     // 0 = Default, 1 = Extract, 2 = None (no connection).
     private int sideConfig = 0;
+    private boolean visualDirty = true;
+    private int lastLoggedRaw = -1;
 
     public static final Codec<ItemPipeBlockState> CODEC = BuilderCodec.builder(ItemPipeBlockState.class, ItemPipeBlockState::new, BlockState.BASE_CODEC)
             .append(new KeyedCodec<>("SideConfig", Codec.INTEGER), (s, v) -> s.sideConfig = v, s -> s.sideConfig)
@@ -98,10 +100,17 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
 
     public void setRawSideConfig(int raw) {
         sideConfig = raw;
+        visualDirty = true;
         WorldChunk c = getChunk();
         if (c != null) {
             PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), raw);
         }
+    }
+
+    public ItemPipeBlockState() {
+        super();
+        sideConfig = 0;
+        visualDirty = true;
     }
 
     public ConnectionState getConnectionState(Direction dir) {
@@ -126,6 +135,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         int cfg = getSideConfig();
         cfg = (cfg & ~mask) | (v << shift);
         sideConfig = cfg;
+        visualDirty = true;
 
         WorldChunk c = getChunk();
         if (c != null) {
@@ -173,9 +183,146 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
     private static final int[] DZ = {0, 0, 0, 0, 1, -1};
 
     private float secondsAccumulator = 0.0f;
+    private boolean initialized = false;
+
+    private boolean neighborIsPipe(@Nonnull World world, int x, int y, int z, @Nonnull Direction dir) {
+        int nx = x + dir.dx;
+        int ny = y + dir.dy;
+        int nz = z + dir.dz;
+        if (ny < WORLD_MIN_Y || ny >= WORLD_MAX_Y_EXCLUSIVE) {
+            return false;
+        }
+
+        long chunkIndex = ChunkUtil.indexChunkFromBlock(nx, nz);
+        WorldChunk chunk = world.getChunkIfInMemory(chunkIndex);
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(chunkIndex);
+        }
+        if (chunk == null) {
+            return false;
+        }
+
+        BlockType neighborType = chunk.getBlockType(nx & 31, ny, nz & 31);
+        if (neighborType != null && neighborType.getState() != null && STATE_ID.equals(neighborType.getState().getId())) {
+            int otherCfg = PipeSideConfigStore.get(nx, ny, nz);
+            return getConnectionStateFromSideConfig(otherCfg, dir.opposite()) != ConnectionState.None;
+        }
+        return false;
+    }
+
+    private boolean neighborIsInventory(@Nonnull World world, int x, int y, int z, @Nonnull Direction dir) {
+        int nx = x + dir.dx;
+        int ny = y + dir.dy;
+        int nz = z + dir.dz;
+        if (ny < WORLD_MIN_Y || ny >= WORLD_MAX_Y_EXCLUSIVE) {
+            return false;
+        }
+        long chunkIndex = ChunkUtil.indexChunkFromBlock(nx, nz);
+        WorldChunk chunk = world.getChunkIfInMemory(chunkIndex);
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(chunkIndex);
+        }
+        if (chunk == null) {
+            return false;
+        }
+        BlockState st = chunk.getState(nx & 31, ny, nz & 31);
+        return st instanceof ItemContainerBlockState;
+    }
+
+    private boolean reconcileNeighborFaces() {
+        WorldChunk chunk = getChunk();
+        if (chunk == null) return false;
+        World world = chunk.getWorld();
+
+        int cfg = getSideConfig();
+        int original = cfg;
+        for (Direction d : Direction.values()) {
+            ConnectionState cs = getConnectionStateFromSideConfig(cfg, d);
+            boolean canPipe = neighborIsPipe(world, getBlockX(), getBlockY(), getBlockZ(), d);
+            boolean canInv = neighborIsInventory(world, getBlockX(), getBlockY(), getBlockZ(), d);
+            if (cs == ConnectionState.Default && !(canPipe || canInv)) {
+                setConnectionState(d, ConnectionState.None);
+                cfg = sideConfig;
+            } else if (cs == ConnectionState.None && canPipe) {
+                setConnectionState(d, ConnectionState.Default);
+                cfg = sideConfig;
+            }
+        }
+        return cfg != original;
+    }
+    private void applyAnimationState() {
+        visualDirty = false;
+        WorldChunk chunk = getChunk();
+        if (chunk == null) {
+            return;
+        }
+        int lx = getBlockX() & 31;
+        int lz = getBlockZ() & 31;
+        BlockType blockType = chunk.getBlockType(lx, getBlockY(), lz);
+        if (blockType == null) {
+            return;
+        }
+        int currentRot = chunk.getRotationIndex(lx, getBlockY(), lz);
+        if (currentRot != 0) {
+            int settings = 64 | 256 | 4 | 2;
+            int filler = chunk.getFiller(lx, getBlockY(), lz);
+            int blockId = chunk.getBlock(lx, getBlockY(), lz);
+            chunk.setBlock(lx, getBlockY(), lz, blockId, blockType, 0, filler, settings);
+        }
+        int raw = getSideConfig();
+        String stateName = String.format("State%03d", raw);
+        chunk.setBlockInteractionState(getBlockX(), getBlockY(), getBlockZ(), blockType, stateName, true);
+        chunk.markNeedsSaving();
+        if (raw != lastLoggedRaw) {
+            HytaleIndustriesPlugin.LOGGER.atInfo().log("[ItemPipe] applied state " + stateName + " at (" + getBlockX() + "," + getBlockY() + "," + getBlockZ() + ")");
+            lastLoggedRaw = raw;
+        }
+    }
+
+    private void applyNow() {
+        if (reconcileNeighborFaces()) {
+            visualDirty = true;
+        }
+        if (visualDirty) {
+            applyAnimationState();
+        }
+    }
+
 
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<ChunkStore> archetypeChunk, @Nonnull Store<ChunkStore> store, @Nonnull CommandBuffer<ChunkStore> commandBuffer) {
+        WorldChunk chunk = getChunk();
+        if (chunk == null) {
+            return;
+        }
+        int lx = getBlockX() & 31;
+        int lz = getBlockZ() & 31;
+        BlockType blockType = chunk.getBlockType(lx, getBlockY(), lz);
+        if (blockType == null || blockType.getState() == null || !STATE_ID.equals(blockType.getState().getId())) {
+            PipeSideConfigStore.clear(getBlockX(), getBlockY(), getBlockZ());
+            return;
+        }
+        if (!initialized) {
+            sideConfig = 0;
+            PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), sideConfig);
+            initialized = true;
+            reconcileNeighborFaces();
+            visualDirty = true;
+            applyAnimationState();
+            return;
+        }
+        World world = chunk.getWorld();
+        int stored = PipeSideConfigStore.getOrDefault(getBlockX(), getBlockY(), getBlockZ(), sideConfig);
+        if (stored != sideConfig) {
+            sideConfig = stored;
+            visualDirty = true;
+        }
+        if (reconcileNeighborFaces()) {
+            visualDirty = true;
+        }
+        if (visualDirty) {
+            applyAnimationState();
+        }
         // Only run once per second.
         secondsAccumulator += dt;
         if (secondsAccumulator < 1.0f) {
@@ -183,12 +330,6 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         }
         // If the server lags and dt is large, don't "catch up" by moving many times.
         secondsAccumulator = 0.0f;
-
-        WorldChunk chunk = getChunk();
-        if (chunk == null) {
-            return;
-        }
-        World world = chunk.getWorld();
 
         // Only do work when at least one side is configured to Extract.
         if (!hasAnyExtractSide()) {
@@ -462,6 +603,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
 
         return moved;
     }
+
 
     @Nullable
     private static ItemContainer findNearestInventory(@Nonnull World world, int startPipeX, int startPipeY, int startPipeZ, long excludedInventoryKey) {

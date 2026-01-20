@@ -59,11 +59,11 @@
       "orientation": {"x": 0, "y": 0, "z": 0, "w": 1},
       "shape": {
         "type": "box",
-        "offset": {"x": 8, "y": 8, "z": 5.5},
+        "offset": {"x": 8, "y": 8, "z": 6},
         "stretch": {"x": 1, "y": 1, "z": 1},
         "settings": {
           "isPiece": false,
-          "size": {"x": 4, "y": 4, "z": 13},
+          "size": {"x": 4, "y": 4, "z": 14},
           "isStaticBox": true
         },
         "textureLayout": {
@@ -111,11 +111,11 @@
       "orientation": {"x": 0, "y": 0, "z": 0, "w": 1},
       "shape": {
         "type": "box",
-        "offset": {"x": 8, "y": 8, "z": 17},
+        "offset": {"x": 8, "y": 8, "z": 17.5},
         "stretch": {"x": 1, "y": 1, "z": 1},
         "settings": {
           "isPiece": false,
-          "size": {"x": 4, "y": 4, "z": 12},
+          "size": {"x": 4, "y": 4, "z": 13},
           "isStaticBox": true
         },
         "textureLayout": {
@@ -163,11 +163,11 @@
       "orientation": {"x": 0, "y": 0.70711, "z": 0, "w": 0.70711},
       "shape": {
         "type": "box",
-        "offset": {"x": -8, "y": 8, "z": 17},
+        "offset": {"x": -8, "y": 8, "z": 17.5},
         "stretch": {"x": 1, "y": 1, "z": 1},
         "settings": {
           "isPiece": false,
-          "size": {"x": 4, "y": 4, "z": 12},
+          "size": {"x": 4, "y": 4, "z": 13},
           "isStaticBox": true
         },
         "textureLayout": {
@@ -211,15 +211,15 @@
     {
       "id": "5",
       "name": "arm_west",
-      "position": {"x": -14, "y": 8, "z": -8},
+      "position": {"x": -15, "y": 8, "z": -8},
       "orientation": {"x": 0, "y": 0.70711, "z": 0, "w": 0.70711},
       "shape": {
         "type": "box",
-        "offset": {"x": -8, "y": 8, "z": 5},
+        "offset": {"x": -8, "y": 8, "z": 5.5},
         "stretch": {"x": 1, "y": 1, "z": 1},
         "settings": {
           "isPiece": false,
-          "size": {"x": 4, "y": 4, "z": 12},
+          "size": {"x": 4, "y": 4, "z": 13},
           "isStaticBox": true
         },
         "textureLayout": {
