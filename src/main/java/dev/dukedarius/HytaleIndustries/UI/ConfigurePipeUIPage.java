@@ -25,8 +25,10 @@ import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.PowerCableBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.ConnectionState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.Direction;
+import dev.dukedarius.HytaleIndustries.Pipes.SideConfigurableConduit;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
 import javax.annotation.Nullable;
@@ -90,21 +92,41 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         if (stateRef == null) {
             return;
         }
-        ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
-        if (type == null) {
+
+        SideConfigurableConduit conduit = null;
+
+        var st = world.getState(x, y, z, true);
+        if (st instanceof ItemPipeBlockState) {
+            ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
+            if (type == null) {
+                return;
+            }
+            ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
+            if (pipe == null) {
+                return;
+            }
+            pipe.cycleConnectionState(dir);
+            stateRef.getStore().replaceComponent(stateRef, type, pipe);
+            conduit = pipe;
+        } else if (st instanceof PowerCableBlockState) {
+            ComponentType<ChunkStore, PowerCableBlockState> type = BlockStateModule.get().getComponentType(PowerCableBlockState.class);
+            if (type == null) {
+                return;
+            }
+            PowerCableBlockState cable = stateRef.getStore().getComponent(stateRef, type);
+            if (cable == null) {
+                return;
+            }
+            cable.cycleConnectionState(dir);
+            stateRef.getStore().replaceComponent(stateRef, type, cable);
+            conduit = cable;
+        } else {
             return;
         }
 
-        ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
-        if (pipe == null) {
-            return;
-        }
-
-        pipe.cycleConnectionState(dir);
-        stateRef.getStore().replaceComponent(stateRef, type, pipe);
         chunk.markNeedsSaving();
 
-        LOGGER.atInfo().log("Pipe UI changed " + dir + " at (" + x + "," + y + "," + z + ") state sideConfig now " + pipe.getConnectionState(dir));
+        LOGGER.atInfo().log("Conduit UI changed " + dir + " at (" + x + "," + y + "," + z + ") state sideConfig now " + conduit.getConnectionState(dir));
         // Refresh just this pipe's connected-block model, while restoring its sideConfig afterward.
         refreshSinglePipeWithRestore(world, x, y, z);
         // Do not force connected-block swap here; models will update on a natural block update.
@@ -129,8 +151,8 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         setNeighborSlot(cmd, world, x, y, z, Direction.Up, "#UpBlockButton", "#UpBlock");
         setNeighborSlot(cmd, world, x, y, z, Direction.Down, "#DownBlockButton", "#DownBlock");
 
-        // Color the border/background based on the current pipe BlockState component.
-        ItemPipeBlockState pipe = getPipeState(world, x, y, z);
+        // Color the border/background based on the current conduit BlockState component.
+        SideConfigurableConduit pipe = getConduitState(world, x, y, z);
         setSideBackground(cmd, pipe, Direction.North, "#NorthBlockBorder");
         setSideBackground(cmd, pipe, Direction.South, "#SouthBlockBorder");
         setSideBackground(cmd, pipe, Direction.West, "#WestBlockBorder");
@@ -162,13 +184,13 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
 
     private static void setSideBackground(
             @NonNullDecl UICommandBuilder cmd,
-            @Nullable ItemPipeBlockState pipe,
+            @Nullable SideConfigurableConduit conduit,
             @NonNullDecl Direction dir,
             @NonNullDecl String borderSelector
     ) {
         String color = COLOR_DEFAULT;
-        if (pipe != null) {
-            ConnectionState state = pipe.getConnectionState(dir);
+        if (conduit != null) {
+            ConnectionState state = conduit.getConnectionState(dir);
             if (state == ConnectionState.Extract) {
                 color = COLOR_EXTRACT;
             } else if (state == ConnectionState.None) {
@@ -180,7 +202,7 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
     }
 
     @Nullable
-    private static ItemPipeBlockState getPipeState(@NonNullDecl World world, int x, int y, int z) {
+    private static SideConfigurableConduit getConduitState(@NonNullDecl World world, int x, int y, int z) {
         WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
         if (chunk == null) {
             return null;
@@ -195,16 +217,34 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
             return null;
         }
 
-        ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
-        if (type == null) {
-            return null;
+        var st = world.getState(x, y, z, true);
+        if (st instanceof ItemPipeBlockState) {
+            ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
+            if (type == null) {
+                return null;
+            }
+            ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
+            if (pipe == null) {
+                dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
+                return null;
+            }
+            return pipe;
         }
-        ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
-        if (pipe == null) {
-            dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
-            return null;
+
+        if (st instanceof PowerCableBlockState) {
+            ComponentType<ChunkStore, PowerCableBlockState> type = BlockStateModule.get().getComponentType(PowerCableBlockState.class);
+            if (type == null) {
+                return null;
+            }
+            PowerCableBlockState cable = stateRef.getStore().getComponent(stateRef, type);
+            if (cable == null) {
+                dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
+                return null;
+            }
+            return cable;
         }
-        return pipe;
+
+        return null;
     }
 
     private static void refreshSinglePipeWithRestore(@NonNullDecl World world, int x, int y, int z) {
@@ -227,7 +267,6 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
             int rotIndex = chunk.getRotationIndex(lx, y, lz);
             int settings = 64 | 256 | 4 | 2; // invalidate, block update, no particles, keep state
             boolean changed = chunk.setBlock(lx, y, lz, blockId, current, rotIndex, 0, settings);
-            LOGGER.atInfo().log("Force WorldChunk.setBlock at " + pos + " changed=" + changed + " rot=" + rotIndex);
 
             if (!changed) {
                 // Compute desired variant and apply directly.
@@ -239,21 +278,32 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
                         BlockType newType = BlockType.getAssetMap().getAsset(newId);
                         int newRot = r.rotationIndex();
                         boolean forced = chunk.setBlock(lx, y, lz, newId, newType, newRot, 0, settings);
-                        LOGGER.atInfo().log("Force apply desired variant at " + pos + " type=" + r.blockTypeKey() + " rot=" + newRot + " changed=" + forced);
                     }
                 }
             }
         }
 
-        // Restore saved sideConfig to this pipe (in case block swap recreated BlockState) and put back in store.
+        // Restore saved sideConfig to this conduit (in case block swap recreated BlockState) and put back in store.
         Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(lx, y, lz);
         if (stateRef != null) {
-            ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
-            if (type != null) {
-                ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
-                if (pipe != null) {
-                    pipe.setRawSideConfig(savedCfg);
-                    stateRef.getStore().replaceComponent(stateRef, type, pipe);
+            var st = world.getState(x, y, z, true);
+            if (st instanceof ItemPipeBlockState) {
+                ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
+                if (type != null) {
+                    ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
+                    if (pipe != null) {
+                        pipe.setRawSideConfig(savedCfg);
+                        stateRef.getStore().replaceComponent(stateRef, type, pipe);
+                    }
+                }
+            } else if (st instanceof PowerCableBlockState) {
+                ComponentType<ChunkStore, PowerCableBlockState> type = BlockStateModule.get().getComponentType(PowerCableBlockState.class);
+                if (type != null) {
+                    PowerCableBlockState cable = stateRef.getStore().getComponent(stateRef, type);
+                    if (cable != null) {
+                        cable.setRawSideConfig(savedCfg);
+                        stateRef.getStore().replaceComponent(stateRef, type, cable);
+                    }
                 }
             }
         }

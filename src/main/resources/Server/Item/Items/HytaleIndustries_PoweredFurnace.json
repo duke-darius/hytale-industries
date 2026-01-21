@@ -1,0 +1,95 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_BurningGenerator.png",
+  "TranslationProperties": {
+    "Name": "Powered Furnace",
+    "Description": "Smelts using HE at 2x speed."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlacePoweredFurnace_Root"
+  },
+  "InteractionConfig": {},
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.png",
+        "Weight": 1
+      }
+    ],
+    "Flags": {
+      "IsUsable": true,
+      "IsStackable": true
+    },
+    "Interactions": {
+      "Use": "HytaleIndustries_OpenPoweredFurnace_Root"
+    },
+    "State": {
+      "Id": "poweredFurnace",
+      "Definitions": {
+        "default": {}
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "HytaleIndustries_PoweredFurnace",
+        "Quality": 0,
+        "ItemId": "HytaleIndustries_PoweredFurnace",
+        "Quantity": 1
+      }
+    },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Supporting": {
+      "Up": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "Down": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "North": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "South": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "East": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "West": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ]
+    },
+    "IgnoreSupportWhenPlaced": true,
+    "Group": "@Tech",
+    "Support": {},
+    "MaxSupportDistance": 0,
+    "SupportsRequiredFor": "Any"
+  },
+  "MaxStack": 64,
+  "State": {
+    "poweredFurnace": {
+      "BlockType": "HytaleIndustries_PoweredFurnace"
+    }
+  }
+}

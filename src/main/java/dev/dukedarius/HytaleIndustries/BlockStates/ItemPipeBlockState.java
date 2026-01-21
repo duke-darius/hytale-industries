@@ -24,13 +24,14 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore;
+import dev.dukedarius.HytaleIndustries.Pipes.SideConfigurableConduit;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class ItemPipeBlockState extends BlockState implements TickableBlockState {
+public class ItemPipeBlockState extends BlockState implements TickableBlockState, SideConfigurableConduit {
 
     public static final String STATE_ID = "itemPipe";
     public static final String EXTRACT_STATE = "Extract";
@@ -288,7 +289,6 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         chunk.setBlockInteractionState(getBlockX(), getBlockY(), getBlockZ(), blockType, stateName, true);
         chunk.markNeedsSaving();
         if (raw != lastLoggedRaw) {
-            HytaleIndustriesPlugin.LOGGER.atInfo().log("[ItemPipe] applied state " + stateName + " at (" + getBlockX() + "," + getBlockY() + "," + getBlockZ() + ")");
             lastLoggedRaw = raw;
         }
     }

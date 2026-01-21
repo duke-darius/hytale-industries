@@ -1,0 +1,2302 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PowerCable.png",
+  "TranslationProperties": {
+    "Name": "Power Cable",
+    "Description": "Transfers HE power between machines through connected cables."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlacePowerCable_Root"
+  },
+  "InteractionConfig": {},
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_PowerCable/HytaleIndustries_PowerCable.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_PowerCable/HytaleIndustries_PowerCable.png",
+        "Weight": 1
+      }
+    ],
+    "Flags": {
+      "IsUsable": true,
+      "IsStackable": true
+    },
+    "Interactions": {
+      "Use": "HytaleIndustries_ConfigurePipe_Root"
+    },
+    "State": {
+      "Id": "powerCable",
+      "Definitions": {
+        "State000": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_000.blockyanim"
+        },
+        "State001": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_001.blockyanim"
+        },
+        "State002": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_002.blockyanim"
+        },
+        "State004": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_004.blockyanim"
+        },
+        "State005": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_005.blockyanim"
+        },
+        "State006": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_006.blockyanim"
+        },
+        "State008": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_008.blockyanim"
+        },
+        "State009": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_009.blockyanim"
+        },
+        "State010": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_010.blockyanim"
+        },
+        "State016": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_016.blockyanim"
+        },
+        "State017": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_017.blockyanim"
+        },
+        "State018": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_018.blockyanim"
+        },
+        "State020": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_020.blockyanim"
+        },
+        "State021": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_021.blockyanim"
+        },
+        "State022": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_022.blockyanim"
+        },
+        "State024": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_024.blockyanim"
+        },
+        "State025": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_025.blockyanim"
+        },
+        "State026": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_026.blockyanim"
+        },
+        "State032": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_032.blockyanim"
+        },
+        "State033": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_033.blockyanim"
+        },
+        "State034": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_034.blockyanim"
+        },
+        "State036": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_036.blockyanim"
+        },
+        "State037": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_037.blockyanim"
+        },
+        "State038": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_038.blockyanim"
+        },
+        "State040": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_040.blockyanim"
+        },
+        "State041": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_041.blockyanim"
+        },
+        "State042": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_042.blockyanim"
+        },
+        "State064": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_064.blockyanim"
+        },
+        "State065": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_065.blockyanim"
+        },
+        "State066": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_066.blockyanim"
+        },
+        "State068": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_068.blockyanim"
+        },
+        "State069": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_069.blockyanim"
+        },
+        "State070": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_070.blockyanim"
+        },
+        "State072": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_072.blockyanim"
+        },
+        "State073": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_073.blockyanim"
+        },
+        "State074": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_074.blockyanim"
+        },
+        "State080": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_080.blockyanim"
+        },
+        "State081": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_081.blockyanim"
+        },
+        "State082": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_082.blockyanim"
+        },
+        "State084": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_084.blockyanim"
+        },
+        "State085": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_085.blockyanim"
+        },
+        "State086": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_086.blockyanim"
+        },
+        "State088": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_088.blockyanim"
+        },
+        "State089": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_089.blockyanim"
+        },
+        "State090": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_090.blockyanim"
+        },
+        "State096": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_096.blockyanim"
+        },
+        "State097": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_097.blockyanim"
+        },
+        "State098": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_098.blockyanim"
+        },
+        "State100": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_100.blockyanim"
+        },
+        "State101": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_101.blockyanim"
+        },
+        "State102": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_102.blockyanim"
+        },
+        "State104": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_104.blockyanim"
+        },
+        "State105": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_105.blockyanim"
+        },
+        "State106": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_106.blockyanim"
+        },
+        "State128": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_128.blockyanim"
+        },
+        "State129": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_129.blockyanim"
+        },
+        "State130": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_130.blockyanim"
+        },
+        "State132": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_132.blockyanim"
+        },
+        "State133": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_133.blockyanim"
+        },
+        "State134": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_134.blockyanim"
+        },
+        "State136": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_136.blockyanim"
+        },
+        "State137": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_137.blockyanim"
+        },
+        "State138": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_138.blockyanim"
+        },
+        "State144": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_144.blockyanim"
+        },
+        "State145": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_145.blockyanim"
+        },
+        "State146": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_146.blockyanim"
+        },
+        "State148": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_148.blockyanim"
+        },
+        "State149": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_149.blockyanim"
+        },
+        "State150": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_150.blockyanim"
+        },
+        "State152": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_152.blockyanim"
+        },
+        "State153": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_153.blockyanim"
+        },
+        "State154": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_154.blockyanim"
+        },
+        "State160": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_160.blockyanim"
+        },
+        "State161": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_161.blockyanim"
+        },
+        "State162": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_162.blockyanim"
+        },
+        "State164": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_164.blockyanim"
+        },
+        "State165": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_165.blockyanim"
+        },
+        "State166": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_166.blockyanim"
+        },
+        "State168": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_168.blockyanim"
+        },
+        "State169": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_169.blockyanim"
+        },
+        "State170": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_170.blockyanim"
+        },
+        "State256": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_256.blockyanim"
+        },
+        "State257": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_257.blockyanim"
+        },
+        "State258": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_258.blockyanim"
+        },
+        "State260": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_260.blockyanim"
+        },
+        "State261": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_261.blockyanim"
+        },
+        "State262": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_262.blockyanim"
+        },
+        "State264": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_264.blockyanim"
+        },
+        "State265": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_265.blockyanim"
+        },
+        "State266": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_266.blockyanim"
+        },
+        "State272": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_272.blockyanim"
+        },
+        "State273": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_273.blockyanim"
+        },
+        "State274": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_274.blockyanim"
+        },
+        "State276": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_276.blockyanim"
+        },
+        "State277": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_277.blockyanim"
+        },
+        "State278": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_278.blockyanim"
+        },
+        "State280": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_280.blockyanim"
+        },
+        "State281": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_281.blockyanim"
+        },
+        "State282": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_282.blockyanim"
+        },
+        "State288": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_288.blockyanim"
+        },
+        "State289": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_289.blockyanim"
+        },
+        "State290": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_290.blockyanim"
+        },
+        "State292": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_292.blockyanim"
+        },
+        "State293": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_293.blockyanim"
+        },
+        "State294": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_294.blockyanim"
+        },
+        "State296": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_296.blockyanim"
+        },
+        "State297": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_297.blockyanim"
+        },
+        "State298": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_298.blockyanim"
+        },
+        "State320": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_320.blockyanim"
+        },
+        "State321": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_321.blockyanim"
+        },
+        "State322": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_322.blockyanim"
+        },
+        "State324": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_324.blockyanim"
+        },
+        "State325": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_325.blockyanim"
+        },
+        "State326": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_326.blockyanim"
+        },
+        "State328": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_328.blockyanim"
+        },
+        "State329": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_329.blockyanim"
+        },
+        "State330": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_330.blockyanim"
+        },
+        "State336": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_336.blockyanim"
+        },
+        "State337": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_337.blockyanim"
+        },
+        "State338": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_338.blockyanim"
+        },
+        "State340": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_340.blockyanim"
+        },
+        "State341": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_341.blockyanim"
+        },
+        "State342": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_342.blockyanim"
+        },
+        "State344": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_344.blockyanim"
+        },
+        "State345": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_345.blockyanim"
+        },
+        "State346": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_346.blockyanim"
+        },
+        "State352": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_352.blockyanim"
+        },
+        "State353": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_353.blockyanim"
+        },
+        "State354": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_354.blockyanim"
+        },
+        "State356": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_356.blockyanim"
+        },
+        "State357": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_357.blockyanim"
+        },
+        "State358": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_358.blockyanim"
+        },
+        "State360": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_360.blockyanim"
+        },
+        "State361": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_361.blockyanim"
+        },
+        "State362": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_362.blockyanim"
+        },
+        "State384": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_384.blockyanim"
+        },
+        "State385": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_385.blockyanim"
+        },
+        "State386": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_386.blockyanim"
+        },
+        "State388": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_388.blockyanim"
+        },
+        "State389": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_389.blockyanim"
+        },
+        "State390": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_390.blockyanim"
+        },
+        "State392": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_392.blockyanim"
+        },
+        "State393": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_393.blockyanim"
+        },
+        "State394": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_394.blockyanim"
+        },
+        "State400": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_400.blockyanim"
+        },
+        "State401": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_401.blockyanim"
+        },
+        "State402": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_402.blockyanim"
+        },
+        "State404": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_404.blockyanim"
+        },
+        "State405": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_405.blockyanim"
+        },
+        "State406": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_406.blockyanim"
+        },
+        "State408": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_408.blockyanim"
+        },
+        "State409": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_409.blockyanim"
+        },
+        "State410": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_410.blockyanim"
+        },
+        "State416": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_416.blockyanim"
+        },
+        "State417": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_417.blockyanim"
+        },
+        "State418": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_418.blockyanim"
+        },
+        "State420": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_420.blockyanim"
+        },
+        "State421": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_421.blockyanim"
+        },
+        "State422": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_422.blockyanim"
+        },
+        "State424": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_424.blockyanim"
+        },
+        "State425": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_425.blockyanim"
+        },
+        "State426": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_426.blockyanim"
+        },
+        "State512": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_512.blockyanim"
+        },
+        "State513": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_513.blockyanim"
+        },
+        "State514": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_514.blockyanim"
+        },
+        "State516": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_516.blockyanim"
+        },
+        "State517": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_517.blockyanim"
+        },
+        "State518": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_518.blockyanim"
+        },
+        "State520": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_520.blockyanim"
+        },
+        "State521": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_521.blockyanim"
+        },
+        "State522": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_522.blockyanim"
+        },
+        "State528": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_528.blockyanim"
+        },
+        "State529": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_529.blockyanim"
+        },
+        "State530": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_530.blockyanim"
+        },
+        "State532": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_532.blockyanim"
+        },
+        "State533": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_533.blockyanim"
+        },
+        "State534": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_534.blockyanim"
+        },
+        "State536": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_536.blockyanim"
+        },
+        "State537": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_537.blockyanim"
+        },
+        "State538": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_538.blockyanim"
+        },
+        "State544": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_544.blockyanim"
+        },
+        "State545": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_545.blockyanim"
+        },
+        "State546": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_546.blockyanim"
+        },
+        "State548": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_548.blockyanim"
+        },
+        "State549": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_549.blockyanim"
+        },
+        "State550": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_550.blockyanim"
+        },
+        "State552": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_552.blockyanim"
+        },
+        "State553": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_553.blockyanim"
+        },
+        "State554": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_554.blockyanim"
+        },
+        "State576": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_576.blockyanim"
+        },
+        "State577": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_577.blockyanim"
+        },
+        "State578": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_578.blockyanim"
+        },
+        "State580": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_580.blockyanim"
+        },
+        "State581": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_581.blockyanim"
+        },
+        "State582": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_582.blockyanim"
+        },
+        "State584": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_584.blockyanim"
+        },
+        "State585": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_585.blockyanim"
+        },
+        "State586": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_586.blockyanim"
+        },
+        "State592": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_592.blockyanim"
+        },
+        "State593": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_593.blockyanim"
+        },
+        "State594": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_594.blockyanim"
+        },
+        "State596": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_596.blockyanim"
+        },
+        "State597": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_597.blockyanim"
+        },
+        "State598": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_598.blockyanim"
+        },
+        "State600": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_600.blockyanim"
+        },
+        "State601": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_601.blockyanim"
+        },
+        "State602": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_602.blockyanim"
+        },
+        "State608": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_608.blockyanim"
+        },
+        "State609": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_609.blockyanim"
+        },
+        "State610": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_610.blockyanim"
+        },
+        "State612": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_612.blockyanim"
+        },
+        "State613": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_613.blockyanim"
+        },
+        "State614": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_614.blockyanim"
+        },
+        "State616": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_616.blockyanim"
+        },
+        "State617": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_617.blockyanim"
+        },
+        "State618": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_618.blockyanim"
+        },
+        "State640": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_640.blockyanim"
+        },
+        "State641": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_641.blockyanim"
+        },
+        "State642": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_642.blockyanim"
+        },
+        "State644": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_644.blockyanim"
+        },
+        "State645": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_645.blockyanim"
+        },
+        "State646": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_646.blockyanim"
+        },
+        "State648": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_648.blockyanim"
+        },
+        "State649": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_649.blockyanim"
+        },
+        "State650": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_650.blockyanim"
+        },
+        "State656": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_656.blockyanim"
+        },
+        "State657": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_657.blockyanim"
+        },
+        "State658": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_658.blockyanim"
+        },
+        "State660": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_660.blockyanim"
+        },
+        "State661": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_661.blockyanim"
+        },
+        "State662": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_662.blockyanim"
+        },
+        "State664": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_664.blockyanim"
+        },
+        "State665": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_665.blockyanim"
+        },
+        "State666": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_666.blockyanim"
+        },
+        "State672": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_672.blockyanim"
+        },
+        "State673": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_673.blockyanim"
+        },
+        "State674": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_674.blockyanim"
+        },
+        "State676": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_676.blockyanim"
+        },
+        "State677": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_677.blockyanim"
+        },
+        "State678": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_678.blockyanim"
+        },
+        "State680": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_680.blockyanim"
+        },
+        "State681": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_681.blockyanim"
+        },
+        "State682": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_682.blockyanim"
+        },
+        "State1024": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1024.blockyanim"
+        },
+        "State1025": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1025.blockyanim"
+        },
+        "State1026": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1026.blockyanim"
+        },
+        "State1028": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1028.blockyanim"
+        },
+        "State1029": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1029.blockyanim"
+        },
+        "State1030": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1030.blockyanim"
+        },
+        "State1032": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1032.blockyanim"
+        },
+        "State1033": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1033.blockyanim"
+        },
+        "State1034": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1034.blockyanim"
+        },
+        "State1040": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1040.blockyanim"
+        },
+        "State1041": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1041.blockyanim"
+        },
+        "State1042": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1042.blockyanim"
+        },
+        "State1044": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1044.blockyanim"
+        },
+        "State1045": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1045.blockyanim"
+        },
+        "State1046": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1046.blockyanim"
+        },
+        "State1048": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1048.blockyanim"
+        },
+        "State1049": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1049.blockyanim"
+        },
+        "State1050": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1050.blockyanim"
+        },
+        "State1056": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1056.blockyanim"
+        },
+        "State1057": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1057.blockyanim"
+        },
+        "State1058": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1058.blockyanim"
+        },
+        "State1060": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1060.blockyanim"
+        },
+        "State1061": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1061.blockyanim"
+        },
+        "State1062": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1062.blockyanim"
+        },
+        "State1064": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1064.blockyanim"
+        },
+        "State1065": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1065.blockyanim"
+        },
+        "State1066": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1066.blockyanim"
+        },
+        "State1088": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1088.blockyanim"
+        },
+        "State1089": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1089.blockyanim"
+        },
+        "State1090": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1090.blockyanim"
+        },
+        "State1092": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1092.blockyanim"
+        },
+        "State1093": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1093.blockyanim"
+        },
+        "State1094": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1094.blockyanim"
+        },
+        "State1096": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1096.blockyanim"
+        },
+        "State1097": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1097.blockyanim"
+        },
+        "State1098": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1098.blockyanim"
+        },
+        "State1104": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1104.blockyanim"
+        },
+        "State1105": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1105.blockyanim"
+        },
+        "State1106": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1106.blockyanim"
+        },
+        "State1108": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1108.blockyanim"
+        },
+        "State1109": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1109.blockyanim"
+        },
+        "State1110": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1110.blockyanim"
+        },
+        "State1112": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1112.blockyanim"
+        },
+        "State1113": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1113.blockyanim"
+        },
+        "State1114": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1114.blockyanim"
+        },
+        "State1120": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1120.blockyanim"
+        },
+        "State1121": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1121.blockyanim"
+        },
+        "State1122": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1122.blockyanim"
+        },
+        "State1124": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1124.blockyanim"
+        },
+        "State1125": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1125.blockyanim"
+        },
+        "State1126": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1126.blockyanim"
+        },
+        "State1128": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1128.blockyanim"
+        },
+        "State1129": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1129.blockyanim"
+        },
+        "State1130": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1130.blockyanim"
+        },
+        "State1152": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1152.blockyanim"
+        },
+        "State1153": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1153.blockyanim"
+        },
+        "State1154": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1154.blockyanim"
+        },
+        "State1156": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1156.blockyanim"
+        },
+        "State1157": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1157.blockyanim"
+        },
+        "State1158": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1158.blockyanim"
+        },
+        "State1160": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1160.blockyanim"
+        },
+        "State1161": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1161.blockyanim"
+        },
+        "State1162": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1162.blockyanim"
+        },
+        "State1168": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1168.blockyanim"
+        },
+        "State1169": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1169.blockyanim"
+        },
+        "State1170": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1170.blockyanim"
+        },
+        "State1172": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1172.blockyanim"
+        },
+        "State1173": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1173.blockyanim"
+        },
+        "State1174": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1174.blockyanim"
+        },
+        "State1176": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1176.blockyanim"
+        },
+        "State1177": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1177.blockyanim"
+        },
+        "State1178": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1178.blockyanim"
+        },
+        "State1184": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1184.blockyanim"
+        },
+        "State1185": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1185.blockyanim"
+        },
+        "State1186": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1186.blockyanim"
+        },
+        "State1188": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1188.blockyanim"
+        },
+        "State1189": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1189.blockyanim"
+        },
+        "State1190": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1190.blockyanim"
+        },
+        "State1192": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1192.blockyanim"
+        },
+        "State1193": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1193.blockyanim"
+        },
+        "State1194": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1194.blockyanim"
+        },
+        "State1280": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1280.blockyanim"
+        },
+        "State1281": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1281.blockyanim"
+        },
+        "State1282": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1282.blockyanim"
+        },
+        "State1284": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1284.blockyanim"
+        },
+        "State1285": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1285.blockyanim"
+        },
+        "State1286": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1286.blockyanim"
+        },
+        "State1288": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1288.blockyanim"
+        },
+        "State1289": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1289.blockyanim"
+        },
+        "State1290": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1290.blockyanim"
+        },
+        "State1296": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1296.blockyanim"
+        },
+        "State1297": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1297.blockyanim"
+        },
+        "State1298": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1298.blockyanim"
+        },
+        "State1300": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1300.blockyanim"
+        },
+        "State1301": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1301.blockyanim"
+        },
+        "State1302": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1302.blockyanim"
+        },
+        "State1304": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1304.blockyanim"
+        },
+        "State1305": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1305.blockyanim"
+        },
+        "State1306": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1306.blockyanim"
+        },
+        "State1312": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1312.blockyanim"
+        },
+        "State1313": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1313.blockyanim"
+        },
+        "State1314": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1314.blockyanim"
+        },
+        "State1316": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1316.blockyanim"
+        },
+        "State1317": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1317.blockyanim"
+        },
+        "State1318": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1318.blockyanim"
+        },
+        "State1320": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1320.blockyanim"
+        },
+        "State1321": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1321.blockyanim"
+        },
+        "State1322": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1322.blockyanim"
+        },
+        "State1344": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1344.blockyanim"
+        },
+        "State1345": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1345.blockyanim"
+        },
+        "State1346": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1346.blockyanim"
+        },
+        "State1348": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1348.blockyanim"
+        },
+        "State1349": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1349.blockyanim"
+        },
+        "State1350": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1350.blockyanim"
+        },
+        "State1352": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1352.blockyanim"
+        },
+        "State1353": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1353.blockyanim"
+        },
+        "State1354": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1354.blockyanim"
+        },
+        "State1360": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1360.blockyanim"
+        },
+        "State1361": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1361.blockyanim"
+        },
+        "State1362": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1362.blockyanim"
+        },
+        "State1364": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1364.blockyanim"
+        },
+        "State1365": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1365.blockyanim"
+        },
+        "State1366": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1366.blockyanim"
+        },
+        "State1368": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1368.blockyanim"
+        },
+        "State1369": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1369.blockyanim"
+        },
+        "State1370": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1370.blockyanim"
+        },
+        "State1376": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1376.blockyanim"
+        },
+        "State1377": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1377.blockyanim"
+        },
+        "State1378": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1378.blockyanim"
+        },
+        "State1380": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1380.blockyanim"
+        },
+        "State1381": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1381.blockyanim"
+        },
+        "State1382": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1382.blockyanim"
+        },
+        "State1384": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1384.blockyanim"
+        },
+        "State1385": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1385.blockyanim"
+        },
+        "State1386": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1386.blockyanim"
+        },
+        "State1408": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1408.blockyanim"
+        },
+        "State1409": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1409.blockyanim"
+        },
+        "State1410": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1410.blockyanim"
+        },
+        "State1412": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1412.blockyanim"
+        },
+        "State1413": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1413.blockyanim"
+        },
+        "State1414": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1414.blockyanim"
+        },
+        "State1416": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1416.blockyanim"
+        },
+        "State1417": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1417.blockyanim"
+        },
+        "State1418": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1418.blockyanim"
+        },
+        "State1424": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1424.blockyanim"
+        },
+        "State1425": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1425.blockyanim"
+        },
+        "State1426": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1426.blockyanim"
+        },
+        "State1428": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1428.blockyanim"
+        },
+        "State1429": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1429.blockyanim"
+        },
+        "State1430": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1430.blockyanim"
+        },
+        "State1432": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1432.blockyanim"
+        },
+        "State1433": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1433.blockyanim"
+        },
+        "State1434": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1434.blockyanim"
+        },
+        "State1440": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1440.blockyanim"
+        },
+        "State1441": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1441.blockyanim"
+        },
+        "State1442": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1442.blockyanim"
+        },
+        "State1444": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1444.blockyanim"
+        },
+        "State1445": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1445.blockyanim"
+        },
+        "State1446": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1446.blockyanim"
+        },
+        "State1448": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1448.blockyanim"
+        },
+        "State1449": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1449.blockyanim"
+        },
+        "State1450": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1450.blockyanim"
+        },
+        "State1536": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1536.blockyanim"
+        },
+        "State1537": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1537.blockyanim"
+        },
+        "State1538": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1538.blockyanim"
+        },
+        "State1540": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1540.blockyanim"
+        },
+        "State1541": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1541.blockyanim"
+        },
+        "State1542": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1542.blockyanim"
+        },
+        "State1544": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1544.blockyanim"
+        },
+        "State1545": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1545.blockyanim"
+        },
+        "State1546": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1546.blockyanim"
+        },
+        "State1552": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1552.blockyanim"
+        },
+        "State1553": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1553.blockyanim"
+        },
+        "State1554": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1554.blockyanim"
+        },
+        "State1556": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1556.blockyanim"
+        },
+        "State1557": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1557.blockyanim"
+        },
+        "State1558": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1558.blockyanim"
+        },
+        "State1560": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1560.blockyanim"
+        },
+        "State1561": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1561.blockyanim"
+        },
+        "State1562": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1562.blockyanim"
+        },
+        "State1568": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1568.blockyanim"
+        },
+        "State1569": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1569.blockyanim"
+        },
+        "State1570": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1570.blockyanim"
+        },
+        "State1572": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1572.blockyanim"
+        },
+        "State1573": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1573.blockyanim"
+        },
+        "State1574": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1574.blockyanim"
+        },
+        "State1576": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1576.blockyanim"
+        },
+        "State1577": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1577.blockyanim"
+        },
+        "State1578": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1578.blockyanim"
+        },
+        "State1600": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1600.blockyanim"
+        },
+        "State1601": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1601.blockyanim"
+        },
+        "State1602": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1602.blockyanim"
+        },
+        "State1604": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1604.blockyanim"
+        },
+        "State1605": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1605.blockyanim"
+        },
+        "State1606": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1606.blockyanim"
+        },
+        "State1608": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1608.blockyanim"
+        },
+        "State1609": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1609.blockyanim"
+        },
+        "State1610": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1610.blockyanim"
+        },
+        "State1616": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1616.blockyanim"
+        },
+        "State1617": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1617.blockyanim"
+        },
+        "State1618": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1618.blockyanim"
+        },
+        "State1620": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1620.blockyanim"
+        },
+        "State1621": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1621.blockyanim"
+        },
+        "State1622": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1622.blockyanim"
+        },
+        "State1624": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1624.blockyanim"
+        },
+        "State1625": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1625.blockyanim"
+        },
+        "State1626": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1626.blockyanim"
+        },
+        "State1632": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1632.blockyanim"
+        },
+        "State1633": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1633.blockyanim"
+        },
+        "State1634": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1634.blockyanim"
+        },
+        "State1636": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1636.blockyanim"
+        },
+        "State1637": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1637.blockyanim"
+        },
+        "State1638": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1638.blockyanim"
+        },
+        "State1640": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1640.blockyanim"
+        },
+        "State1641": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1641.blockyanim"
+        },
+        "State1642": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1642.blockyanim"
+        },
+        "State1664": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1664.blockyanim"
+        },
+        "State1665": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1665.blockyanim"
+        },
+        "State1666": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1666.blockyanim"
+        },
+        "State1668": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1668.blockyanim"
+        },
+        "State1669": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1669.blockyanim"
+        },
+        "State1670": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1670.blockyanim"
+        },
+        "State1672": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1672.blockyanim"
+        },
+        "State1673": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1673.blockyanim"
+        },
+        "State1674": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1674.blockyanim"
+        },
+        "State1680": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1680.blockyanim"
+        },
+        "State1681": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1681.blockyanim"
+        },
+        "State1682": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1682.blockyanim"
+        },
+        "State1684": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1684.blockyanim"
+        },
+        "State1685": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1685.blockyanim"
+        },
+        "State1686": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1686.blockyanim"
+        },
+        "State1688": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1688.blockyanim"
+        },
+        "State1689": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1689.blockyanim"
+        },
+        "State1690": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1690.blockyanim"
+        },
+        "State1696": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1696.blockyanim"
+        },
+        "State1697": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1697.blockyanim"
+        },
+        "State1698": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1698.blockyanim"
+        },
+        "State1700": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1700.blockyanim"
+        },
+        "State1701": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1701.blockyanim"
+        },
+        "State1702": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1702.blockyanim"
+        },
+        "State1704": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1704.blockyanim"
+        },
+        "State1705": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1705.blockyanim"
+        },
+        "State1706": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_1706.blockyanim"
+        },
+        "State2048": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2048.blockyanim"
+        },
+        "State2049": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2049.blockyanim"
+        },
+        "State2050": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2050.blockyanim"
+        },
+        "State2052": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2052.blockyanim"
+        },
+        "State2053": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2053.blockyanim"
+        },
+        "State2054": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2054.blockyanim"
+        },
+        "State2056": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2056.blockyanim"
+        },
+        "State2057": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2057.blockyanim"
+        },
+        "State2058": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2058.blockyanim"
+        },
+        "State2064": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2064.blockyanim"
+        },
+        "State2065": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2065.blockyanim"
+        },
+        "State2066": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2066.blockyanim"
+        },
+        "State2068": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2068.blockyanim"
+        },
+        "State2069": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2069.blockyanim"
+        },
+        "State2070": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2070.blockyanim"
+        },
+        "State2072": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2072.blockyanim"
+        },
+        "State2073": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2073.blockyanim"
+        },
+        "State2074": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2074.blockyanim"
+        },
+        "State2080": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2080.blockyanim"
+        },
+        "State2081": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2081.blockyanim"
+        },
+        "State2082": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2082.blockyanim"
+        },
+        "State2084": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2084.blockyanim"
+        },
+        "State2085": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2085.blockyanim"
+        },
+        "State2086": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2086.blockyanim"
+        },
+        "State2088": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2088.blockyanim"
+        },
+        "State2089": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2089.blockyanim"
+        },
+        "State2090": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2090.blockyanim"
+        },
+        "State2112": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2112.blockyanim"
+        },
+        "State2113": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2113.blockyanim"
+        },
+        "State2114": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2114.blockyanim"
+        },
+        "State2116": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2116.blockyanim"
+        },
+        "State2117": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2117.blockyanim"
+        },
+        "State2118": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2118.blockyanim"
+        },
+        "State2120": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2120.blockyanim"
+        },
+        "State2121": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2121.blockyanim"
+        },
+        "State2122": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2122.blockyanim"
+        },
+        "State2128": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2128.blockyanim"
+        },
+        "State2129": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2129.blockyanim"
+        },
+        "State2130": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2130.blockyanim"
+        },
+        "State2132": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2132.blockyanim"
+        },
+        "State2133": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2133.blockyanim"
+        },
+        "State2134": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2134.blockyanim"
+        },
+        "State2136": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2136.blockyanim"
+        },
+        "State2137": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2137.blockyanim"
+        },
+        "State2138": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2138.blockyanim"
+        },
+        "State2144": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2144.blockyanim"
+        },
+        "State2145": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2145.blockyanim"
+        },
+        "State2146": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2146.blockyanim"
+        },
+        "State2148": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2148.blockyanim"
+        },
+        "State2149": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2149.blockyanim"
+        },
+        "State2150": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2150.blockyanim"
+        },
+        "State2152": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2152.blockyanim"
+        },
+        "State2153": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2153.blockyanim"
+        },
+        "State2154": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2154.blockyanim"
+        },
+        "State2176": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2176.blockyanim"
+        },
+        "State2177": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2177.blockyanim"
+        },
+        "State2178": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2178.blockyanim"
+        },
+        "State2180": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2180.blockyanim"
+        },
+        "State2181": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2181.blockyanim"
+        },
+        "State2182": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2182.blockyanim"
+        },
+        "State2184": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2184.blockyanim"
+        },
+        "State2185": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2185.blockyanim"
+        },
+        "State2186": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2186.blockyanim"
+        },
+        "State2192": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2192.blockyanim"
+        },
+        "State2193": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2193.blockyanim"
+        },
+        "State2194": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2194.blockyanim"
+        },
+        "State2196": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2196.blockyanim"
+        },
+        "State2197": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2197.blockyanim"
+        },
+        "State2198": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2198.blockyanim"
+        },
+        "State2200": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2200.blockyanim"
+        },
+        "State2201": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2201.blockyanim"
+        },
+        "State2202": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2202.blockyanim"
+        },
+        "State2208": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2208.blockyanim"
+        },
+        "State2209": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2209.blockyanim"
+        },
+        "State2210": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2210.blockyanim"
+        },
+        "State2212": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2212.blockyanim"
+        },
+        "State2213": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2213.blockyanim"
+        },
+        "State2214": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2214.blockyanim"
+        },
+        "State2216": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2216.blockyanim"
+        },
+        "State2217": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2217.blockyanim"
+        },
+        "State2218": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2218.blockyanim"
+        },
+        "State2304": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2304.blockyanim"
+        },
+        "State2305": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2305.blockyanim"
+        },
+        "State2306": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2306.blockyanim"
+        },
+        "State2308": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2308.blockyanim"
+        },
+        "State2309": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2309.blockyanim"
+        },
+        "State2310": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2310.blockyanim"
+        },
+        "State2312": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2312.blockyanim"
+        },
+        "State2313": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2313.blockyanim"
+        },
+        "State2314": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2314.blockyanim"
+        },
+        "State2320": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2320.blockyanim"
+        },
+        "State2321": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2321.blockyanim"
+        },
+        "State2322": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2322.blockyanim"
+        },
+        "State2324": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2324.blockyanim"
+        },
+        "State2325": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2325.blockyanim"
+        },
+        "State2326": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2326.blockyanim"
+        },
+        "State2328": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2328.blockyanim"
+        },
+        "State2329": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2329.blockyanim"
+        },
+        "State2330": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2330.blockyanim"
+        },
+        "State2336": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2336.blockyanim"
+        },
+        "State2337": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2337.blockyanim"
+        },
+        "State2338": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2338.blockyanim"
+        },
+        "State2340": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2340.blockyanim"
+        },
+        "State2341": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2341.blockyanim"
+        },
+        "State2342": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2342.blockyanim"
+        },
+        "State2344": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2344.blockyanim"
+        },
+        "State2345": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2345.blockyanim"
+        },
+        "State2346": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2346.blockyanim"
+        },
+        "State2368": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2368.blockyanim"
+        },
+        "State2369": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2369.blockyanim"
+        },
+        "State2370": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2370.blockyanim"
+        },
+        "State2372": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2372.blockyanim"
+        },
+        "State2373": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2373.blockyanim"
+        },
+        "State2374": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2374.blockyanim"
+        },
+        "State2376": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2376.blockyanim"
+        },
+        "State2377": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2377.blockyanim"
+        },
+        "State2378": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2378.blockyanim"
+        },
+        "State2384": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2384.blockyanim"
+        },
+        "State2385": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2385.blockyanim"
+        },
+        "State2386": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2386.blockyanim"
+        },
+        "State2388": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2388.blockyanim"
+        },
+        "State2389": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2389.blockyanim"
+        },
+        "State2390": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2390.blockyanim"
+        },
+        "State2392": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2392.blockyanim"
+        },
+        "State2393": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2393.blockyanim"
+        },
+        "State2394": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2394.blockyanim"
+        },
+        "State2400": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2400.blockyanim"
+        },
+        "State2401": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2401.blockyanim"
+        },
+        "State2402": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2402.blockyanim"
+        },
+        "State2404": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2404.blockyanim"
+        },
+        "State2405": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2405.blockyanim"
+        },
+        "State2406": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2406.blockyanim"
+        },
+        "State2408": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2408.blockyanim"
+        },
+        "State2409": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2409.blockyanim"
+        },
+        "State2410": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2410.blockyanim"
+        },
+        "State2432": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2432.blockyanim"
+        },
+        "State2433": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2433.blockyanim"
+        },
+        "State2434": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2434.blockyanim"
+        },
+        "State2436": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2436.blockyanim"
+        },
+        "State2437": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2437.blockyanim"
+        },
+        "State2438": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2438.blockyanim"
+        },
+        "State2440": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2440.blockyanim"
+        },
+        "State2441": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2441.blockyanim"
+        },
+        "State2442": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2442.blockyanim"
+        },
+        "State2448": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2448.blockyanim"
+        },
+        "State2449": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2449.blockyanim"
+        },
+        "State2450": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2450.blockyanim"
+        },
+        "State2452": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2452.blockyanim"
+        },
+        "State2453": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2453.blockyanim"
+        },
+        "State2454": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2454.blockyanim"
+        },
+        "State2456": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2456.blockyanim"
+        },
+        "State2457": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2457.blockyanim"
+        },
+        "State2458": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2458.blockyanim"
+        },
+        "State2464": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2464.blockyanim"
+        },
+        "State2465": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2465.blockyanim"
+        },
+        "State2466": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2466.blockyanim"
+        },
+        "State2468": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2468.blockyanim"
+        },
+        "State2469": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2469.blockyanim"
+        },
+        "State2470": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2470.blockyanim"
+        },
+        "State2472": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2472.blockyanim"
+        },
+        "State2473": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2473.blockyanim"
+        },
+        "State2474": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2474.blockyanim"
+        },
+        "State2560": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2560.blockyanim"
+        },
+        "State2561": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2561.blockyanim"
+        },
+        "State2562": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2562.blockyanim"
+        },
+        "State2564": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2564.blockyanim"
+        },
+        "State2565": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2565.blockyanim"
+        },
+        "State2566": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2566.blockyanim"
+        },
+        "State2568": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2568.blockyanim"
+        },
+        "State2569": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2569.blockyanim"
+        },
+        "State2570": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2570.blockyanim"
+        },
+        "State2576": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2576.blockyanim"
+        },
+        "State2577": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2577.blockyanim"
+        },
+        "State2578": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2578.blockyanim"
+        },
+        "State2580": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2580.blockyanim"
+        },
+        "State2581": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2581.blockyanim"
+        },
+        "State2582": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2582.blockyanim"
+        },
+        "State2584": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2584.blockyanim"
+        },
+        "State2585": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2585.blockyanim"
+        },
+        "State2586": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2586.blockyanim"
+        },
+        "State2592": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2592.blockyanim"
+        },
+        "State2593": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2593.blockyanim"
+        },
+        "State2594": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2594.blockyanim"
+        },
+        "State2596": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2596.blockyanim"
+        },
+        "State2597": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2597.blockyanim"
+        },
+        "State2598": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2598.blockyanim"
+        },
+        "State2600": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2600.blockyanim"
+        },
+        "State2601": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2601.blockyanim"
+        },
+        "State2602": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2602.blockyanim"
+        },
+        "State2624": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2624.blockyanim"
+        },
+        "State2625": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2625.blockyanim"
+        },
+        "State2626": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2626.blockyanim"
+        },
+        "State2628": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2628.blockyanim"
+        },
+        "State2629": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2629.blockyanim"
+        },
+        "State2630": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2630.blockyanim"
+        },
+        "State2632": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2632.blockyanim"
+        },
+        "State2633": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2633.blockyanim"
+        },
+        "State2634": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2634.blockyanim"
+        },
+        "State2640": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2640.blockyanim"
+        },
+        "State2641": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2641.blockyanim"
+        },
+        "State2642": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2642.blockyanim"
+        },
+        "State2644": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2644.blockyanim"
+        },
+        "State2645": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2645.blockyanim"
+        },
+        "State2646": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2646.blockyanim"
+        },
+        "State2648": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2648.blockyanim"
+        },
+        "State2649": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2649.blockyanim"
+        },
+        "State2650": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2650.blockyanim"
+        },
+        "State2656": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2656.blockyanim"
+        },
+        "State2657": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2657.blockyanim"
+        },
+        "State2658": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2658.blockyanim"
+        },
+        "State2660": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2660.blockyanim"
+        },
+        "State2661": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2661.blockyanim"
+        },
+        "State2662": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2662.blockyanim"
+        },
+        "State2664": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2664.blockyanim"
+        },
+        "State2665": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2665.blockyanim"
+        },
+        "State2666": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2666.blockyanim"
+        },
+        "State2688": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2688.blockyanim"
+        },
+        "State2689": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2689.blockyanim"
+        },
+        "State2690": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2690.blockyanim"
+        },
+        "State2692": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2692.blockyanim"
+        },
+        "State2693": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2693.blockyanim"
+        },
+        "State2694": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2694.blockyanim"
+        },
+        "State2696": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2696.blockyanim"
+        },
+        "State2697": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2697.blockyanim"
+        },
+        "State2698": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2698.blockyanim"
+        },
+        "State2704": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2704.blockyanim"
+        },
+        "State2705": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2705.blockyanim"
+        },
+        "State2706": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2706.blockyanim"
+        },
+        "State2708": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2708.blockyanim"
+        },
+        "State2709": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2709.blockyanim"
+        },
+        "State2710": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2710.blockyanim"
+        },
+        "State2712": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2712.blockyanim"
+        },
+        "State2713": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2713.blockyanim"
+        },
+        "State2714": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2714.blockyanim"
+        },
+        "State2720": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2720.blockyanim"
+        },
+        "State2721": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2721.blockyanim"
+        },
+        "State2722": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2722.blockyanim"
+        },
+        "State2724": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2724.blockyanim"
+        },
+        "State2725": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2725.blockyanim"
+        },
+        "State2726": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2726.blockyanim"
+        },
+        "State2728": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2728.blockyanim"
+        },
+        "State2729": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2729.blockyanim"
+        },
+        "State2730": {
+          "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_2730.blockyanim"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "HytaleIndustries_Pipe",
+        "Quality": 0,
+        "ItemId": "HytaleIndustries_PowerCable",
+        "Quantity": 1
+      }
+    },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Supporting": {
+      "Up": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "Down": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "North": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "South": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "East": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "West": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ]
+    },
+    "IgnoreSupportWhenPlaced": true,
+    "Group": "@Tech",
+    "Support": {},
+    "MaxSupportDistance": 0,
+    "SupportsRequiredFor": "Any"
+  },
+  "MaxStack": 64,
+  "Recipe": {
+    "OutputQuantity": 12,
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_PowerCable",
+      "Quantity": 12
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Furniture_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Furniture_Misc"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Bar_Copper",
+        "Quantity": 2
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 1
+      }
+    ]
+  }
+}

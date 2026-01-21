@@ -13,7 +13,9 @@ import dev.dukedarius.HytaleIndustries.Commands.GetPipeStateCommand;
 import dev.dukedarius.HytaleIndustries.Commands.PipeHUDCommand;
 import dev.dukedarius.HytaleIndustries.BlockStates.BurningGeneratorBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.PowerCableBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.SmallBatteryBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.PoweredFurnaceBlockState;
 import dev.dukedarius.HytaleIndustries.ConnectedBlockRuleSets.PipeConnectedBlockRuleSet;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 
@@ -21,6 +23,7 @@ import dev.dukedarius.HytaleIndustries.Commands.SetPipeSideCommand;
 import dev.dukedarius.HytaleIndustries.Commands.SetGeneratorStateCommand;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenSmallBatteryInteraction;
+import dev.dukedarius.HytaleIndustries.Interactions.OpenPoweredFurnaceInteraction;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -54,10 +57,13 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         Interaction.CODEC.register("HytaleIndustries_ConfigurePipe", ConfigurePipeInteraction.class, ConfigurePipeInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenBurningGenerator", OpenBurningGeneratorInteraction.class, OpenBurningGeneratorInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenSmallBattery", OpenSmallBatteryInteraction.class, OpenSmallBatteryInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenPoweredFurnace", OpenPoweredFurnaceInteraction.class, OpenPoweredFurnaceInteraction.CODEC);
 
         this.getBlockStateRegistry().registerBlockState(ItemPipeBlockState.class, ItemPipeBlockState.STATE_ID, ItemPipeBlockState.CODEC);
+        this.getBlockStateRegistry().registerBlockState(PowerCableBlockState.class, PowerCableBlockState.STATE_ID, PowerCableBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(BurningGeneratorBlockState.class, BurningGeneratorBlockState.STATE_ID, BurningGeneratorBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(SmallBatteryBlockState.class, SmallBatteryBlockState.STATE_ID, SmallBatteryBlockState.CODEC);
+        this.getBlockStateRegistry().registerBlockState(PoweredFurnaceBlockState.class, PoweredFurnaceBlockState.STATE_ID, PoweredFurnaceBlockState.CODEC);
 
         this.getCommandRegistry().registerCommand(new GetPipeStateCommand());
         this.getCommandRegistry().registerCommand(new SetPipeSideCommand());

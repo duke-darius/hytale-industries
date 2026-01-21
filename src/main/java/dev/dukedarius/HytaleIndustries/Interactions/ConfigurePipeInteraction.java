@@ -14,10 +14,9 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.config.cli
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
 import dev.dukedarius.HytaleIndustries.UI.ConfigurePipeUIPage;
 import dev.dukedarius.HytaleIndustries.Pipes.PipeSelectionStore;
-import dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore;
+import dev.dukedarius.HytaleIndustries.Pipes.SideConfigurableConduit;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
@@ -54,7 +53,7 @@ public class ConfigurePipeInteraction extends SimpleBlockInteraction {
         }
 
         var state = world.getState(pos.x, pos.y, pos.z, true);
-        if(!(state instanceof ItemPipeBlockState)){
+        if(!(state instanceof SideConfigurableConduit)){
             return;
         }
 
