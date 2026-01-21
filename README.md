@@ -1,8 +1,6 @@
-# Hytale Industries – Item Pipes & Logistics
+# H Industries – Item Pipes & Logistics
 
-
-
-![](https://media.forgecdn.net/attachments/description/null/description_74bef4c9-90c5-4c18-b82d-cc073bcd8526.png)
+![image](https://media.forgecdn.net/attachments/description/1435489/description_e2ac9ad8-4436-4852-abab-05b5ff0828c1.png)
 
 ## Overview
 
@@ -10,7 +8,7 @@ Hytale Industries adds configurable item pipes that move items between chests, f
 
 Only Pipes are in so far. Craftable in a Furniture Workbench in the Misc tab
 
-![image](https://media.forgecdn.net/attachments/description/1435489/description_b17a38cb-5f08-4608-85f4-33354f2cdca9.png)
+![image](https://media.forgecdn.net/attachments/description/1435489/description_db73a7b4-4bef-4145-9d71-9be9a81ac175.png)
 
 ## Key Features
 
@@ -20,7 +18,11 @@ Only Pipes are in so far. Craftable in a Furniture Workbench in the Misc tab
     *   Moves up to 4 items per second per pipe (shared across extract faces).
 *   **Side Configuration UI**  
     *   Right-click to open the pipe UI and set each face’s mode.
-    *   Visual model updates immediately to reflect connections.![](https://media.forgecdn.net/attachments/description/null/description_3a5bd5e8-8f1d-4695-9056-f11606d0e0be.png)
+    *   Visual model updates immediately to reflect connections.!
+
+![image](https://media.forgecdn.net/attachments/description/1435489/description_f791048f-d4d2-4fb0-bac0-95d39fe90104.png)
+
+![image](https://media.forgecdn.net/attachments/description/1435489/description_e083f186-5726-4808-9dad-3a33484cfa22.png)
 *   **Multiblock Support**  
     *   Pipes detect filler blocks and route to the true origin block, so furnaces/chests built from multiple blocks work for both extraction and insertion.
 *   **Smart Extraction for Furnaces/Processing Benches**  
