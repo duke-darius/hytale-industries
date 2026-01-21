@@ -106,6 +106,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         WorldChunk c = getChunk();
         if (c != null) {
             PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), raw);
+            c.markNeedsSaving();
         }
     }
 
@@ -142,6 +143,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         WorldChunk c = getChunk();
         if (c != null) {
             PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), cfg);
+            c.markNeedsSaving();
         }
     }
 
@@ -269,6 +271,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         visualDirty = false;
         WorldChunk chunk = getChunk();
         if (chunk == null) {
+            HytaleIndustriesPlugin.LOGGER.atFine().log("[ItemPipe] chunk null, skipping");
             return;
         }
         int lx = getBlockX() & 31;
@@ -317,7 +320,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
             return;
         }
         if (!initialized) {
-            sideConfig = 0;
+            sideConfig = PipeSideConfigStore.getOrDefault(getBlockX(), getBlockY(), getBlockZ(), sideConfig);
             PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), sideConfig);
             initialized = true;
             reconcileNeighborFaces();
@@ -392,7 +395,6 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
             if (destination == null) {
                 continue;
             }
-
             moved += moveUpToNItems(source, destination, extractRange, 4 - moved);
         }
     }
@@ -407,8 +409,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         if (chunk == null) {
             return null;
         }
-
-        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(x, y, z);
+        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(x & 31, y, z & 31);
         if (stateRef == null) {
             return null;
         }
@@ -476,13 +477,15 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
             return null;
         }
 
-        BlockState state = chunk.getState(ox, oy, oz);
+        int lx = ox & 31;
+        int lz = oz & 31;
+        BlockState state = chunk.getState(lx, oy, lz);
         ItemContainerBlockState inv = null;
         if (state instanceof ItemContainerBlockState icbs) {
             inv = icbs;
         } else {
             // Fallback: load the block state from the component entity if present.
-            Ref<ChunkStore> ref = chunk.getBlockComponentEntity(ox & 31, oy, oz & 31);
+            Ref<ChunkStore> ref = chunk.getBlockComponentEntity(lx, oy, lz);
             if (ref != null) {
                 BlockState bs = BlockState.getBlockState(ref, ref.getStore());
                 if (bs instanceof ItemContainerBlockState ic) {
@@ -492,7 +495,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         }
         if (inv == null) {
             // Multiblock fallback: search nearby blocks of the same block type for an ItemContainer.
-            BlockType neighborType = chunk.getBlockType(ox, oy, oz);
+            BlockType neighborType = chunk.getBlockType(lx, oy, lz);
             if (neighborType == null || neighborType.getId() == null) {
                 return null;
             }

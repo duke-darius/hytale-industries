@@ -76,6 +76,7 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
         WorldChunk c = getChunk();
         if (c != null) {
             PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), raw);
+            c.markNeedsSaving();
         }
     }
 
@@ -102,6 +103,7 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
         WorldChunk c = getChunk();
         if (c != null) {
             PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), cfg);
+            c.markNeedsSaving();
         }
     }
 
@@ -250,7 +252,7 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
         }
 
         if (!initialized) {
-            sideConfig = 0;
+            sideConfig = PipeSideConfigStore.getOrDefault(getBlockX(), getBlockY(), getBlockZ(), sideConfig);
             PipeSideConfigStore.set(getBlockX(), getBlockY(), getBlockZ(), sideConfig);
             initialized = true;
             reconcileNeighborFaces();

@@ -4,6 +4,10 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.component.Component;
+import com.hypixel.hytale.component.ComponentType;
 import dev.dukedarius.HytaleIndustries.Energy.ReceivesHE;
 import dev.dukedarius.HytaleIndustries.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.Energy.TransfersHE;
@@ -35,13 +39,29 @@ public class SmallBatteryBlockState extends BlockState implements StoresHE, Rece
     public void setHeStored(double he) {
         if (he < 0.0) {
             heStored = 0.0;
+            persistSelf();
             return;
         }
         heStored = Math.min(MAX_HE, he);
+        persistSelf();
     }
 
     @Override
     public double getHeCapacity() {
         return MAX_HE;
+    }
+
+    private void persistSelf() {
+        var chunk = this.getChunk();
+        var pos = this.getBlockPosition();
+        if (chunk == null || pos == null) return;
+        var ref = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
+        if (ref == null) return;
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        ComponentType<ChunkStore, Component<ChunkStore>> type =
+                (ComponentType) BlockStateModule.get().getComponentType((Class) this.getClass());
+        if (type == null) return;
+        ref.getStore().replaceComponent(ref, type, this);
+        chunk.markNeedsSaving();
     }
 }

@@ -15,8 +15,11 @@ import com.hypixel.hytale.server.core.inventory.transaction.MaterialTransaction;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.state.TickableBlockState;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.component.Component;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
@@ -91,6 +94,7 @@ public class PoweredFurnaceBlockState extends BlockState implements TickableBloc
     @Override
     public void setHeStored(double he) {
         heStored = Math.min(Math.max(0.0, he), HE_CAPACITY);
+        persistSelf();
     }
 
     @Override
@@ -128,8 +132,24 @@ public class PoweredFurnaceBlockState extends BlockState implements TickableBloc
         }
     }
 
+    private void persistSelf() {
+        var chunk = this.getChunk();
+        if (chunk == null) return;
+        var pos = this.getBlockPosition();
+        if (pos == null) return;
+        var stateRef = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
+        if (stateRef == null) return;
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        ComponentType<ChunkStore, Component<ChunkStore>> type =
+                (ComponentType) BlockStateModule.get().getComponentType((Class) this.getClass());
+        if (type == null) return;
+        stateRef.getStore().replaceComponent(stateRef, type, this);
+        chunk.markNeedsSaving();
+    }
+
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<ChunkStore> archetypeChunk, @Nonnull Store<ChunkStore> store, @Nonnull CommandBuffer<ChunkStore> commandBuffer) {
+        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] tick dt=" + dt + " pos=(" + getBlockX() + "," + getBlockY() + "," + getBlockZ() + ")");
         if (dt <= 0) return;
 
         World world = store.getExternalData().getWorld();
@@ -189,8 +209,10 @@ public class PoweredFurnaceBlockState extends BlockState implements TickableBloc
 
             progress = 0.0f;
             // keep same recipe if still possible; will re-check next tick
+            persistSelf();
         } else {
             // update animation state if desired later
+            persistSelf();
         }
     }
 
