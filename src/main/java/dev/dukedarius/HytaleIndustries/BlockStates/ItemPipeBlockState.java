@@ -552,6 +552,12 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         }
 
         if (blockType != null) {
+            if (blockType.getState() != null && "poweredFurnace".equals(blockType.getState().getId())) {
+                // Combined container layout: [0]=input, [1]=output
+                if (cap >= 2) {
+                    return new SlotRange(cap - 1, cap);
+                }
+            }
             Bench bench = blockType.getBench();
             if (bench instanceof ProcessingBench processing) {
                 // Assumption (matches in-game UX): container layout is [inputs][fuel][outputs].

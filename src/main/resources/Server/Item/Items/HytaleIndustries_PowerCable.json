@@ -2220,9 +2220,8 @@
     },
     "Gathering": {
       "Breaking": {
-        "GatherType": "HytaleIndustries_Pipe",
+        "GatherType": "Rocks",
         "Quality": 0,
-        "ItemId": "HytaleIndustries_PowerCable",
         "Quantity": 1
       }
     },

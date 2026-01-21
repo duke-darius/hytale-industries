@@ -36,9 +36,8 @@
     },
     "Gathering": {
       "Breaking": {
-        "GatherType": "HytaleIndustries_BurningGenerator",
+        "GatherType": "Rocks",
         "Quality": 0,
-        "ItemId": "HytaleIndustries_BurningGenerator",
         "Quantity": 1
       }
     },

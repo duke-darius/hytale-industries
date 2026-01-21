@@ -132,14 +132,26 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
             }
         }
 
-        cmd.set("#HeText.Text", String.format("HE: %.0f / %.0f", he, heCap));
+        cmd.set("#PowerBar.Value", Math.max(0.0, Math.min(1.0, he / heCap)));
+        cmd.set("#PowerBar.TooltipText", String.format("%d/%d HE Stored", (int)he, (int)heCap));
+//        cmd.set("#HeText.Text", String.format("HE: %.0f / %.0f", he, heCap));
         if(inputQty > 0){
             cmd.set("#InputSlot.ItemId", inputName);
-            cmd.set("#InputSlot.Quantity", (int) inputQty);
+            cmd.set("#InputQty.Text", String.format("%d", inputQty));
         }
+        else
+        {
+            cmd.set("#InputQty.Text", "");
+        }
+
+
         if(outputQty > 0){
             cmd.set("#OutputSlot.ItemId", outputName);
-            cmd.set("#OutputSlot.Quantity", (int) outputQty);
+            cmd.set("#OutputQty.Text", String.format("%d", outputQty));
+        }
+        else
+        {
+            cmd.set("#OutputQty.Text", "");
         }
 
         cmd.set("#ProgressBar.Value", Math.max(0.0, Math.min(1.0, progress)));

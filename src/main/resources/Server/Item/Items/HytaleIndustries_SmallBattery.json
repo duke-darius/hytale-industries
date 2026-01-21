@@ -32,9 +32,8 @@
     },
     "Gathering": {
       "Breaking": {
-        "GatherType": "HytaleIndustries_SmallBattery",
+        "GatherType": "Rocks",
         "Quality": 0,
-        "ItemId": "HytaleIndustries_SmallBattery",
         "Quantity": 1
       }
     },

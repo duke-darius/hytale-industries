@@ -15,50 +15,85 @@ Group {
     }
 
     #Content {
-      LayoutMode: Top;
+      LayoutMode: Left;
       Padding: (Left: 12, Right: 12, Top: 12, Bottom: 12);
 
-      $C.@Title #HeText {
-        @Alignment = Start;
-        @Text = "HE: 0 / 10000";
+      Group {
+        Anchor: (Width: 20);
+
+        ProgressBar #PowerBar {
+          TooltipText: "0";
+          Anchor: (Left: 2, Width: 16);
+          Background: #000000;
+          Alignment: Vertical;
+          Direction: Start;
+          Bar: (Color: #FF0000);
+        }
       }
 
       Group {
-        LayoutMode: Left;
-        Anchor: (Top: 30, Height: 40);
+        FlexWeight: 1;
 
 
-        ItemSlotButton #InputButton {
-          Anchor: (Width: 72, Height: 72, Left: 20);
-          LayoutMode: Full;
+        Group {
+          LayoutMode: Left;
+          Anchor: (Top: 30, Height: 40);
 
-          ItemSlot #InputSlot {
-            Anchor: (Full: 0);
-            ShowQualityBackground: false;
-          }
 
-        }
-
-        ProgressBar #ProgressBar {
-          Anchor: (Left: 10, Width: 220, Height: 16);
-          Background: #000000;
-          Bar: (Color: #FF0000);
-        }
-
-        ItemSlotButton #OutputButton {
-          Anchor: (Width: 72, Height: 72, Left: 20);
-          LayoutMode: Full;
-
-          ItemSlot #OutputSlot {
+          ItemSlotButton #InputButton {
             Anchor: (Width: 72, Height: 72, Left: 20);
-            ShowQualityBackground: false;
+            LayoutMode: Full;
+
+            ItemSlot #InputSlot {
+              Anchor: (Full: 0);
+              ShowQualityBackground: false;
+            }
+
+            Group {
+              LayoutMode: Right;
+              Anchor: (Width: 72, Left: 0, Top: 54);
+
+              Label #InputQty {
+                Style: (HorizontalAlignment: End);
+                Text: "0";
+              }
+            }
+
+
           }
 
-        }
+          ProgressBar #ProgressBar {
+            Anchor: (Left: 10, Width: 180, Height: 16);
+            Background: #433530;
+            Bar: (Color: #ff7d52);
+          }
 
+          ItemSlotButton #OutputButton {
+            Anchor: (Width: 72, Height: 72, Left: 20);
+            LayoutMode: Full;
+
+            ItemSlot #OutputSlot {
+              Anchor: (Width: 72, Height: 72, Left: 20);
+              ShowQualityBackground: false;
+            }
+
+
+            Group {
+              LayoutMode: Right;
+              Anchor: (Width: 72, Left: 20, Top: 54);
+
+              Label #OutputQty {
+                Style: (HorizontalAlignment: End);
+                Text: "0";
+              }
+            }
+
+          }
+
+
+        }
 
       }
-
     }
   }
 }

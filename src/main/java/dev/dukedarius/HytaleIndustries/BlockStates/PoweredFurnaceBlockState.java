@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.inventory.MaterialQuantity;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer;
 import com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer;
+import com.hypixel.hytale.server.core.inventory.container.filter.FilterType;
 import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction;
 import com.hypixel.hytale.server.core.inventory.transaction.ListTransaction;
 import com.hypixel.hytale.server.core.inventory.transaction.MaterialTransaction;
@@ -78,6 +79,7 @@ public class PoweredFurnaceBlockState extends BlockState implements TickableBloc
     @Nonnull
     @Override
     public ItemContainer getItemContainer() {
+        ensureFilters();
         return new CombinedItemContainer(inputContainer, outputContainer);
     }
 
@@ -109,6 +111,7 @@ public class PoweredFurnaceBlockState extends BlockState implements TickableBloc
     }
 
     public ItemContainer getOutputContainer() {
+        ensureFilters();
         return outputContainer;
     }
 
@@ -117,6 +120,12 @@ public class PoweredFurnaceBlockState extends BlockState implements TickableBloc
             return 0.0;
         }
         return Math.min(1.0, Math.max(0.0, progress / lastEffectiveTime));
+    }
+
+    private void ensureFilters() {
+        if (outputContainer != null) {
+            outputContainer.setGlobalFilter(FilterType.ALLOW_OUTPUT_ONLY);
+        }
     }
 
     @Override

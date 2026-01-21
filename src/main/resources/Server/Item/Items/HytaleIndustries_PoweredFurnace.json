@@ -34,9 +34,8 @@
     },
     "Gathering": {
       "Breaking": {
-        "GatherType": "HytaleIndustries_PoweredFurnace",
+        "GatherType": "Rocks",
         "Quality": 0,
-        "ItemId": "HytaleIndustries_PoweredFurnace",
         "Quantity": 1
       }
     },
