@@ -86,6 +86,32 @@
     "SupportsRequiredFor": "Any"
   },
   "MaxStack": 64,
+  "Recipe": {
+    "OutputQuantity": 1,
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_PoweredFurnace",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Furniture_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Furniture_Misc"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 6
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 1
+      }
+    ]
+  },
   "State": {
     "poweredFurnace": {
       "BlockType": "HytaleIndustries_PoweredFurnace"

@@ -72,3 +72,57 @@ idea.project.settings.runConfigurations {
         workingDirectory = serverRunDir.absolutePath
     }
 }
+// === Version bump helpers ===
+def propsFile = file('gradle.properties')
+def manifestFile = file('src/main/resources/manifest.json')
+
+def readVersion = {
+    def p = new Properties()
+    propsFile.withInputStream { p.load(it) }
+    return p.getProperty('version')
+}
+
+def writeVersion = { newVersion ->
+    def p = new Properties()
+    propsFile.withInputStream { p.load(it) }
+    p.setProperty('version', newVersion)
+    propsFile.withOutputStream { os -> p.store(os, null) }
+
+    if (!manifestFile.exists()) {
+        throw new GradleException("Could not find manifest.json at ${manifestFile.path}!")
+    }
+    def manifestJson = new groovy.json.JsonSlurper().parseText(manifestFile.text)
+    manifestJson.Version = newVersion
+    manifestFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(manifestJson))
+}
+
+def bumpVersion = { Map opts ->
+    def current = readVersion()
+    def parts = current.tokenize('.').collect { it as int }
+    if (parts.size() != 3) {
+        throw new GradleException("Expected semantic version (major.minor.patch), got '${current}'")
+    }
+    if (opts.type == 'minor') {
+        parts[1] = parts[1] + 1
+        parts[2] = 0
+    } else if (opts.type == 'patch') {
+        parts[2] = parts[2] + 1
+    } else {
+        throw new GradleException("Unknown bump type: ${opts.type}")
+    }
+    def newVersion = parts.join('.')
+    writeVersion(newVersion)
+    logger.lifecycle("Version updated: ${current} -> ${newVersion}")
+}
+
+tasks.register('incrementBuildVer') {
+    group = 'versioning'
+    description = 'Increment patch/build version in gradle.properties and manifest.json'
+    doLast { bumpVersion(type: 'patch') }
+}
+
+tasks.register('incrementMinorVer') {
+    group = 'versioning'
+    description = 'Increment minor version (resetting patch) in gradle.properties and manifest.json'
+    doLast { bumpVersion(type: 'minor') }
+}

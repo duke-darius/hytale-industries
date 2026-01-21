@@ -88,6 +88,32 @@
     "SupportsRequiredFor": "Any"
   },
   "MaxStack": 64,
+  "Recipe": {
+    "OutputQuantity": 1,
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_BurningGenerator",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Furniture_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Furniture_Misc"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 4
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 1
+      }
+    ]
+  },
   "State": {
     "burningGenerator": {
       "BlockType": "HytaleIndustries_BurningGenerator"
