@@ -1,16 +1,21 @@
 # H Industries – Item Pipes & Logistics
 
-![image](https://media.forgecdn.net/attachments/description/1435489/description_e2ac9ad8-4436-4852-abab-05b5ff0828c1.png)
+<img width="2409" height="1211" alt="image" src="https://github.com/user-attachments/assets/970e6973-a568-4c00-b247-48820a8d5608" />
+
 
 ## Overview
 
 Hytale Industries adds configurable item pipes that move items between chests, furnaces, and other containers—supporting multiblock structures (e.g., furnaces with filler blocks). Pipes are direction-aware, configurable per face, and update visuals instantly.
-
-Only Pipes are in so far. Craftable in a Furniture Workbench in the Misc tab
+Craftable in a Furniture Workbench in the Misc tab
 
 ![image](https://media.forgecdn.net/attachments/description/1435489/description_db73a7b4-4bef-4145-9d71-9be9a81ac175.png)
 
 ## Key Features
+*   **Power System**
+    * Burning generator burns items with fuel value (logs/charcoal) into HE (HyEnergy)
+    * Energy can be stored in batteries
+    * Energy can be transferred into machines
+         * Currently Powered Furnace is implemented
 
 *   **Item Pipes**  
     *   Connect containers in any direction; supports multiblock inventories via filler-origin resolution.
@@ -30,14 +35,12 @@ Only Pipes are in so far. Craftable in a Furniture Workbench in the Misc tab
 *   **Persistence & Robustness**  
     *   Side configs persist across chunk reloads but clear when a pipe is broken/replaced.
     *   Connection masks and visuals stay in sync even when neighbors change.
-*   **Chest UI Fixes**  
-    *   Normalizes item IDs to avoid “Invalid Item” when showing multiblock chests.
 
 ## Roadmap
-
-*   Energy System
-*   Better models lol
 *   Automated machines
+*   Quarry
+*   Solar panels
+*   Automated farming
 
 ## How To Use
 
@@ -45,10 +48,6 @@ Only Pipes are in so far. Craftable in a Furniture Workbench in the Misc tab
 2.  Right-click a pipe to open the UI. Click a face to cycle: **Default → Extract → None → …**
 3.  To automate a furnace: set the pipe touching the output face to **Extract**; place another pipe/input on the desired destination.
 
-## Compatibility Notes
-
-*   Designed for Hytale server environments with multiblock containers (e.g., Bench\_Furnace).
-*   Uses filler-aware pathing; no special placement rules needed.
 
 ## Troubleshooting
 
