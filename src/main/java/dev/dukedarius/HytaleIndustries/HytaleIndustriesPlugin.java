@@ -2,26 +2,24 @@ package dev.dukedarius.HytaleIndustries;
 
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.logger.backend.HytaleLoggerBackend;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
-import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.util.Config;
+import dev.dukedarius.HytaleIndustries.BlockStates.*;
+import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderManager;
+import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderRegistry;
 import dev.dukedarius.HytaleIndustries.Commands.GetPipeStateCommand;
 import dev.dukedarius.HytaleIndustries.Commands.PipeHUDCommand;
-import dev.dukedarius.HytaleIndustries.BlockStates.BurningGeneratorBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.PowerCableBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.SmallBatteryBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.PoweredFurnaceBlockState;
 import dev.dukedarius.HytaleIndustries.ConnectedBlockRuleSets.PipeConnectedBlockRuleSet;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 
 import dev.dukedarius.HytaleIndustries.Commands.SetPipeSideCommand;
 import dev.dukedarius.HytaleIndustries.Commands.SetGeneratorStateCommand;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteraction;
+import dev.dukedarius.HytaleIndustries.Interactions.OpenChunkLoaderInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenSmallBatteryInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenPoweredFurnaceInteraction;
 
@@ -31,6 +29,8 @@ import java.util.logging.LogRecord;
 
 public class HytaleIndustriesPlugin extends JavaPlugin {
 
+    public static HytaleIndustriesPlugin INSTANCE;
+
     static {
         // Ensure our ConnectedBlockRuleSet type is registered BEFORE any assets are decoded.
         // If this runs too late, BlockType assets referencing {"Type":"Pipe"} will fail to load.
@@ -39,31 +39,52 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 PipeConnectedBlockRuleSet.class,
                 PipeConnectedBlockRuleSet.CODEC
         );
+
+        // Ensure custom Interaction types are registered BEFORE any assets are decoded.
+        Interaction.CODEC.register("HytaleIndustries_ConfigurePipe", ConfigurePipeInteraction.class, ConfigurePipeInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenBurningGenerator", OpenBurningGeneratorInteraction.class, OpenBurningGeneratorInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenSmallBattery", OpenSmallBatteryInteraction.class, OpenSmallBatteryInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenPoweredFurnace", OpenPoweredFurnaceInteraction.class, OpenPoweredFurnaceInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenChunkLoader", OpenChunkLoaderInteraction.class, OpenChunkLoaderInteraction.CODEC);
+
+        // TODO: implement quarry UI/interaction.
+        Interaction.CODEC.register("HytaleIndustries_OpenQuarry", OpenPoweredFurnaceInteraction.class, OpenPoweredFurnaceInteraction.CODEC);
     }
 
 
     private CopyOnWriteArrayList<LogRecord> logs = new CopyOnWriteArrayList<>();
     public static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
+    private final Config<ChunkLoaderRegistry> chunkLoaderConfig;
+    private ChunkLoaderManager chunkLoaderManager;
+
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
+        INSTANCE = this;
+
+        // IMPORTANT: withConfig() must be called BEFORE setup().
+        this.chunkLoaderConfig = this.withConfig("chunk_loaders", ChunkLoaderRegistry.CODEC);
+    }
+
+    public ChunkLoaderManager getChunkLoaderManager() {
+        return chunkLoaderManager;
     }
 
     @Override
     protected void setup() {
         LOGGER.atInfo().log("Setting up plugin " + this.getName());
 
-        // interaction registers
-        Interaction.CODEC.register("HytaleIndustries_ConfigurePipe", ConfigurePipeInteraction.class, ConfigurePipeInteraction.CODEC);
-        Interaction.CODEC.register("HytaleIndustries_OpenBurningGenerator", OpenBurningGeneratorInteraction.class, OpenBurningGeneratorInteraction.CODEC);
-        Interaction.CODEC.register("HytaleIndustries_OpenSmallBattery", OpenSmallBatteryInteraction.class, OpenSmallBatteryInteraction.CODEC);
-        Interaction.CODEC.register("HytaleIndustries_OpenPoweredFurnace", OpenPoweredFurnaceInteraction.class, OpenPoweredFurnaceInteraction.CODEC);
+        chunkLoaderManager = new ChunkLoaderManager(this, chunkLoaderConfig);
+
 
         this.getBlockStateRegistry().registerBlockState(ItemPipeBlockState.class, ItemPipeBlockState.STATE_ID, ItemPipeBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(PowerCableBlockState.class, PowerCableBlockState.STATE_ID, PowerCableBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(BurningGeneratorBlockState.class, BurningGeneratorBlockState.STATE_ID, BurningGeneratorBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(SmallBatteryBlockState.class, SmallBatteryBlockState.STATE_ID, SmallBatteryBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(PoweredFurnaceBlockState.class, PoweredFurnaceBlockState.STATE_ID, PoweredFurnaceBlockState.CODEC);
+        this.getBlockStateRegistry().registerBlockState(QuarryBlockState.class, QuarryBlockState.STATE_ID, QuarryBlockState.CODEC);
+
+        this.getBlockStateRegistry().registerBlockState(ChunkLoaderBlockState.class, ChunkLoaderBlockState.STATE_ID, ChunkLoaderBlockState.CODEC);
 
         this.getCommandRegistry().registerCommand(new GetPipeStateCommand());
         this.getCommandRegistry().registerCommand(new SetPipeSideCommand());
@@ -73,11 +94,22 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     }
 
     @Override
+    protected void start() {
+        if (chunkLoaderManager != null) {
+            chunkLoaderManager.start();
+        }
+    }
+
+    @Override
     protected void shutdown() {
+        if (chunkLoaderManager != null) {
+            chunkLoaderManager.stop();
+        }
+
         for (PlayerRef playerRef : Universe.get().getPlayers()) {
             var packetHandler = playerRef.getPacketHandler();
 
-            if(packetHandler.stillActive()) {
+            if (packetHandler.stillActive()) {
                 packetHandler.disconnect("Server is shutting down");
             }
         }
