@@ -1,0 +1,226 @@
+﻿$C = "../Common.ui";
+
+Group {
+  Anchor: (Width: 460, Height: 400);
+
+  $C.@Container {
+    Anchor: (Full: 0);
+
+    #Title {
+      Group {
+        $C.@Title {
+          @Text = "Quarry";
+        }
+      }
+    }
+
+    #Content {
+      Padding: (Left: 12, Right: 12, Top: 12, Bottom: 12);
+      LayoutMode: Left;
+
+      // Left: power panel
+      Group {
+        Anchor: (Width: 84);
+
+        Group #PowerPanel {
+          Anchor: (Full: 0);
+          Background: (Color: #1c212a);
+          Padding: (Left: 8, Right: 8, Top: 8, Bottom: 8);
+          LayoutMode: Top;
+
+          Label {
+            Text: "POWER";
+            Style: (HorizontalAlignment: Center, TextColor: #AAB3C2);
+          }
+
+          Group { Anchor: (Height: 8); }
+
+          Group {
+            FlexWeight: 1;
+            LayoutMode: Center;
+
+            ProgressBar #PowerBar {
+              TooltipText: "0";
+              Anchor: (Width: 16, Height: 180);
+              Background: #2d3440;
+              Alignment: Vertical;
+              Direction: Start;
+              Bar: (Color: #3DDCFF);
+            }
+          }
+
+          Group { Anchor: (Height: 8); }
+
+          Label #PowerText {
+            Text: "0/0 HE";
+            Style: (HorizontalAlignment: Center, TextColor: #D7DEEA);
+          }
+        }
+      }
+
+      // Right: main content
+      Group {
+        FlexWeight: 1;
+        LayoutMode: Top;
+
+        // Status row
+        Group {
+          Anchor: (Height: 44);
+          LayoutMode: Left;
+
+          Label {
+            Anchor: (Width: 74);
+            Text: "STATUS";
+            Style: (VerticalAlignment: Center, TextColor: #AAB3C2);
+          }
+
+          Group #StatusBadge {
+            Anchor: (Height: 28, Left: 8);
+            Background: (Color: #243041);
+            Padding: (Left: 10, Right: 10, Top: 4, Bottom: 4);
+
+            Label #StatusLabel {
+              Text: "IDLE";
+              Style: (VerticalAlignment: Center, TextColor: #EAF2FF);
+            }
+          }
+        }
+
+        // Current Y row
+        Group {
+          Anchor: (Height: 32);
+          LayoutMode: Left;
+
+          Label {
+            Anchor: (Width: 74);
+            Text: "Y LEVEL";
+            Style: (VerticalAlignment: Center, TextColor: #AAB3C2);
+          }
+
+          Label #YLevelLabel {
+            Text: "-";
+            Style: (VerticalAlignment: Center, TextColor: #EAF2FF);
+          }
+        }
+
+        Group { Anchor: (Height: 10); }
+
+        // Config card (visible while idle)
+        Group #ConfigGroup {
+          LayoutMode: Top;
+          Background: (Color: #1c212a);
+          Padding: (Left: 10, Right: 10, Top: 10, Bottom: 10);
+
+          Label {
+            Text: "MINING AREA";
+            Style: (TextColor: #AAB3C2);
+          }
+
+          Group { Anchor: (Height: 8); }
+
+          Group {
+            Anchor: (Height: 36);
+            LayoutMode: Left;
+
+            Label {
+              Anchor: (Width: 60);
+              Text: "Width";
+              Style: (VerticalAlignment: Center, TextColor: #D7DEEA);
+            }
+
+            $C.@TextButton #WidthDec {
+              @Text = "<";
+            }
+
+            Group { Anchor: (Width: 6); }
+
+            Group {
+              Anchor: (Width: 52, Height: 34);
+              Background: (Color: #2d3440);
+              LayoutMode: Center;
+
+              Label #WidthText {
+                Text: "17";
+                Style: (HorizontalAlignment: Center, VerticalAlignment: Center, TextColor: #EAF2FF);
+              }
+            }
+
+            Group { Anchor: (Width: 6); }
+
+            $C.@TextButton #WidthInc {
+              @Text = ">";
+            }
+          }
+
+          Group { Anchor: (Height: 8); }
+
+          Group {
+            Anchor: (Height: 36);
+            LayoutMode: Left;
+
+            Label {
+              Anchor: (Width: 74);
+              Text: "Depth";
+              Style: (VerticalAlignment: Center, TextColor: #D7DEEA);
+            }
+
+            $C.@TextButton #DepthDec {
+              @Text = "<";
+              Anchor: (Width: 34, Height: 34);
+            }
+
+            Group { Anchor: (Width: 6); }
+
+            Group {
+              Anchor: (Width: 52, Height: 34);
+              Background: (Color: #2d3440);
+              LayoutMode: Center;
+
+              Label #DepthText {
+                Text: "17";
+                Style: (HorizontalAlignment: Center, VerticalAlignment: Center, TextColor: #EAF2FF);
+              }
+            }
+
+            Group { Anchor: (Width: 6); }
+
+            $C.@TextButton #DepthInc {
+              @Text = "+";
+              Anchor: (Width: 34, Height: 34);
+            }
+          }
+
+          Group { Anchor: (Height: 10); }
+
+          Label {
+            Text: "Output: place an inventory above the quarry";
+            Style: (TextColor: #7F8AA3);
+          }
+        }
+
+        // Push the buttons to the bottom
+        Group { FlexWeight: 1; }
+
+        Group {
+          Anchor: (Height: 50);
+          LayoutMode: Center;
+
+          $C.@TextButton #StartButton {
+            @Text = "Start";
+            Anchor: (Width: 140, Height: 40);
+          }
+
+          $C.@TextButton #ResetButton {
+            @Text = "Reset";
+            Anchor: (Width: 140, Height: 40);
+          }
+
+          $C.@TextButton #CloseButton {
+            @Text = "Close";
+            Anchor: (Width: 120, Height: 40);
+          }
+        }
+      }
+    }
+  }
+}

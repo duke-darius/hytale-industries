@@ -22,6 +22,7 @@ import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteract
 import dev.dukedarius.HytaleIndustries.Interactions.OpenChunkLoaderInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenSmallBatteryInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenPoweredFurnaceInteraction;
+import dev.dukedarius.HytaleIndustries.Interactions.OpenQuarryInteraction;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -47,8 +48,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         Interaction.CODEC.register("HytaleIndustries_OpenPoweredFurnace", OpenPoweredFurnaceInteraction.class, OpenPoweredFurnaceInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenChunkLoader", OpenChunkLoaderInteraction.class, OpenChunkLoaderInteraction.CODEC);
 
-        // TODO: implement quarry UI/interaction.
-        Interaction.CODEC.register("HytaleIndustries_OpenQuarry", OpenPoweredFurnaceInteraction.class, OpenPoweredFurnaceInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenQuarry", OpenQuarryInteraction.class, OpenQuarryInteraction.CODEC);
     }
 
 
