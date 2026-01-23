@@ -279,7 +279,7 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
         }
 
         ItemContainer container = inv.getItemContainer();
-        return container == null ? null : container;
+        return container;
     }
 
     // Resolve filler blocks to their origin block coordinates; returns {x,y,z}.
