@@ -55,11 +55,15 @@ The burning generator is a new block that can be used to generate HE from logs a
 It can be placed anywhere and will burn items into HE.
 It has an internal buffer of 10k HE and can be extracted with Power Cables.
 You can open the internal storage slot from within the UI to add fuel, or pipe into it using item pipes.
+<img width="505" height="301" alt="image" src="https://github.com/user-attachments/assets/74ba4928-ea18-4361-9856-fecb618fd7ac" />
+
 
 ### Small Battery
 The small battery is a new block that can be used to store large amounts of HE.
 HE can be extracted with Power Cables.
 You can interact with it to open the UI to view the HE stored in it.
+<img width="717" height="594" alt="image" src="https://github.com/user-attachments/assets/4939b65e-45ee-4372-a664-ec333ec75f07" />
+
 
 ### Powered Furnace
 The powered furnace is a new block that can be used to power a furnace.
@@ -69,6 +73,8 @@ In the UI you can see the internal buffer and the HE stored in it.
 The input item slot can be clicked to open the Item Container to insert items into the furnace.
 The output item slot can be clicked to open the Item Container to extract items from the furnace.
 (Annoyingly, I haven't found a way to have the player inventory open with custom UI yet)
+<img width="891" height="659" alt="image" src="https://github.com/user-attachments/assets/2d1aa9c0-2e21-43a9-848a-bd45dbd48876" />
+
 
 
 ### Chunk Loader
@@ -77,6 +83,8 @@ When the plugin is loaded, the internal chunk loader registry will locate and sp
 Chunk loaders have two modes:
 *   **Background**: Hytale _will_ keep the chunk loaded but at a MUCH lower priority, tick rate may drop significantly (some performance impact)
 *   **Active**: Hytale will actively keep this chunk loaded and tick at the same rate as normal. (Potentially large performance impact)
+<img width="1001" height="978" alt="image" src="https://github.com/user-attachments/assets/a7a24577-34bb-4393-a9b5-1c1e3244789f" />
+
 
 ### Quarry (WIP)
 The Quarry is a new machine that can be used to mine blocks in a given area.
@@ -87,6 +95,9 @@ You can set the Width, Depth, and Y level start for the quarry.
 When you press start it will start consuming HE from the internal buffer and mining blocks.
 Air blocks are counted as 1/10th of a block, so if you leave y=WORLD_MAX_HEIGHT (319) it will move through the y levels relatively quickly.
 The quarry will load the chunk it's working on when it's running, but I'd recommend placing a chunk loader above the quarry to keep it loaded.
+<img width="731" height="613" alt="image" src="https://github.com/user-attachments/assets/8f8df17d-0a9e-4420-82bc-dc9d674cbd3b" />
+<img width="887" height="623" alt="image" src="https://github.com/user-attachments/assets/c1a4aec3-e205-4bf3-af3c-aa2d98d943fe" />
+
 
 This is still pretty WIP so expect bugs and missing features.
 
