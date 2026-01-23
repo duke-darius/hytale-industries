@@ -104,11 +104,11 @@
     "Input": [
       {
         "ItemId": "Ingredient_Bar_Iron",
-        "Quantity": 6
+        "Quantity": 12
       },
       {
         "ItemId": "Ingredient_Life_Essence",
-        "Quantity": 1
+        "Quantity": 8
       }
     ]
   },

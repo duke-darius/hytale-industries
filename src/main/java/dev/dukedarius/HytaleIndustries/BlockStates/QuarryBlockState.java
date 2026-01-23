@@ -5,7 +5,6 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.*;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.protocol.Vector2i;
 import com.hypixel.hytale.protocol.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
@@ -40,28 +39,37 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
 
     public static final String STATE_ID = "quarry";
     private static final double HE_CAPACITY = 10_000.0;
-    private static final double HE_CONSUMPTION_PER_SECOND = 10;
+    private static final double HE_CONSUMPTION_PER_SECOND = 50;
 
     private SimpleItemContainer inventory = new SimpleItemContainer((short) 20);
 
     private double heStored = 0.0;
     private float progress = 0.0f;
 
+    private int maxSize = 128;
+
     private int width = 17;
     private int depth = 17;
 
-    /**
-     * Exclusive start position of quarry
-     */
-    private Vector2i startPos;
-    /**
-     * Exclusive end position of quarry
-     */
-    private Vector2i endPos;
+    // Starting Y level when mining begins.
+    // Default: top of the world.
+    private int yStart = WORLD_MAX_Y_EXCLUSIVE - 1;
 
-    private Vector3i currentPos;
+    private static final int UNSET = Integer.MIN_VALUE;
+
+    // Persisted scan bounds (exclusive) and current mining cursor.
+    // start/end are X/Z bounds; current is X/Y/Z cursor.
+    private int startX = UNSET;
+    private int startZ = UNSET;
+    private int endX = UNSET;
+    private int endZ = UNSET;
+
+    private int currentX = UNSET;
+    private int currentY = UNSET;
+    private int currentZ = UNSET;
+
     public QuarryStatus currentStatus = QuarryStatus.IDLE;
-    private float speed = 8f;
+    private float speed = 2f;
 
     private transient int lastKeptChunkX = Integer.MIN_VALUE;
     private transient int lastKeptChunkZ = Integer.MIN_VALUE;
@@ -80,7 +88,56 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
             .add()
             .append(new KeyedCodec<>("Depth", Codec.INTEGER), (s, v) -> s.depth = v, s -> s.depth)
             .add()
+            .append(new KeyedCodec<>("YStart", Codec.INTEGER), (s, v) -> s.yStart = v, s -> s.yStart)
+            .add()
+            .append(new KeyedCodec<>("Status", Codec.STRING), (s, v) -> s.currentStatus = parseStatus(v), s -> s.currentStatus.name())
+            .add()
+            .append(new KeyedCodec<>("StartX", Codec.INTEGER), (s, v) -> s.startX = v, s -> s.startX)
+            .add()
+            .append(new KeyedCodec<>("StartZ", Codec.INTEGER), (s, v) -> s.startZ = v, s -> s.startZ)
+            .add()
+            .append(new KeyedCodec<>("EndX", Codec.INTEGER), (s, v) -> s.endX = v, s -> s.endX)
+            .add()
+            .append(new KeyedCodec<>("EndZ", Codec.INTEGER), (s, v) -> s.endZ = v, s -> s.endZ)
+            .add()
+            .append(new KeyedCodec<>("CurrentX", Codec.INTEGER), (s, v) -> s.currentX = v, s -> s.currentX)
+            .add()
+            .append(new KeyedCodec<>("CurrentY", Codec.INTEGER), (s, v) -> s.currentY = v, s -> s.currentY)
+            .add()
+            .append(new KeyedCodec<>("CurrentZ", Codec.INTEGER), (s, v) -> s.currentZ = v, s -> s.currentZ)
+            .add()
             .build();
+
+    private static QuarryStatus parseStatus(@Nullable String status) {
+        if (status == null) {
+            return QuarryStatus.IDLE;
+        }
+        try {
+            return QuarryStatus.valueOf(status);
+        } catch (IllegalArgumentException ignored) {
+            return QuarryStatus.IDLE;
+        }
+    }
+
+    private boolean hasScanBounds() {
+        return startX != UNSET && startZ != UNSET && endX != UNSET && endZ != UNSET;
+    }
+
+    private boolean hasCurrentPos() {
+        return currentX != UNSET && currentY != UNSET && currentZ != UNSET;
+    }
+
+    private void clearMiningState(boolean clearBounds) {
+        currentX = UNSET;
+        currentY = UNSET;
+        currentZ = UNSET;
+        if (clearBounds) {
+            startX = UNSET;
+            startZ = UNSET;
+            endX = UNSET;
+            endZ = UNSET;
+        }
+    }
 
     @Override
     public void tick(float v, int i, ArchetypeChunk<ChunkStore> archetypeChunk, Store<ChunkStore> store, CommandBuffer<ChunkStore> commandBuffer) {
@@ -90,8 +147,9 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
             return;
         }
 
-        if (startPos == null || endPos == null || currentPos == null) {
+        if (!hasScanBounds() || !hasCurrentPos()) {
             currentStatus = QuarryStatus.IDLE;
+            clearMiningState(true);
             persistSelf();
             return;
         }
@@ -107,9 +165,9 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
         selfChunk.resetKeepAlive();
 
         // Also keep the currently processed chunk loaded/ticking.
-        if (currentPos != null) {
-            int cx = Math.floorDiv(currentPos.x, 32);
-            int cz = Math.floorDiv(currentPos.z, 32);
+        if (hasCurrentPos()) {
+            int cx = Math.floorDiv(currentX, 32);
+            int cz = Math.floorDiv(currentZ, 32);
             if (cx != lastKeptChunkX || cz != lastKeptChunkZ) {
                 lastKeptChunkX = cx;
                 lastKeptChunkZ = cz;
@@ -143,12 +201,14 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
                 if (result == AdvanceResult.FINISHED) {
                     progress = 0;
                     currentStatus = QuarryStatus.IDLE;
+                    clearMiningState(true);
                     break;
                 }
                 if (result == AdvanceResult.SUCCESS) {
                     progress -= 1f / speed;
                     blocksProcessed++;
                 } else if (result == AdvanceResult.AIR) {
+                    progress -= 0.1f / speed;
                     blocksProcessed++;
                 } else if (result == AdvanceResult.FAILURE) {
                     // Can't safely continue (e.g., no target chunk loaded or output inventory rejected drops).
@@ -289,23 +349,22 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
     }
 
     private AdvanceResult advancePosition(@Nonnull World world, @Nonnull ItemContainer outputContainer) {
-        if (currentPos == null) return AdvanceResult.FAILURE;
-        if (startPos == null || endPos == null) return AdvanceResult.FAILURE;
+        if (!hasCurrentPos() || !hasScanBounds()) return AdvanceResult.FAILURE;
 
         // We may cross chunk boundaries while scanning.
-        WorldChunk targetChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(currentPos.x, currentPos.z));
+        WorldChunk targetChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(currentX, currentZ));
         if (targetChunk == null) {
-            targetChunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(currentPos.x, currentPos.z));
+            targetChunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(currentX, currentZ));
         }
         if (targetChunk == null) {
             return AdvanceResult.FAILURE;
         }
 
-        int blockId = world.getBlock(currentPos.x, currentPos.y, currentPos.z);
+        int blockId = world.getBlock(currentX, currentY, currentZ);
         boolean isAir = blockId == 0;
 
         if (!isAir) {
-            BlockType blockType = world.getBlockType(currentPos.x, currentPos.y, currentPos.z);
+            BlockType blockType = world.getBlockType(currentX, currentY, currentZ);
             if (blockType != null) {
                 List<ItemStack> drops = getBlockDrops(blockType);
                 // Ensure drops fit before breaking the block.
@@ -318,21 +377,21 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
                 }
             }
 
-            int lx = currentPos.x & 31;
-            int lz = currentPos.z & 31;
-            targetChunk.breakBlock(lx, currentPos.y, lz);
+            int lx = currentX & 31;
+            int lz = currentZ & 31;
+            targetChunk.breakBlock(lx, currentY, lz);
         }
 
-        // Advance to next position, strictly within startPos and endPos
-        currentPos.x++;
-        if (currentPos.x >= endPos.x) {
-            currentPos.x = startPos.x;
-            currentPos.z++;
-            if (currentPos.z >= endPos.y) {
-                currentPos.z = startPos.y;
-                currentPos.y--;
-                HytaleIndustriesPlugin.LOGGER.atInfo().log("Quarry reached y=%d", currentPos.y);
-                if (currentPos.y < WORLD_MIN_Y) {
+        // Advance to next position, strictly within [startX,endX) and [startZ,endZ)
+        currentX++;
+        if (currentX >= endX) {
+            currentX = startX;
+            currentZ++;
+            if (currentZ >= endZ) {
+                currentZ = startZ;
+                currentY--;
+                HytaleIndustriesPlugin.LOGGER.atInfo().log("Quarry reached y=%d", currentY);
+                if (currentY < WORLD_MIN_Y) {
                     return AdvanceResult.FINISHED;
                 }
             }
@@ -341,7 +400,7 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
         // Safety check: ensure we are NOT breaking the quarry block itself or the output container above it.
         var selfPos = getBlockPosition();
         if (selfPos != null) {
-            if (currentPos.x == selfPos.x && currentPos.z == selfPos.z && (currentPos.y == selfPos.y || currentPos.y == selfPos.y + 1)) {
+            if (currentX == selfPos.x && currentZ == selfPos.z && (currentY == selfPos.y || currentY == selfPos.y + 1)) {
                 HytaleIndustriesPlugin.LOGGER.atFine().log("Quarry reached self position");
                 // If by some logic we ended up here, skip this position.
                 return AdvanceResult.AIR;
@@ -388,7 +447,7 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
     }
 
     public void setWidth(int width) {
-        this.width = Math.max(1, Math.min(64, width));
+        this.width = Math.max(1, Math.min(maxSize, width));
         persistSelf();
     }
 
@@ -397,8 +456,22 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
         persistSelf();
     }
 
+    public int getYStart() {
+        return yStart;
+    }
+
+    public void setYStart(int yStart) {
+        // Clamp to world bounds.
+        this.yStart = Math.max(WORLD_MIN_Y, Math.min(WORLD_MAX_Y_EXCLUSIVE - 1, yStart));
+        persistSelf();
+    }
+
+    @Nullable
     public Vector3i getCurrentPos() {
-        return currentPos;
+        if (!hasCurrentPos()) {
+            return null;
+        }
+        return new Vector3i(currentX, currentY, currentZ);
     }
 
     public void startMining() {
@@ -413,36 +486,49 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
 
         switch (rot) {
             case 0 -> { // North? -Z is forward
-                startPos = new Vector2i(pos.x - halfWidth, pos.z - depth);
-                endPos = new Vector2i(pos.x - halfWidth + width, pos.z);
+                startX = pos.x - halfWidth;
+                startZ = pos.z - depth;
+                endX = pos.x - halfWidth + width;
+                endZ = pos.z;
             }
             case 1 -> { // West? -X is forward
-                startPos = new Vector2i(pos.x - depth, pos.z - halfWidth);
-                endPos = new Vector2i(pos.x, pos.z - halfWidth + width);
+                startX = pos.x - depth;
+                startZ = pos.z - halfWidth;
+                endX = pos.x;
+                endZ = pos.z - halfWidth + width;
             }
             case 2 -> { // South? +Z is forward
-                startPos = new Vector2i(pos.x - halfWidth, pos.z + 1);
-                endPos = new Vector2i(pos.x - halfWidth + width, pos.z + 1 + depth);
+                startX = pos.x - halfWidth;
+                startZ = pos.z + 1;
+                endX = pos.x - halfWidth + width;
+                endZ = pos.z + 1 + depth;
             }
             case 3 -> { // East? +X is forward
-                startPos = new Vector2i(pos.x + 1, pos.z - halfWidth);
-                endPos = new Vector2i(pos.x + 1 + depth, pos.z - halfWidth + width);
+                startX = pos.x + 1;
+                startZ = pos.z - halfWidth;
+                endX = pos.x + 1 + depth;
+                endZ = pos.z - halfWidth + width;
             }
             default -> {
-                startPos = new Vector2i(pos.x - halfWidth, pos.z - halfWidth);
-                endPos = new Vector2i(pos.x - halfWidth + width, pos.z - halfWidth + width);
+                startX = pos.x - halfWidth;
+                startZ = pos.z - halfWidth;
+                endX = pos.x - halfWidth + width;
+                endZ = pos.z - halfWidth + width;
             }
         }
-        currentPos = new Vector3i(startPos.x, WORLD_MAX_Y_EXCLUSIVE - 1, startPos.y);
+
+        int startY = Math.max(WORLD_MIN_Y, Math.min(WORLD_MAX_Y_EXCLUSIVE - 1, yStart));
+        currentX = startX;
+        currentY = startY;
+        currentZ = startZ;
+
         currentStatus = QuarryStatus.ACTIVE;
         persistSelf();
     }
 
     public void reset() {
         currentStatus = QuarryStatus.IDLE;
-        currentPos = null;
-        startPos = null;
-        endPos = null;
+        clearMiningState(true);
         persistSelf();
     }
 

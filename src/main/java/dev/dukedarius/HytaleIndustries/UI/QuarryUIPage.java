@@ -21,6 +21,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.BlockStates.QuarryBlockState;
+import dev.dukedarius.HytaleIndustries.Energy.PowerUtils;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nonnull;
@@ -59,7 +60,7 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         ensureTimerStarted();
 
         cmd.append("Pages/HytaleIndustries_Quarry.ui");
-        render(cmd, events, store);
+        render(cmd, events, store, true);
     }
 
     @Override
@@ -78,40 +79,80 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
             return;
         }
 
-        switch (data.action) {
-            case UIEventData.ACTION_START -> quarry.startMining();
-            case UIEventData.ACTION_RESET -> quarry.reset();
-            case UIEventData.ACTION_WIDTH_INC -> quarry.setWidth(quarry.getWidth() + 1);
-            case UIEventData.ACTION_WIDTH_DEC -> quarry.setWidth(quarry.getWidth() - 1);
-            case UIEventData.ACTION_DEPTH_INC -> quarry.setDepth(quarry.getDepth() + 1);
-            case UIEventData.ACTION_DEPTH_DEC -> quarry.setDepth(quarry.getDepth() - 1);
-            case UIEventData.ACTION_CLOSE -> {
-                Player player = store.getComponent(ref, Player.getComponentType());
-                if (player != null) {
-                    try {
-                        player.getPageManager().handleEvent(ref, store, new CustomPageEvent(CustomPageEventType.Dismiss, ""));
-                    } catch (Throwable t) {
-                        HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("QuarryUI: failed to dismiss page");
-                    }
-                }
-                return;
+        boolean didSomething = false;
+
+        if (data.widthValue != null) {
+            try {
+                quarry.setWidth(Integer.parseInt(data.widthValue));
+                didSomething = true;
+            } catch (NumberFormatException ignored) {
+                didSomething = true;
             }
         }
 
-        // Re-render immediately after action.
+        if (data.depthValue != null) {
+            try {
+                quarry.setDepth(Integer.parseInt(data.depthValue));
+                didSomething = true;
+            } catch (NumberFormatException ignored) {
+                didSomething = true;
+            }
+        }
+
+        if (data.yStartValue != null) {
+            try {
+                quarry.setYStart(Integer.parseInt(data.yStartValue));
+                didSomething = true;
+            } catch (NumberFormatException ignored) {
+                didSomething = true;
+            }
+        }
+
+        if (data.action != null) {
+            switch (data.action) {
+                case UIEventData.ACTION_START -> {
+                    quarry.startMining();
+                    didSomething = true;
+                }
+                case UIEventData.ACTION_RESET -> {
+                    quarry.reset();
+                    didSomething = true;
+                }
+                case UIEventData.ACTION_CLOSE -> {
+                    Player player = store.getComponent(ref, Player.getComponentType());
+                    if (player != null) {
+                        try {
+                            player.getPageManager().handleEvent(ref, store, new CustomPageEvent(CustomPageEventType.Dismiss, ""));
+                        } catch (Throwable t) {
+                            HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("QuarryUI: failed to dismiss page");
+                        }
+                    }
+                    return;
+                }
+            }
+        }
+
+        if (!didSomething) {
+            return;
+        }
+
+        // Re-render immediately after any action/change.
         UICommandBuilder cmd = new UICommandBuilder();
         UIEventBuilder events = new UIEventBuilder();
-        render(cmd, events, store);
+        render(cmd, events, store, true);
         sendUpdate(cmd, events, false);
     }
 
-    private void render(@Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder events, @Nonnull Store<EntityStore> store) {
+    private void render(@Nonnull UICommandBuilder cmd,
+                        @Nonnull UIEventBuilder events,
+                        @Nonnull Store<EntityStore> store,
+                        boolean includeInputValues) {
         World world = store.getExternalData().getWorld();
         BlockState st = world.getState(x, y, z, true);
-        
+
         if (st instanceof QuarryBlockState quarry) {
             boolean isIdle = quarry.currentStatus == QuarryBlockState.QuarryStatus.IDLE;
-            
+
             cmd.set("#StatusLabel.Text", quarry.currentStatus.name());
 
             String yText = "-";
@@ -120,15 +161,20 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
             }
             cmd.set("#YLevelLabel.Text", yText);
 
-            cmd.set("#WidthText.Text", String.valueOf(quarry.getWidth()));
-            cmd.set("#DepthText.Text", String.valueOf(quarry.getDepth()));
+            // NOTE: Avoid spamming Value updates while idle so players can type without the auto-update timer
+            // constantly overwriting their input.
+            if (includeInputValues) {
+                cmd.set("#WidthValue.Value", String.valueOf(quarry.getWidth()));
+                cmd.set("#DepthValue.Value", String.valueOf(quarry.getDepth()));
+                cmd.set("#YStartValue.Value", String.valueOf(quarry.getYStart()));
+            }
 
             // Power bar
             double he = quarry.getHeStored();
             double heCap = quarry.getHeCapacity();
             cmd.set("#PowerBar.Value", Math.max(0.0, Math.min(1.0, he / heCap)));
             cmd.set("#PowerBar.TooltipText", String.format("%d/%d HE Stored", (int) he, (int) heCap));
-            cmd.set("#PowerText.Text", String.format("%d/%d HE", (int) he, (int) heCap));
+            cmd.set("#PowerText.Text", PowerUtils.formatHe(he) + "/" + PowerUtils.formatHe(heCap) + " HE");
 
             // Visibility logic
             cmd.set("#ConfigGroup.Visible", isIdle);
@@ -181,7 +227,7 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
 
         UICommandBuilder cmd = new UICommandBuilder();
         UIEventBuilder events = new UIEventBuilder();
-        render(cmd, events, store);
+        render(cmd, events, store, false);
         sendUpdate(cmd, events, false);
     }
 
@@ -190,20 +236,22 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
                 new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_START), false);
         events.addEventBinding(CustomUIEventBindingType.Activating, "#ResetButton",
                 new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_RESET), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#WidthInc",
-                new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_WIDTH_INC), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#WidthDec",
-                new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_WIDTH_DEC), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#DepthInc",
-                new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_DEPTH_INC), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#DepthDec",
-                new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_DEPTH_DEC), false);
-        events.addEventBinding(CustomUIEventBindingType.Activating, "#CloseButton",
-                new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_CLOSE), false);
+
+        events.addEventBinding(CustomUIEventBindingType.ValueChanged, "#WidthValue",
+                EventData.of(UIEventData.KEY_WIDTH_VALUE, "#WidthValue.Value"), false);
+        events.addEventBinding(CustomUIEventBindingType.ValueChanged, "#DepthValue",
+                EventData.of(UIEventData.KEY_DEPTH_VALUE, "#DepthValue.Value"), false);
+        events.addEventBinding(CustomUIEventBindingType.ValueChanged, "#YStartValue",
+                EventData.of(UIEventData.KEY_Y_START_VALUE, "#YStartValue.Value"), false);
+
     }
 
     public static final class UIEventData {
         static final String KEY_ACTION = "Action";
+        static final String KEY_WIDTH_VALUE = "@Width";
+        static final String KEY_DEPTH_VALUE = "@Depth";
+        static final String KEY_Y_START_VALUE = "@YStart";
+
         static final String ACTION_START = "Start";
         static final String ACTION_RESET = "Reset";
         static final String ACTION_CLOSE = "Close";
@@ -215,8 +263,24 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         public static final BuilderCodec<UIEventData> CODEC = BuilderCodec.builder(UIEventData.class, UIEventData::new)
                 .append(new KeyedCodec<>(KEY_ACTION, Codec.STRING), (d, v) -> d.action = v, d -> d.action)
                 .add()
+                .append(new KeyedCodec<>(KEY_WIDTH_VALUE, Codec.STRING), (d, v) -> d.widthValue = v, d -> d.widthValue)
+                .add()
+                .append(new KeyedCodec<>(KEY_DEPTH_VALUE, Codec.STRING), (d, v) -> d.depthValue = v, d -> d.depthValue)
+                .add()
+                .append(new KeyedCodec<>(KEY_Y_START_VALUE, Codec.STRING), (d, v) -> d.yStartValue = v, d -> d.yStartValue)
+                .add()
                 .build();
 
+        @javax.annotation.Nullable
         private String action;
+
+        @javax.annotation.Nullable
+        private String widthValue;
+
+        @javax.annotation.Nullable
+        private String depthValue;
+
+        @javax.annotation.Nullable
+        private String yStartValue;
     }
 }

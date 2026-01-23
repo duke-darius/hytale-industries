@@ -4,7 +4,6 @@ Group {
   Anchor: (Width: 460, Height: 400);
 
   $C.@Container {
-    Anchor: (Full: 0);
 
     #Title {
       Group {
@@ -60,6 +59,7 @@ Group {
 
       // Right: main content
       Group {
+        Anchor: (Left: 10);
         FlexWeight: 1;
         LayoutMode: Top;
 
@@ -123,33 +123,35 @@ Group {
             LayoutMode: Left;
 
             Label {
-              Anchor: (Width: 60);
+              Anchor: (Width: 74);
+              Text: "Y Start";
+              Style: (VerticalAlignment: Center, TextColor: #D7DEEA);
+            }
+
+            Group { Anchor: (Width: 6); }
+
+            $C.@TextField #YStartValue {
+              @Anchor = (Width: 52, Height: 34);
+              PlaceholderText: "319";
+            }
+          }
+
+          Group { Anchor: (Height: 8); }
+
+          Group {
+            Anchor: (Height: 36);
+            LayoutMode: Left;
+
+            Label {
+              Anchor: (Width: 74);
               Text: "Width";
               Style: (VerticalAlignment: Center, TextColor: #D7DEEA);
             }
 
-            $C.@TextButton #WidthDec {
-              @Text = "<";
+            $C.@TextField #WidthValue {
+              @Anchor = (Width: 52, Height: 34);
             }
 
-            Group { Anchor: (Width: 6); }
-
-            Group {
-              Anchor: (Width: 52, Height: 34);
-              Background: (Color: #2d3440);
-              LayoutMode: Center;
-
-              Label #WidthText {
-                Text: "17";
-                Style: (HorizontalAlignment: Center, VerticalAlignment: Center, TextColor: #EAF2FF);
-              }
-            }
-
-            Group { Anchor: (Width: 6); }
-
-            $C.@TextButton #WidthInc {
-              @Text = ">";
-            }
           }
 
           Group { Anchor: (Height: 8); }
@@ -164,30 +166,10 @@ Group {
               Style: (VerticalAlignment: Center, TextColor: #D7DEEA);
             }
 
-            $C.@TextButton #DepthDec {
-              @Text = "<";
-              Anchor: (Width: 34, Height: 34);
+            $C.@TextField #DepthValue {
+              @Anchor = (Width: 52, Height: 34);
             }
 
-            Group { Anchor: (Width: 6); }
-
-            Group {
-              Anchor: (Width: 52, Height: 34);
-              Background: (Color: #2d3440);
-              LayoutMode: Center;
-
-              Label #DepthText {
-                Text: "17";
-                Style: (HorizontalAlignment: Center, VerticalAlignment: Center, TextColor: #EAF2FF);
-              }
-            }
-
-            Group { Anchor: (Width: 6); }
-
-            $C.@TextButton #DepthInc {
-              @Text = "+";
-              Anchor: (Width: 34, Height: 34);
-            }
           }
 
           Group { Anchor: (Height: 10); }
@@ -213,11 +195,6 @@ Group {
           $C.@TextButton #ResetButton {
             @Text = "Reset";
             Anchor: (Width: 140, Height: 40);
-          }
-
-          $C.@TextButton #CloseButton {
-            @Text = "Close";
-            Anchor: (Width: 120, Height: 40);
           }
         }
       }
