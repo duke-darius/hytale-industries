@@ -28,6 +28,9 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Power Cables transfer HE (Hytale Energy).
@@ -293,67 +296,69 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
         int cableY = getBlockY();
         int cableZ = getBlockZ();
 
+        List<HETransferEndpoint> sources = new ArrayList<>();
+        LongOpenHashSet excludedKeys = new LongOpenHashSet();
         for (ItemPipeBlockState.Direction dir : ItemPipeBlockState.Direction.values()) {
-            if (budget <= 0.0) {
-                break;
+            if (getConnectionState(dir) == ItemPipeBlockState.ConnectionState.Extract) {
+                int sx = cableX + dir.dx;
+                int sy = cableY + dir.dy;
+                int sz = cableZ + dir.dz;
+                if (sy < WORLD_MIN_Y || sy >= WORLD_MAX_Y_EXCLUSIVE) continue;
+
+                HETransferEndpoint source = getTransfersEndpointIfLoaded(world, sx, sy, sz);
+                if (source != null) {
+                    sources.add(source);
+                    excludedKeys.add(packBlockPos(source.x, source.y, source.z));
+                }
             }
-            if (getConnectionState(dir) != ItemPipeBlockState.ConnectionState.Extract) {
-                continue;
-            }
+        }
 
-            int sx = cableX + dir.dx;
-            int sy = cableY + dir.dy;
-            int sz = cableZ + dir.dz;
-            if (sy < WORLD_MIN_Y || sy >= WORLD_MAX_Y_EXCLUSIVE) {
-                continue;
-            }
+        if (sources.isEmpty()) {
+            return;
+        }
 
-            // Source must be loaded and implement TransfersHE.
-            HETransferEndpoint source = getTransfersEndpointIfLoaded(world, sx, sy, sz);
-            if (source == null) {
-                continue;
-            }
+        List<HEReceiveEndpoint> receivers = findAllReachableReceivers(world, cableX, cableY, cableZ, excludedKeys);
+        if (receivers.isEmpty()) {
+            return;
+        }
 
-            long excludedSourceKey = packBlockPos(source.x, source.y, source.z);
+        // Evenly distribute available energy among all receivers.
+        double totalAvailable = 0;
+        for (HETransferEndpoint source : sources) {
+            totalAvailable += source.transfers.getHeStored();
+        }
+        double amountToMove = Math.min(totalAvailable, budget);
+        if (amountToMove <= 0.0) return;
 
-            long receiverPacked = findNearestReceiver(world, cableX, cableY, cableZ, excludedSourceKey);
-            if (receiverPacked == Long.MIN_VALUE) {
-                continue;
-            }
+        // Sort receivers by free capacity ascending to ensure optimal fair distribution.
+        receivers.sort(Comparator.comparingDouble(r -> r.receives.getHeFreeCapacity()));
 
-            int rx = unpackX(receiverPacked);
-            int ry = unpackY(receiverPacked);
-            int rz = unpackZ(receiverPacked);
+        double remainingToDistribute = amountToMove;
+        int remainingReceiversCount = receivers.size();
 
-            HEReceiveEndpoint receiver = getReceivesEndpointIfLoaded(world, rx, ry, rz);
-            if (receiver == null) {
-                continue;
-            }
+        for (HEReceiveEndpoint receiver : receivers) {
+            double share = remainingToDistribute / remainingReceiversCount;
+            double canTake = receiver.receives.getHeFreeCapacity();
+            double toGive = Math.min(share, canTake);
 
-            double maxSend = Math.min(budget, Math.min(source.transfers.getHeStored(), receiver.receives.getHeFreeCapacity()));
-            if (maxSend <= 0.0) {
-                continue;
-            }
+            if (toGive > 0.0) {
+                double stillToExtract = toGive;
+                for (HETransferEndpoint source : sources) {
+                    double sourceAvailable = source.transfers.getHeStored();
+                    if (sourceAvailable <= 0.0) continue;
 
-            double extracted = source.transfers.extractHe(maxSend);
-            if (extracted <= 0.0) {
-                continue;
-            }
+                    double extract = Math.min(stillToExtract, sourceAvailable);
+                    source.transfers.extractHe(extract);
+                    persistEndpoint(source);
+                    stillToExtract -= extract;
+                    if (stillToExtract <= 0.0) break;
+                }
 
-            double accepted = receiver.receives.receiveHe(extracted);
-            if (accepted <= 0.0) {
-                // No way to put extracted power back; treat as lost for now.
-                // (Should not happen because we clamp by free capacity above.)
-                persistEndpoint(source);
+                receiver.receives.receiveHe(toGive);
                 persistEndpoint(receiver);
-                budget -= extracted;
-                continue;
+                remainingToDistribute -= toGive;
             }
-
-            budget -= accepted;
-
-            persistEndpoint(source);
-            persistEndpoint(receiver);
+            remainingReceiversCount--;
         }
     }
 
@@ -389,7 +394,9 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
         return cable.isSideConnected(dir);
     }
 
-    private static long findNearestReceiver(@Nonnull World world, int startCableX, int startCableY, int startCableZ, long excludedSourceKey) {
+    private static List<HEReceiveEndpoint> findAllReachableReceivers(@Nonnull World world, int startCableX, int startCableY, int startCableZ, LongOpenHashSet excludedKeys) {
+        List<HEReceiveEndpoint> found = new ArrayList<>();
+        LongOpenHashSet foundKeys = new LongOpenHashSet();
         LongOpenHashSet visited = new LongOpenHashSet();
         LongArrayFIFOQueue queue = new LongArrayFIFOQueue();
 
@@ -447,18 +454,20 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
                     continue;
                 }
 
-                if (packBlockPos(ox, oy, oz) == excludedSourceKey) {
+                long receiverKey = packBlockPos(ox, oy, oz);
+                if (excludedKeys.contains(receiverKey) || !foundKeys.add(receiverKey)) {
                     continue;
                 }
 
                 // Non-cable: see if it's a receiver.
-                if (HEComponents.receives(world, ox, oy, oz) != null) {
-                    return packBlockPos(ox, oy, oz);
+                HEReceiveEndpoint ep = getReceivesEndpointIfLoaded(world, ox, oy, oz);
+                if (ep != null) {
+                    found.add(ep);
                 }
             }
         }
 
-        return Long.MIN_VALUE;
+        return found;
     }
 
     private static final class HETransferEndpoint {
@@ -525,7 +534,7 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
             return null;
         }
 
-        BlockState st = world.getState(ox, oy, oz, true);
+        BlockState st = chunk.getState(ox & 31, oy, oz & 31);
         if (!(st instanceof TransfersHE)) {
             return null;
         }
@@ -559,7 +568,7 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
             return null;
         }
 
-        BlockState st = world.getState(ox, oy, oz, true);
+        BlockState st = chunk.getState(ox & 31, oy, oz & 31);
         if (!(st instanceof ReceivesHE)) {
             return null;
         }

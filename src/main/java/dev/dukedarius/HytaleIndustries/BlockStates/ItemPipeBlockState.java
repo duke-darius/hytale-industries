@@ -30,6 +30,8 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ItemPipeBlockState extends BlockState implements TickableBlockState, SideConfigurableConduit {
 
@@ -357,45 +359,49 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
         int pipeY = getBlockY();
         int pipeZ = getBlockZ();
 
-        int moved = 0;
-        // Try all adjacent inventories as potential sources, sharing the 4 items/sec budget.
+        List<SourceInventory> sources = new ArrayList<>();
+        LongOpenHashSet excludedKeys = new LongOpenHashSet();
         for (Direction dir : Direction.values()) {
-            if (moved >= 4) {
-                break;
-            }
-            if (getConnectionState(dir) != ConnectionState.Extract) {
-                continue;
-            }
+            if (getConnectionState(dir) == ConnectionState.Extract) {
+                int sx = pipeX + dir.dx;
+                int sy = pipeY + dir.dy;
+                int sz = pipeZ + dir.dz;
+                if (sy < WORLD_MIN_Y || sy >= WORLD_MAX_Y_EXCLUSIVE) continue;
 
-            int sx = pipeX + dir.dx;
-            int sy = pipeY + dir.dy;
-            int sz = pipeZ + dir.dz;
-            if (sy < WORLD_MIN_Y || sy >= WORLD_MAX_Y_EXCLUSIVE) {
-                continue;
+                SourceInventory sourceInv = getInventoryIfLoaded(world, sx, sy, sz);
+                if (sourceInv != null) {
+                    sources.add(sourceInv);
+                    excludedKeys.add(packBlockPos(sourceInv.x, sourceInv.y, sourceInv.z));
+                }
             }
+        }
 
-            SourceInventory sourceInv = getInventoryIfLoaded(world, sx, sy, sz);
-            if (sourceInv == null) {
-                continue;
-            }
+        if (sources.isEmpty()) {
+            return;
+        }
+
+        List<InventoryEndpoint> endpoints = findAllReachableInventories(world, pipeX, pipeY, pipeZ, excludedKeys);
+        if (endpoints.isEmpty()) {
+            return;
+        }
+
+        int totalMoved = 0;
+        for (SourceInventory sourceInv : sources) {
+            if (totalMoved >= 4) break;
 
             ItemContainer source = sourceInv.container;
-            if (source == null || source.isEmpty()) {
-                continue;
-            }
+            if (source == null || source.isEmpty()) continue;
 
-            // If the source is a ProcessingBench (e.g. Bench_Furnace), ONLY extract from its OUTPUT slots.
             SlotRange extractRange = getExtractableSlotRange(sourceInv.blockType, source);
-            if (extractRange.isEmpty()) {
-                continue;
-            }
+            if (extractRange.isEmpty()) continue;
 
-            long excludedInventoryKey = packBlockPos(sourceInv.x, sourceInv.y, sourceInv.z);
-            ItemContainer destination = findNearestInventory(world, pipeX, pipeY, pipeZ, excludedInventoryKey);
-            if (destination == null) {
-                continue;
+            for (InventoryEndpoint ep : endpoints) {
+                int count = moveUpToNItems(source, ep.container, extractRange, 4 - totalMoved);
+                if (count > 0) {
+                    totalMoved += count;
+                }
+                if (totalMoved >= 4) break;
             }
-            moved += moveUpToNItems(source, destination, extractRange, 4 - moved);
         }
     }
 
@@ -543,7 +549,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
             return null;
         }
 
-        BlockType blockType = chunk.getBlockType(ox, oy, oz);
+        BlockType blockType = chunk.getBlockType(ox & 31, oy, oz & 31);
         return new SourceInventory(container, blockType, ox, oy, oz);
     }
 
@@ -599,37 +605,44 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
             return 0;
         }
 
-        int moved = 0;
-        // Keep pulling 1-at-a-time until we hit the budget or can't move anything anymore.
-        // This guarantees we can move up to 4 per second even if all items are in a single stack.
-        while (moved < maxToMove) {
-            boolean movedThisPass = false;
-
-            for (int i = range.startInclusive; i < range.endExclusive && moved < maxToMove; i++) {
-                short slot = (short) i;
-                ItemStack stack = source.getItemStack(slot);
-                if (stack == null || ItemStack.isEmpty(stack)) {
-                    continue;
-                }
-
-                var tx = source.moveItemStackFromSlot(slot, 1, destination, false, true);
-                if (tx != null && tx.succeeded()) {
-                    moved++;
-                    movedThisPass = true;
-                }
+        int totalMoved = 0;
+        for (int i = range.startInclusive; i < range.endExclusive && totalMoved < maxToMove; i++) {
+            short slot = (short) i;
+            ItemStack stack = source.getItemStack(slot);
+            if (stack == null || ItemStack.isEmpty(stack)) {
+                continue;
             }
 
-            if (!movedThisPass) {
-                break;
+            int beforeCount = stack.getQuantity();
+            int toMove = Math.min(beforeCount, maxToMove - totalMoved);
+            var tx = source.moveItemStackFromSlot(slot, toMove, destination, false, true);
+            if (tx != null && tx.succeeded()) {
+                ItemStack stackAfter = source.getItemStack(slot);
+                int afterCount = (stackAfter == null || ItemStack.isEmpty(stackAfter)) ? 0 : stackAfter.getQuantity();
+                int movedNow = beforeCount - afterCount;
+                if (movedNow > 0) {
+                    totalMoved += movedNow;
+                }
             }
         }
 
-        return moved;
+        return totalMoved;
     }
 
 
-    @Nullable
-    private static ItemContainer findNearestInventory(@Nonnull World world, int startPipeX, int startPipeY, int startPipeZ, long excludedInventoryKey) {
+    private static final class InventoryEndpoint {
+        final ItemContainer container;
+        final long packedPos;
+
+        InventoryEndpoint(ItemContainer container, long packedPos) {
+            this.container = container;
+            this.packedPos = packedPos;
+        }
+    }
+
+    private static List<InventoryEndpoint> findAllReachableInventories(@Nonnull World world, int startPipeX, int startPipeY, int startPipeZ, LongOpenHashSet excludedKeys) {
+        List<InventoryEndpoint> found = new ArrayList<>();
+        LongOpenHashSet foundKeys = new LongOpenHashSet();
         LongOpenHashSet visited = new LongOpenHashSet();
         LongArrayFIFOQueue queue = new LongArrayFIFOQueue();
 
@@ -665,7 +678,7 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
                 if (chunk == null) {
                     continue;
                 }
-                BlockType neighborType = chunk.getBlockType(ox, oy, oz);
+                BlockType neighborType = chunk.getBlockType(ox & 31, oy, oz & 31);
 
                 if (isPipe(neighborType)) {
                     // Respect the neighbor's opposite face.
@@ -680,18 +693,23 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
                     continue;
                 }
 
-                // Non-pipe: see if it's an inventory (multiblock-aware). "None" disables connecting to inventories too.
-                BlockState state = chunk.getState(ox, oy, oz);
+                // Non-pipe: see if it's an inventory. Only allow delivery on Default faces.
+                ItemPipeBlockState here = getPipeStateIfLoaded(world, x, y, z);
+                if (here != null && here.getConnectionState(dir) != ConnectionState.Default) {
+                    continue;
+                }
+
+                BlockState state = chunk.getState(ox & 31, oy, oz & 31);
                 if (state instanceof ItemContainerBlockState inv) {
                     long invKey = packBlockPos(ox, oy, oz);
-                    if (invKey != excludedInventoryKey) {
-                        return inv.getItemContainer();
+                    if (!excludedKeys.contains(invKey) && foundKeys.add(invKey)) {
+                        found.add(new InventoryEndpoint(inv.getItemContainer(), invKey));
                     }
                 }
             }
         }
 
-        return null;
+        return found;
     }
 
     // Pack world coords into a single long (26-bit X/Z, 12-bit Y).
