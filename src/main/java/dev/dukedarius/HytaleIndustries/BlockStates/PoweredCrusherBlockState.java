@@ -33,11 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * HE-powered crusher: identical power stats to the Powered Furnace but runs crusher recipes.
- * Recipes are pulled from the CraftingPlugin bench type Processing with bench id \"Crusher\"
- * to make it easy to extend via asset recipes.
- */
 public class PoweredCrusherBlockState extends BlockState implements TickableBlockState, ItemContainerBlockState, StoresHE, ReceivesHE {
 
     public static final String STATE_ID = "poweredCrusher";
@@ -136,7 +131,7 @@ public class PoweredCrusherBlockState extends BlockState implements TickableBloc
         if (pos == null) return;
         var stateRef = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
         if (stateRef == null) return;
-        @SuppressWarnings({"rawtypes", "unchecked"})
+
         ComponentType<ChunkStore, Component<ChunkStore>> type =
                 (ComponentType) BlockStateModule.get().getComponentType((Class) this.getClass());
         if (type == null) return;

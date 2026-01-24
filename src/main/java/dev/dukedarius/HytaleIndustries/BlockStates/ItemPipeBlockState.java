@@ -390,7 +390,6 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
             if (totalMoved >= 4) break;
 
             ItemContainer source = sourceInv.container;
-
             if (source == null || source.isEmpty()) continue;
 
             SlotRange extractRange = getExtractableSlotRange(sourceInv.blockType, source);
@@ -572,7 +571,6 @@ public class ItemPipeBlockState extends BlockState implements TickableBlockState
             if (bench instanceof ProcessingBench processing) {
                 // Assumption (matches in-game UX): container layout is [inputs][fuel][outputs].
                 // We use tierLevel=1 as a safe default.
-
                 int tierLevel = 1;
                 int inputCount = 0;
                 try {

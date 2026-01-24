@@ -95,7 +95,7 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
         // Prevent ack underflow by resetting before switching off this custom page.
         player.getPageManager().clearCustomPageAcknowledgements();
         // Open the furnace container in a single page swap.
-        player.getPageManager().setPageWithWindows(ref, store, Page.Inventory, false, win);
+        player.getPageManager().setPageWithWindows(ref, store, Page.Inventory, true, win);
     }
 
     private void render(@Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder events, @Nonnull Store<EntityStore> store) {

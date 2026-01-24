@@ -23,12 +23,6 @@ import dev.dukedarius.HytaleIndustries.Energy.TransfersHE;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/**
- * Wind Turbine generates HE from wind.
- * Base 10 HE/s.
- * Above Y=120, increases by 1 HE/s for every 10 blocks (e.g. 11 HE/s at Y=130).
- * 4 blocks tall.
- */
 public class WindTurbineBlockState extends BlockState implements TickableBlockState, StoresHE, TransfersHE {
 
     public static final String STATE_ID = "windTurbine";

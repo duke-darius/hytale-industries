@@ -91,11 +91,7 @@ public class PoweredCrusherUIPage extends InteractiveCustomUIPage<PoweredCrusher
             return;
         }
 
-        // Clear any outstanding custom-page acknowledgements before switching pages,
-        // otherwise the next client ack can underflow and trip PageManager's guard.
         player.getPageManager().clearCustomPageAcknowledgements();
-        // setPageWithWindows will dismiss the current custom page internally and open the block window.
-        player.getPageManager().setPageWithWindows(ref, store, Page.Inventory, false, win);
         player.getPageManager().setPageWithWindows(ref, store, Page.Inventory, false, win);
     }
 
