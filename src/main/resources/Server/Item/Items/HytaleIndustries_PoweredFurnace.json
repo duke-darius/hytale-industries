@@ -12,10 +12,10 @@
   "BlockType": {
     "Parent": "Debug_Model",
     "DrawType": "Model",
-    "CustomModel": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.blockymodel",
+    "CustomModel": "Blocks/HytaleIndustries_PoweredFurnace/HytaleIndustries_PoweredFurnace.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.png",
+        "Texture": "Blocks/HytaleIndustries_PoweredFurnace/HytaleIndustries_PoweredFurnace.png",
         "Weight": 1
       }
     ],

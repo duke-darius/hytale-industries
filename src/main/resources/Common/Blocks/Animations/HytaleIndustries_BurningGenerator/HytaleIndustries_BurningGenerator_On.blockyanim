@@ -1,0 +1,24 @@
+{
+  "formatVersion": 1,
+  "duration": 1,
+  "holdLastKeyframe": true,
+  "nodeAnimations": {
+    "lava": {
+      "position": [],
+      "orientation": [],
+      "scale": [],
+      "shapeStretch": [],
+      "shapeVisible": [],
+      "shapeUvOffset": [
+        {
+          "time": 1,
+          "delta": {
+            "x": -2,
+            "y": 22
+          },
+          "interpolationType": "step"
+        }
+      ]
+    }
+  }
+}

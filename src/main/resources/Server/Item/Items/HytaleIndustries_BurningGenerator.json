@@ -29,8 +29,9 @@
     "State": {
       "Id": "burningGenerator",
       "Definitions": {
-        "testState": {
-          "CustomModelAnimation": "Blocks/Animations/HytaleIndustries_BurningGenerator_Test.blockyanim"
+        "default": {},
+        "on": {
+          "CustomModelAnimation": "Blocks/Animations/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator_On.blockyanim"
         }
       }
     },

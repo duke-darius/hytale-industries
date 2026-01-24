@@ -16,6 +16,8 @@ import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.logger.HytaleLogger;
 import dev.dukedarius.HytaleIndustries.Energy.ReceivesHE;
 import dev.dukedarius.HytaleIndustries.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.Energy.TransfersHE;
@@ -32,6 +34,8 @@ import javax.annotation.Nullable;
  * - Burn rate: 5 fuel value / second
  */
 public class BurningGeneratorBlockState extends BlockState implements TickableBlockState, ItemContainerBlockState, StoresHE, TransfersHE {
+
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     public static final String STATE_ID = "burningGenerator";
 
@@ -129,6 +133,7 @@ public class BurningGeneratorBlockState extends BlockState implements TickableBl
             if (dirty) {
                 persistSelf();
             }
+            updateState("default");
             return;
         }
 
@@ -137,6 +142,7 @@ public class BurningGeneratorBlockState extends BlockState implements TickableBl
             if (dirty) {
                 persistSelf();
             }
+            updateState("default");
             return;
         }
 
@@ -144,6 +150,7 @@ public class BurningGeneratorBlockState extends BlockState implements TickableBl
             if (dirty) {
                 persistSelf();
             }
+            updateState("default");
             return;
         }
 
@@ -152,6 +159,7 @@ public class BurningGeneratorBlockState extends BlockState implements TickableBl
             if (dirty) {
                 persistSelf();
             }
+            updateState("default");
             return;
         }
 
@@ -168,6 +176,7 @@ public class BurningGeneratorBlockState extends BlockState implements TickableBl
             if (dirty) {
                 persistSelf();
             }
+            updateState("default");
             return;
         }
 
@@ -180,9 +189,11 @@ public class BurningGeneratorBlockState extends BlockState implements TickableBl
             if (dirty) {
                 persistSelf();
             }
+            updateState("default");
             return;
         }
 
+        updateState("on");
         double burned = Math.min(remainingFuelInCurrentItem, burnBudget);
         if (burned != 0.0) {
             dirty = true;
@@ -361,5 +372,40 @@ public class BurningGeneratorBlockState extends BlockState implements TickableBl
             }
         }
         return false;
+    }
+
+    private void updateState(String targetState) {
+        WorldChunk chunk = this.getChunk();
+        var pos = this.getBlockPosition();
+        if (chunk == null || pos == null) {
+            return;
+        }
+
+        int lx = pos.x & 31;
+        int lz = pos.z & 31;
+        BlockType blockType = chunk.getBlockType(lx, pos.y, lz);
+        if (blockType == null || blockType.getState() == null) {
+            return;
+        }
+
+        // Check current ID to avoid redundant updates
+        String currentId = blockType.getId();
+        if (currentId == null) return;
+
+        boolean isOn = currentId.contains("_State_Definitions_on");
+        boolean wantOn = "on".equals(targetState);
+
+        if (isOn == wantOn) {
+            return;
+        }
+
+        chunk.setBlockInteractionState(pos.x, pos.y, pos.z, blockType, targetState, true);
+        LOGGER.atInfo().log("Generator at " + pos + " switched state from " + currentId + " to " + targetState);
+        
+        // setBlockInteractionState may recreate the block component, losing our state.
+        // We must re-persist ourselves to ensure fuel/energy data is preserved.
+        this.persistSelf();
+        
+        chunk.markNeedsSaving();
     }
 }
