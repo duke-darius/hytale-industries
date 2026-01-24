@@ -76,6 +76,12 @@ idea.project.settings.runConfigurations {
 def propsFile = file('gradle.properties')
 def manifestFile = file('src/main/resources/manifest.json')
 
+// Silence noisy compiler deprecation warnings project-wide.
+tasks.withType(JavaCompile).configureEach {
+    options.deprecation = false
+    options.compilerArgs += ['-Xlint:-deprecation']
+}
+
 def readVersion = {
     def p = new Properties()
     propsFile.withInputStream { p.load(it) }

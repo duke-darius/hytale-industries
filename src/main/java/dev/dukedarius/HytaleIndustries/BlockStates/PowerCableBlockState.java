@@ -277,11 +277,12 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
             applyAnimationState();
         }
 
-        // Only run once per second.
+        // Only run 4 times per second.
         secondsAccumulator += dt;
-        if (secondsAccumulator < 1.0f) {
+        if (secondsAccumulator < 0.25f) {
             return;
         }
+        double budget = TRANSFER_HE_PER_SECOND * secondsAccumulator;
         secondsAccumulator = 0.0f;
 
         if (!hasAnyExtractSide()) {
@@ -289,8 +290,6 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
         }
 
         World world = chunk.getWorld();
-
-        double budget = TRANSFER_HE_PER_SECOND;
 
         int cableX = getBlockX();
         int cableY = getBlockY();
@@ -349,13 +348,13 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
 
                     double extract = Math.min(stillToExtract, sourceAvailable);
                     source.transfers.extractHe(extract);
-                    persistEndpoint(source);
+                    persistEndpoint(source, commandBuffer);
                     stillToExtract -= extract;
                     if (stillToExtract <= 0.0) break;
                 }
 
                 receiver.receives.receiveHe(toGive);
-                persistEndpoint(receiver);
+                persistEndpoint(receiver, commandBuffer);
                 remainingToDistribute -= toGive;
             }
             remainingReceiversCount--;
@@ -514,13 +513,21 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
         }
     }
 
-    private static void persistEndpoint(HETransferEndpoint ep) {
-        ep.ref.getStore().replaceComponent(ep.ref, ep.type, ep.component);
+    private static void persistEndpoint(HETransferEndpoint ep, CommandBuffer<ChunkStore> commandBuffer) {
+        if (commandBuffer != null) {
+            commandBuffer.replaceComponent(ep.ref, ep.type, ep.component);
+        } else {
+            ep.ref.getStore().replaceComponent(ep.ref, ep.type, ep.component);
+        }
         ep.chunk.markNeedsSaving();
     }
 
-    private static void persistEndpoint(HEReceiveEndpoint ep) {
-        ep.ref.getStore().replaceComponent(ep.ref, ep.type, ep.component);
+    private static void persistEndpoint(HEReceiveEndpoint ep, CommandBuffer<ChunkStore> commandBuffer) {
+        if (commandBuffer != null) {
+            commandBuffer.replaceComponent(ep.ref, ep.type, ep.component);
+        } else {
+            ep.ref.getStore().replaceComponent(ep.ref, ep.type, ep.component);
+        }
         ep.chunk.markNeedsSaving();
     }
 

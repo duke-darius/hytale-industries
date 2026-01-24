@@ -1,0 +1,132 @@
+﻿$C = "../Common.ui";
+
+Group {
+  Anchor: (Width: 460, Height: 300);
+
+  $C.@Container {
+
+    #Title {
+      Group {
+        $C.@Title {
+          @Text = "Wind Turbine";
+        }
+      }
+    }
+
+    #Content {
+      Padding: (Left: 12, Right: 12, Top: 12, Bottom: 12);
+      LayoutMode: Left;
+
+      // Left: power panel
+      Group {
+        Anchor: (Width: 84);
+
+        Group #PowerPanel {
+          Anchor: (Full: 0);
+          Background: (Color: #1c212a);
+          Padding: (Left: 8, Right: 8, Top: 8, Bottom: 8);
+          LayoutMode: Top;
+
+          Label {
+            Text: "POWER";
+            Style: (HorizontalAlignment: Center, TextColor: #AAB3C2);
+          }
+
+          Group { Anchor: (Height: 8); }
+
+          Group {
+            FlexWeight: 1;
+            LayoutMode: Center;
+
+            ProgressBar #PowerBar {
+              TooltipText: "0";
+              Anchor: (Width: 16, Height: 120);
+              Background: #2d3440;
+              Alignment: Vertical;
+              Direction: Start;
+              Bar: (Color: #3DDCFF);
+            }
+          }
+
+          Group { Anchor: (Height: 8); }
+
+          Label #PowerText {
+            Text: "0/0 HE";
+            Style: (HorizontalAlignment: Center, TextColor: #D7DEEA);
+          }
+        }
+      }
+
+      // Right: main content
+      Group {
+        Anchor: (Left: 10);
+        FlexWeight: 1;
+        LayoutMode: Top;
+
+        // Status row
+        Group {
+          Anchor: (Height: 44);
+          LayoutMode: Left;
+
+          Label {
+            Anchor: (Width: 100);
+            Text: "STATUS";
+            Style: (VerticalAlignment: Center, TextColor: #AAB3C2);
+          }
+
+          Group #StatusBadge {
+            Anchor: (Height: 28, Left: 8);
+            Background: (Color: #243041);
+            Padding: (Left: 10, Right: 10, Top: 4, Bottom: 4);
+
+            Label #StatusLabel {
+              Text: "SPINNING";
+              Style: (VerticalAlignment: Center, TextColor: #EAF2FF);
+            }
+          }
+        }
+
+        // Production row
+        Group {
+          Anchor: (Height: 32);
+          LayoutMode: Left;
+
+          Label {
+            Anchor: (Width: 100);
+            Text: "PRODUCTION";
+            Style: (VerticalAlignment: Center, TextColor: #AAB3C2);
+          }
+
+          Label #ProductionLabel {
+            Text: "0 HE/s";
+            Style: (VerticalAlignment: Center, TextColor: #EAF2FF);
+          }
+        }
+
+        // Height row
+        Group {
+          Anchor: (Height: 32);
+          LayoutMode: Left;
+
+          Label {
+            Anchor: (Width: 100);
+            Text: "HEIGHT";
+            Style: (VerticalAlignment: Center, TextColor: #AAB3C2);
+          }
+
+          Label #HeightLabel {
+            Text: "Y=0";
+            Style: (VerticalAlignment: Center, TextColor: #EAF2FF);
+          }
+        }
+
+        Group { Anchor: (Height: 10); }
+
+        Label {
+          Text: "Higher altitudes generate more power.";
+          Style: (TextColor: #7F8AA3);
+        }
+      }
+    }
+  }
+}

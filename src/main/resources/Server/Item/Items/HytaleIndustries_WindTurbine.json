@@ -1,0 +1,79 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_BurningGenerator.png",
+  "TranslationProperties": {
+    "Name": "Wind Turbine",
+    "Description": "Generates HE from wind. Higher Y-level increases production."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlaceWindTurbine_Root"
+  },
+  "InteractionConfig": {},
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.png",
+        "Weight": 1
+      }
+    ],
+    "Flags": {
+      "IsUsable": true,
+      "IsStackable": true
+    },
+    "Interactions": {
+      "Use": "HytaleIndustries_OpenWindTurbine_Root"
+    },
+    "State": {
+      "Id": "windTurbine"
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks",
+        "Quality": 0,
+        "Quantity": 1
+      }
+    },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Group": "@Tech",
+    "Support": {},
+    "MaxSupportDistance": 0,
+    "SupportsRequiredFor": "Any",
+    "HitboxType": "HytaleIndustries_WindTurbine"
+  },
+  "MaxStack": 64,
+  "Recipe": {
+    "OutputQuantity": 1,
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_WindTurbine",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Furniture_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Furniture_Misc"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 8
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 2
+      }
+    ]
+  },
+  "State": {
+    "windTurbine": {
+      "BlockType": "HytaleIndustries_WindTurbine"
+    }
+  }
+}

@@ -8,7 +8,15 @@ import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
-import dev.dukedarius.HytaleIndustries.BlockStates.*;
+import dev.dukedarius.HytaleIndustries.BlockStates.BurningGeneratorBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.ChunkLoaderBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.PowerCableBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.PoweredCrusherBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.PoweredFurnaceBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.QuarryBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.SmallBatteryBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.WindTurbineBlockState;
 import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderManager;
 import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderRegistry;
 import dev.dukedarius.HytaleIndustries.Commands.GetPipeStateCommand;
@@ -21,8 +29,12 @@ import dev.dukedarius.HytaleIndustries.Commands.SetGeneratorStateCommand;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenChunkLoaderInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenSmallBatteryInteraction;
+import dev.dukedarius.HytaleIndustries.Interactions.OpenPoweredCrusherInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenPoweredFurnaceInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenQuarryInteraction;
+
+import dev.dukedarius.HytaleIndustries.Interactions.OpenWindTurbineInteraction;
+import dev.dukedarius.HytaleIndustries.Systems.InventoryDropOnBreakSystem;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -46,9 +58,11 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         Interaction.CODEC.register("HytaleIndustries_OpenBurningGenerator", OpenBurningGeneratorInteraction.class, OpenBurningGeneratorInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenSmallBattery", OpenSmallBatteryInteraction.class, OpenSmallBatteryInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenPoweredFurnace", OpenPoweredFurnaceInteraction.class, OpenPoweredFurnaceInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenPoweredCrusher", OpenPoweredCrusherInteraction.class, OpenPoweredCrusherInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenChunkLoader", OpenChunkLoaderInteraction.class, OpenChunkLoaderInteraction.CODEC);
 
         Interaction.CODEC.register("HytaleIndustries_OpenQuarry", OpenQuarryInteraction.class, OpenQuarryInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenWindTurbine", OpenWindTurbineInteraction.class, OpenWindTurbineInteraction.CODEC);
     }
 
 
@@ -82,9 +96,14 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         this.getBlockStateRegistry().registerBlockState(BurningGeneratorBlockState.class, BurningGeneratorBlockState.STATE_ID, BurningGeneratorBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(SmallBatteryBlockState.class, SmallBatteryBlockState.STATE_ID, SmallBatteryBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(PoweredFurnaceBlockState.class, PoweredFurnaceBlockState.STATE_ID, PoweredFurnaceBlockState.CODEC);
+        this.getBlockStateRegistry().registerBlockState(PoweredCrusherBlockState.class, PoweredCrusherBlockState.STATE_ID, PoweredCrusherBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(QuarryBlockState.class, QuarryBlockState.STATE_ID, QuarryBlockState.CODEC);
+        this.getBlockStateRegistry().registerBlockState(WindTurbineBlockState.class, WindTurbineBlockState.STATE_ID, WindTurbineBlockState.CODEC);
 
         this.getBlockStateRegistry().registerBlockState(ChunkLoaderBlockState.class, ChunkLoaderBlockState.STATE_ID, ChunkLoaderBlockState.CODEC);
+
+        // Ensure machine inventories drop when the block is broken.
+        this.getEntityStoreRegistry().registerSystem(new InventoryDropOnBreakSystem());
 
         this.getCommandRegistry().registerCommand(new GetPipeStateCommand());
         this.getCommandRegistry().registerCommand(new SetPipeSideCommand());

@@ -1,0 +1,120 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_BurningGenerator.png",
+  "TranslationProperties": {
+    "Name": "Powered Crusher",
+    "Description": "Crushes ores using HE."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlacePoweredCrusher_Root"
+  },
+  "InteractionConfig": {},
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.png",
+        "Weight": 1
+      }
+    ],
+    "Flags": {
+      "IsUsable": true,
+      "IsStackable": true
+    },
+    "Interactions": {
+      "Use": "HytaleIndustries_OpenPoweredCrusher_Root"
+    },
+    "State": {
+      "Id": "poweredCrusher",
+      "Definitions": {
+        "default": {}
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks",
+        "Quality": 0,
+        "Quantity": 1
+      }
+    },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Supporting": {
+      "Up": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "Down": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "North": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "South": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "East": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "West": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ]
+    },
+    "IgnoreSupportWhenPlaced": true,
+    "Group": "@Tech",
+    "Support": {},
+    "MaxSupportDistance": 0,
+    "SupportsRequiredFor": "Any"
+  },
+  "MaxStack": 64,
+  "Recipe": {
+    "OutputQuantity": 1,
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_PoweredCrusher",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Furniture_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Furniture_Misc"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 6
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 1
+      }
+    ]
+  },
+  "State": {
+    "poweredCrusher": {
+      "BlockType": "HytaleIndustries_PoweredCrusher"
+    }
+  }
+}

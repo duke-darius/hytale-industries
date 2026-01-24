@@ -7,8 +7,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.protocol.packets.interface_.CustomPageEvent;
-import com.hypixel.hytale.protocol.packets.interface_.CustomPageEventType;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.protocol.packets.interface_.Page;
@@ -100,13 +98,6 @@ public class BurningGeneratorUIPage extends InteractiveCustomUIPage<BurningGener
             return;
         }
 
-        // IMPORTANT: Custom pages block interaction with base pages/windows.
-        // Dismiss the custom page first, then open the container windows.
-        try {
-            player.getPageManager().handleEvent(ref, store, new CustomPageEvent(CustomPageEventType.Dismiss, ""));
-        } catch (Throwable t) {
-            HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("BurningGeneratorUI: failed to dismiss custom page");
-        }
 
         World world = store.getExternalData().getWorld();
         BlockState state = world.getState(x, y, z, true);
@@ -131,19 +122,19 @@ public class BurningGeneratorUIPage extends InteractiveCustomUIPage<BurningGener
         }
         int rotIndex = chunk.getRotationIndex(lx, y, lz);
 
-        var playerWin = new ContainerWindow(player.getInventory().getStorage());
 
         // Inventory page reliably hosts plain ContainerWindow.
         // ContainerBlockWindow may not render on Page.Inventory depending on client.
         var genWin = new ContainerWindow(gen.getItemContainer());
-
-        boolean ok = player.getPageManager().setPageWithWindows(ref, store, Page.Inventory, false, playerWin, genWin);
+        // Reset pending custom-page acknowledgements to avoid underflow when client sends its next ack.
+        player.getPageManager().clearCustomPageAcknowledgements();
+        boolean ok = player.getPageManager().setPageWithWindows(ref, store, Page.Inventory, false, genWin);
         HytaleIndustriesPlugin.LOGGER.atInfo().log("BurningGeneratorUI: setPageWithWindows(Page.Inventory) ok=" + ok);
 
         if (!ok) {
             // Fallback: try the Bench page with a block window (known to host container windows).
             var genBlockWin = new ContainerBlockWindow(x, y, z, rotIndex, blockType, gen.getItemContainer());
-            boolean okBench = player.getPageManager().setPageWithWindows(ref, store, Page.Bench, false, playerWin, genBlockWin);
+            boolean okBench = player.getPageManager().setPageWithWindows(ref, store, Page.Bench, false, genBlockWin);
             HytaleIndustriesPlugin.LOGGER.atInfo().log("BurningGeneratorUI: fallback setPageWithWindows(Page.Bench) ok=" + okBench);
         }
     }

@@ -118,7 +118,7 @@ public final class ChunkLoaderManager {
             }
             world.getChunkAsync(chunkX, chunkZ).thenAccept(chunk -> {
                 if (chunk != null) {
-                    chunk.setKeepLoaded(true);
+                    chunk.addKeepLoaded();
                     chunk.setFlag(ChunkFlag.TICKING, true);
                     chunk.resetKeepAlive();
                 }
@@ -219,7 +219,7 @@ public final class ChunkLoaderManager {
 
                 // Keep the chunk loaded *and ticking* if any valid loaders remain in it.
                 if (valid > 0) {
-                    chunk.setKeepLoaded(true);
+                    chunk.addKeepLoaded();
                     chunk.setFlag(ChunkFlag.TICKING, true);
                     chunk.resetKeepAlive();
                     if (anyActive) {
@@ -227,7 +227,6 @@ public final class ChunkLoaderManager {
                     }
                 } else {
                     // No valid loaders left in this chunk; allow it to stop ticking/unload normally.
-                    chunk.setKeepLoaded(false);
                     chunk.setFlag(ChunkFlag.TICKING, false);
                 }
             });

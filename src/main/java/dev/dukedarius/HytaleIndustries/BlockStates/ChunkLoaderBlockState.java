@@ -66,7 +66,7 @@ public class ChunkLoaderBlockState extends BlockState implements TickableBlockSt
         WorldChunk chunk = this.getChunk();
         if (chunk == null) return;
 
-        chunk.setKeepLoaded(true);
+        chunk.addKeepLoaded();
         chunk.setFlag(ChunkFlag.TICKING, true);
         chunk.resetKeepAlive();
 

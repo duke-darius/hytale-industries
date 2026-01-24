@@ -2269,7 +2269,8 @@
     "Group": "@Tech",
     "Support": {},
     "MaxSupportDistance": 0,
-    "SupportsRequiredFor": "Any"
+    "SupportsRequiredFor": "Any",
+    "HitboxType": "HytaleIndustries_ItemPipe"
   },
   "MaxStack": 64,
   "Recipe": {

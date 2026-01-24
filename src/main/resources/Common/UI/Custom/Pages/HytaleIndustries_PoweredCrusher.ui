@@ -1,0 +1,90 @@
+$C = "../Common.ui";
+
+Group {
+  Anchor: (Width: 460, Height: 240);
+
+  $C.@Container {
+    Anchor: (Full: 0);
+
+    #Title {
+      Group {
+        $C.@Title {
+          @Text = "Powered Crusher";
+        }
+      }
+    }
+
+    #Content {
+      LayoutMode: Left;
+      Padding: (Left: 12, Right: 12, Top: 12, Bottom: 12);
+
+      Group {
+        Anchor: (Width: 20);
+
+        ProgressBar #PowerBar {
+          TooltipText: "0";
+          Anchor: (Left: 2, Width: 16);
+          Background: #000000;
+          Alignment: Vertical;
+          Direction: Start;
+          Bar: (Color: #FF0000);
+        }
+      }
+
+      Group {
+        FlexWeight: 1;
+
+        Group {
+          LayoutMode: Left;
+          Anchor: (Top: 30, Height: 40);
+
+          ItemSlotButton #InputButton {
+            Anchor: (Width: 72, Height: 72, Left: 20);
+            LayoutMode: Full;
+
+            ItemSlot #InputSlot {
+              Anchor: (Full: 0);
+              ShowQualityBackground: false;
+            }
+
+            Group {
+              LayoutMode: Right;
+              Anchor: (Width: 72, Left: 0, Top: 54);
+
+              Label #InputQty {
+                Style: (HorizontalAlignment: End);
+                Text: "0";
+              }
+            }
+          }
+
+          ProgressBar #ProgressBar {
+            Anchor: (Left: 10, Width: 180, Height: 16);
+            Background: #433530;
+            Bar: (Color: #ff7d52);
+          }
+
+          ItemSlotButton #OutputButton {
+            Anchor: (Width: 72, Height: 72, Left: 20);
+            LayoutMode: Full;
+
+            ItemSlot #OutputSlot {
+              Anchor: (Width: 72, Height: 72, Left: 20);
+              ShowQualityBackground: false;
+            }
+
+            Group {
+              LayoutMode: Right;
+              Anchor: (Width: 72, Left: 20, Top: 54);
+
+              Label #OutputQty {
+                Style: (HorizontalAlignment: End);
+                Text: "0";
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

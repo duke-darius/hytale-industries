@@ -1,0 +1,17 @@
+{
+  "Input": [
+    {
+      "ItemId": "HytaleIndustries_CrushedIron"
+    }
+  ],
+  "PrimaryOutput": {
+    "ItemId": "Ingredient_Bar_Iron"
+  },
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Furnace"
+    }
+  ],
+  "TimeSeconds": 7
+}

@@ -160,7 +160,7 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
         if (world == null) return;
 
         // Keep the chunk containing the quarry itself alive/ticking.
-        selfChunk.setKeepLoaded(true);
+        selfChunk.addKeepLoaded();
         selfChunk.setFlag(ChunkFlag.TICKING, true);
         selfChunk.resetKeepAlive();
 
@@ -173,7 +173,7 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
                 lastKeptChunkZ = cz;
                 world.getChunkAsync(cx, cz).thenAccept(ch -> {
                     if (ch != null) {
-                        ch.setKeepLoaded(true);
+                        ch.addKeepLoaded();
                         ch.setFlag(ChunkFlag.TICKING, true);
                         ch.resetKeepAlive();
                     }

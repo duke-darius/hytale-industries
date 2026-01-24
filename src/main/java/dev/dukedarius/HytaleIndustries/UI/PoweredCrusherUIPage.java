@@ -20,7 +20,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.PoweredFurnaceBlockState;
+import dev.dukedarius.HytaleIndustries.BlockStates.PoweredCrusherBlockState;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 
@@ -28,10 +28,9 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnaceUIPage.UIEventData> {
+public class PoweredCrusherUIPage extends InteractiveCustomUIPage<PoweredCrusherUIPage.UIEventData> {
 
     private static final long AUTO_UPDATE_PERIOD_MS = 250L;
-    private static final int PROGRESS_BAR_WIDTH = 200;
 
     private final int x;
     private final int y;
@@ -42,7 +41,7 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
     private transient World lastWorld;
     private transient ScheduledFuture<?> autoUpdateTask;
 
-    public PoweredFurnaceUIPage(@Nonnull PlayerRef playerRef, @Nonnull Vector3i pos) {
+    public PoweredCrusherUIPage(@Nonnull PlayerRef playerRef, @Nonnull Vector3i pos) {
         super(playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, UIEventData.CODEC);
         this.x = pos.x;
         this.y = pos.y;
@@ -60,7 +59,7 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
 
         ensureTimerStarted();
 
-        cmd.append("Pages/HytaleIndustries_PoweredFurnace.ui");
+        cmd.append("Pages/HytaleIndustries_PoweredCrusher.ui");
         render(cmd, events, store);
     }
 
@@ -79,22 +78,24 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
 
         World world = store.getExternalData().getWorld();
         BlockState st = world.getState(x, y, z, true);
-        if (!(st instanceof PoweredFurnaceBlockState pf)) {
+        if (!(st instanceof PoweredCrusherBlockState pc)) {
             return;
         }
 
         ContainerWindow win;
         if (UIEventData.ACTION_VIEW_INPUT.equals(data.action)) {
-            win = new ContainerWindow(pf.getInputContainer());
+            win = new ContainerWindow(pc.getInputContainer());
         } else if (UIEventData.ACTION_VIEW_OUTPUT.equals(data.action)) {
-            win = new ContainerWindow(pf.getOutputContainer());
+            win = new ContainerWindow(pc.getOutputContainer());
         } else {
             return;
         }
 
-        // Prevent ack underflow by resetting before switching off this custom page.
+        // Clear any outstanding custom-page acknowledgements before switching pages,
+        // otherwise the next client ack can underflow and trip PageManager's guard.
         player.getPageManager().clearCustomPageAcknowledgements();
-        // Open the furnace container in a single page swap.
+        // setPageWithWindows will dismiss the current custom page internally and open the block window.
+        player.getPageManager().setPageWithWindows(ref, store, Page.Inventory, false, win);
         player.getPageManager().setPageWithWindows(ref, store, Page.Inventory, false, win);
     }
 
@@ -108,16 +109,16 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
         int outputQty = 0;
         String inputName = "Empty";
         String outputName = "Empty";
-        if (st instanceof PoweredFurnaceBlockState pf) {
-            he = pf.getHeStored();
-            heCap = pf.getHeCapacity();
-            progress = pf.getProgressPercent();
-            var in = pf.getInputStack();
+        if (st instanceof PoweredCrusherBlockState pc) {
+            he = pc.getHeStored();
+            heCap = pc.getHeCapacity();
+            progress = pc.getProgressPercent();
+            var in = pc.getInputStack();
             if (in != null && !ItemStack.isEmpty(in)) {
                 inputQty = in.getQuantity();
                 inputName = in.getItemId();
             }
-            var out = pf.getOutputStack();
+            var out = pc.getOutputStack();
             if (out != null && !ItemStack.isEmpty(out)) {
                 outputName = out.getItemId();
                 outputQty = out.getQuantity();
@@ -125,24 +126,18 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
         }
 
         cmd.set("#PowerBar.Value", Math.max(0.0, Math.min(1.0, he / heCap)));
-        cmd.set("#PowerBar.TooltipText", String.format("%d/%d HE Stored", (int)he, (int)heCap));
-//        cmd.set("#HeText.Text", String.format("HE: %.0f / %.0f", he, heCap));
-        if(inputQty > 0){
+        cmd.set("#PowerBar.TooltipText", String.format("%d/%d HE Stored", (int) he, (int) heCap));
+        if (inputQty > 0) {
             cmd.set("#InputSlot.ItemId", inputName);
             cmd.set("#InputQty.Text", String.format("%d", inputQty));
-        }
-        else
-        {
+        } else {
             cmd.set("#InputQty.Text", "");
         }
 
-
-        if(outputQty > 0){
+        if (outputQty > 0) {
             cmd.set("#OutputSlot.ItemId", outputName);
             cmd.set("#OutputQty.Text", String.format("%d", outputQty));
-        }
-        else
-        {
+        } else {
             cmd.set("#OutputQty.Text", "");
         }
 
@@ -162,12 +157,12 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
                     try {
                         timerTickOnWorldThread();
                     } catch (Throwable t) {
-                        HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("PoweredFurnaceUI: timer tick failed");
+                        HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("PoweredCrusherUI: timer tick failed");
                         stopTimer();
                     }
                 });
             } catch (Throwable t) {
-                HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("PoweredFurnaceUI: schedule failed");
+                HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("PoweredCrusherUI: schedule failed");
                 stopTimer();
             }
         }, AUTO_UPDATE_PERIOD_MS, AUTO_UPDATE_PERIOD_MS, TimeUnit.MILLISECONDS);
