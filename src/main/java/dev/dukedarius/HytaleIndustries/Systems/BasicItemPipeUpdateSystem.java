@@ -141,17 +141,17 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
             boolean hasPipe = (occupiedMask & (1 << i)) != 0;
             boolean hasInv = hasInventory[i];
             BasicItemPipeComponent.ConnectionState currentState = pipe.getConnectionState(dir);
+            boolean isManual = pipe.isManuallyConfigured(dir);
             
             // Rule 1: If Default and no neighbor (pipe or inventory), auto-set to None
             if (currentState == BasicItemPipeComponent.ConnectionState.Default && !(hasPipe || hasInv)) {
-                pipe.setConnectionState(dir, BasicItemPipeComponent.ConnectionState.None);
+                pipe.setConnectionState(dir, BasicItemPipeComponent.ConnectionState.None, false);
             } 
-            // Rule 2: If None and pipe neighbor exists, auto-restore to Default
-            // (but respect manual None configuration when only inventory exists)
-            else if (currentState == BasicItemPipeComponent.ConnectionState.None && hasPipe) {
-                pipe.setConnectionState(dir, BasicItemPipeComponent.ConnectionState.Default);
+            // Rule 2: If None and pipe neighbor exists, auto-restore to Default (but NOT if manually configured)
+            else if (currentState == BasicItemPipeComponent.ConnectionState.None && hasPipe && !isManual) {
+                pipe.setConnectionState(dir, BasicItemPipeComponent.ConnectionState.Default, false);
             }
-            // Extract state is NEVER touched by reconciliation - it's manual-only
+            // Extract and manual None states are NEVER touched by reconciliation
         }
         
         BlockType blockType = BlockType.getAssetMap().getAsset(

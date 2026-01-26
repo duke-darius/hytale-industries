@@ -11,8 +11,6 @@ import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.RotationTuple;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -20,12 +18,8 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBlocksUtil;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.PowerCableBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.ConnectionState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.Direction;
 import dev.dukedarius.HytaleIndustries.Pipes.SideConfigurableConduit;
@@ -113,12 +107,61 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
                 case Extract -> BasicItemPipeComponent.ConnectionState.None;
                 case None -> BasicItemPipeComponent.ConnectionState.Default;
             };
-            basicPipe.setConnectionState(dirVec, nextState);
+            basicPipe.setConnectionState(dirVec, nextState, true); // Mark as manual
             stateRef.getStore().replaceComponent(stateRef, basicPipeType, basicPipe);
             
             // Mark for visual update
             ComponentType<ChunkStore, UpdatePipeComponent> updateType = HytaleIndustriesPlugin.INSTANCE.getUpdatePipeComponentType();
             stateRef.getStore().ensureComponent(stateRef, updateType);
+            
+            // Propagate None and Default states to adjacent pipe
+            if (nextState == BasicItemPipeComponent.ConnectionState.None || nextState == BasicItemPipeComponent.ConnectionState.Default) {
+                int nx = x + dir.dx;
+                int ny = y + dir.dy;
+                int nz = z + dir.dz;
+                WorldChunk neighborChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));
+                if (neighborChunk == null) {
+                    neighborChunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(nx, nz));
+                }
+                if (neighborChunk != null) {
+                    int nlx = nx & 31;
+                    int nlz = nz & 31;
+                    Ref<ChunkStore> neighborRef = neighborChunk.getBlockComponentEntity(nlx, ny, nlz);
+                    if (neighborRef != null) {
+                        BasicItemPipeComponent neighborPipe = neighborRef.getStore().getComponent(neighborRef, basicPipeType);
+                        if (neighborPipe != null) {
+                            // Set neighbor's opposite side to the same state
+                            Vector3i oppositeDir = new Vector3i(-dirVec.x, -dirVec.y, -dirVec.z);
+                            neighborPipe.setConnectionState(oppositeDir, nextState, true); // Mark as manual to prevent auto-restore
+                            neighborRef.getStore().replaceComponent(neighborRef, basicPipeType, neighborPipe);
+                            neighborRef.getStore().ensureComponent(neighborRef, updateType);
+                            neighborChunk.markNeedsSaving();
+                            LOGGER.atInfo().log("Propagated state " + nextState + " to neighbor pipe at (" + nx + "," + ny + "," + nz + ")");
+                        }
+                    }
+                }
+            } else {
+                // For Extract state, just mark neighbor for update
+                int nx = x + dir.dx;
+                int ny = y + dir.dy;
+                int nz = z + dir.dz;
+                WorldChunk neighborChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));
+                if (neighborChunk == null) {
+                    neighborChunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(nx, nz));
+                }
+                if (neighborChunk != null) {
+                    int nlx = nx & 31;
+                    int nlz = nz & 31;
+                    Ref<ChunkStore> neighborRef = neighborChunk.getBlockComponentEntity(nlx, ny, nlz);
+                    if (neighborRef != null) {
+                        BasicItemPipeComponent neighborPipe = neighborRef.getStore().getComponent(neighborRef, basicPipeType);
+                        if (neighborPipe != null) {
+                            neighborRef.getStore().ensureComponent(neighborRef, updateType);
+                            LOGGER.atInfo().log("Marked neighbor pipe at (" + nx + "," + ny + "," + nz + ") for update");
+                        }
+                    }
+                }
+            }
             
             chunk.markNeedsSaving();
             LOGGER.atInfo().log("BasicItemPipe UI changed " + dir + " at (" + x + "," + y + "," + z + ") state now " + nextState);
@@ -150,20 +193,51 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
             ComponentType<ChunkStore, UpdatePowerCableComponent> updateCableType = HytaleIndustriesPlugin.INSTANCE.getUpdatePowerCableComponentType();
             stateRef.getStore().ensureComponent(stateRef, updateCableType);
             
-            // Mark neighbor cable in this direction for update too
-            int nx = x + dir.dx;
-            int ny = y + dir.dy;
-            int nz = z + dir.dz;
-            WorldChunk neighborChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));
-            if (neighborChunk != null) {
-                int nlx = nx & 31;
-                int nlz = nz & 31;
-                Ref<ChunkStore> neighborRef = neighborChunk.getBlockComponentEntity(nlx, ny, nlz);
-                if (neighborRef != null) {
-                    BasicPowerCableComponent neighborCable = neighborRef.getStore().getComponent(neighborRef, basicCableType);
-                    if (neighborCable != null) {
-                        neighborRef.getStore().ensureComponent(neighborRef, updateCableType);
-                        LOGGER.atInfo().log("Marked neighbor cable at (" + nx + "," + ny + "," + nz + ") for update");
+            // Propagate None and Default states to adjacent cable
+            if (nextState == BasicPowerCableComponent.ConnectionState.None || nextState == BasicPowerCableComponent.ConnectionState.Default) {
+                int nx = x + dir.dx;
+                int ny = y + dir.dy;
+                int nz = z + dir.dz;
+                WorldChunk neighborChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));
+                if (neighborChunk == null) {
+                    neighborChunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(nx, nz));
+                }
+                if (neighborChunk != null) {
+                    int nlx = nx & 31;
+                    int nlz = nz & 31;
+                    Ref<ChunkStore> neighborRef = neighborChunk.getBlockComponentEntity(nlx, ny, nlz);
+                    if (neighborRef != null) {
+                        BasicPowerCableComponent neighborCable = neighborRef.getStore().getComponent(neighborRef, basicCableType);
+                        if (neighborCable != null) {
+                            // Set neighbor's opposite side to the same state
+                            Vector3i oppositeDir = new Vector3i(-dirVec.x, -dirVec.y, -dirVec.z);
+                            neighborCable.setConnectionState(oppositeDir, nextState, true); // Mark as manual to prevent auto-restore
+                            neighborRef.getStore().replaceComponent(neighborRef, basicCableType, neighborCable);
+                            neighborRef.getStore().ensureComponent(neighborRef, updateCableType);
+                            neighborChunk.markNeedsSaving();
+                            LOGGER.atInfo().log("Propagated state " + nextState + " to neighbor cable at (" + nx + "," + ny + "," + nz + ")");
+                        }
+                    }
+                }
+            } else {
+                // For Extract state, just mark neighbor for update
+                int nx = x + dir.dx;
+                int ny = y + dir.dy;
+                int nz = z + dir.dz;
+                WorldChunk neighborChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));
+                if (neighborChunk == null) {
+                    neighborChunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(nx, nz));
+                }
+                if (neighborChunk != null) {
+                    int nlx = nx & 31;
+                    int nlz = nz & 31;
+                    Ref<ChunkStore> neighborRef = neighborChunk.getBlockComponentEntity(nlx, ny, nlz);
+                    if (neighborRef != null) {
+                        BasicPowerCableComponent neighborCable = neighborRef.getStore().getComponent(neighborRef, basicCableType);
+                        if (neighborCable != null) {
+                            neighborRef.getStore().ensureComponent(neighborRef, updateCableType);
+                            LOGGER.atInfo().log("Marked neighbor cable at (" + nx + "," + ny + "," + nz + ") for update");
+                        }
                     }
                 }
             }
@@ -178,46 +252,8 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
             return;
         }
 
-        var st = world.getState(x, y, z, true);
-        if (st instanceof ItemPipeBlockState) {
-            ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
-            if (type == null) {
-                return;
-            }
-            ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
-            if (pipe == null) {
-                return;
-            }
-            pipe.cycleConnectionState(dir);
-            stateRef.getStore().replaceComponent(stateRef, type, pipe);
-            conduit = pipe;
-        } else if (st instanceof PowerCableBlockState) {
-            ComponentType<ChunkStore, PowerCableBlockState> type = BlockStateModule.get().getComponentType(PowerCableBlockState.class);
-            if (type == null) {
-                return;
-            }
-            PowerCableBlockState cable = stateRef.getStore().getComponent(stateRef, type);
-            if (cable == null) {
-                return;
-            }
-            cable.cycleConnectionState(dir);
-            stateRef.getStore().replaceComponent(stateRef, type, cable);
-            conduit = cable;
-        } else {
-            return;
-        }
-
-        chunk.markNeedsSaving();
-
-        LOGGER.atInfo().log("Conduit UI changed " + dir + " at (" + x + "," + y + "," + z + ") state sideConfig now " + conduit.getConnectionState(dir));
-        // Refresh just this pipe's connected-block model, while restoring its sideConfig afterward.
-        refreshSinglePipeWithRestore(world, x, y, z);
-        // Do not force connected-block swap here; models will update on a natural block update.
-
-        UICommandBuilder commands = new UICommandBuilder();
-        UIEventBuilder events = new UIEventBuilder();
-        render(commands, events, store);
-        this.sendUpdate(commands, events, false);
+        // Only ECS components are supported; deprecated BlockState-based pipes are no longer handled
+        return;
     }
 
     private void render(@NonNullDecl UICommandBuilder cmd, @NonNullDecl UIEventBuilder events, @NonNullDecl Store<EntityStore> store) {
@@ -398,149 +434,10 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
             };
         }
 
-        var st = world.getState(x, y, z, true);
-        if (st instanceof ItemPipeBlockState) {
-            ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
-            if (type == null) {
-                return null;
-            }
-            ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
-            if (pipe == null) {
-                dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
-                return null;
-            }
-            return pipe;
-        }
-
-        if (st instanceof PowerCableBlockState) {
-            ComponentType<ChunkStore, PowerCableBlockState> type = BlockStateModule.get().getComponentType(PowerCableBlockState.class);
-            if (type == null) {
-                return null;
-            }
-            PowerCableBlockState cable = stateRef.getStore().getComponent(stateRef, type);
-            if (cable == null) {
-                dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
-                return null;
-            }
-            return cable;
-        }
-
+        // Only ECS components are supported; deprecated BlockState-based pipes are no longer handled
         return null;
     }
 
-    private static void refreshSinglePipeWithRestore(@NonNullDecl World world, int x, int y, int z) {
-        Vector3i pos = new Vector3i(x, y, z);
-        Vector3i placementNormal = new Vector3i(0, 1, 0);
-
-        // Save sideConfig for this pipe.
-        int savedCfg = dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.get(x, y, z);
-        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
-        if (chunk == null) {
-            return;
-        }
-        int lx = x & 31;
-        int lz = z & 31;
-
-        // Force a full setBlock with settings to trigger connected-block evaluation.
-        BlockType current = chunk.getBlockType(lx, y, lz);
-        if (current != null) {
-            int blockId = chunk.getBlock(lx, y, lz);
-            int rotIndex = chunk.getRotationIndex(lx, y, lz);
-            int settings = 64 | 256 | 4 | 2; // invalidate, block update, no particles, keep state
-            boolean changed = chunk.setBlock(lx, y, lz, blockId, current, rotIndex, 0, settings);
-
-            if (!changed) {
-                // Compute desired variant and apply directly.
-                var desiredOpt = ConnectedBlocksUtil.getDesiredConnectedBlockType(world, pos, current, rotIndex, new Vector3i(0, 1, 0), false);
-                if (desiredOpt.isPresent()) {
-                    var r = desiredOpt.get();
-                    int newId = BlockType.getAssetMap().getIndex(r.blockTypeKey());
-                    if (newId != Integer.MIN_VALUE) {
-                        BlockType newType = BlockType.getAssetMap().getAsset(newId);
-                        int newRot = r.rotationIndex();
-                        boolean forced = chunk.setBlock(lx, y, lz, newId, newType, newRot, 0, settings);
-                    }
-                }
-            }
-        }
-
-        // Restore saved sideConfig to this conduit (in case block swap recreated BlockState) and put back in store.
-        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(lx, y, lz);
-        if (stateRef != null) {
-            var st = world.getState(x, y, z, true);
-            if (st instanceof ItemPipeBlockState) {
-                ComponentType<ChunkStore, ItemPipeBlockState> type = BlockStateModule.get().getComponentType(ItemPipeBlockState.class);
-                if (type != null) {
-                    ItemPipeBlockState pipe = stateRef.getStore().getComponent(stateRef, type);
-                    if (pipe != null) {
-                        pipe.setRawSideConfig(savedCfg);
-                        stateRef.getStore().replaceComponent(stateRef, type, pipe);
-                    }
-                }
-            } else if (st instanceof PowerCableBlockState) {
-                ComponentType<ChunkStore, PowerCableBlockState> type = BlockStateModule.get().getComponentType(PowerCableBlockState.class);
-                if (type != null) {
-                    PowerCableBlockState cable = stateRef.getStore().getComponent(stateRef, type);
-                    if (cable != null) {
-                        cable.setRawSideConfig(savedCfg);
-                        stateRef.getStore().replaceComponent(stateRef, type, cable);
-                    }
-                }
-            }
-        }
-        dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.set(x, y, z, savedCfg);
-    }
-
-    private static void applyConnectedResult(
-            @NonNullDecl World world,
-            @NonNullDecl Vector3i placementNormal,
-            @NonNullDecl Vector3i pos,
-            @NonNullDecl ConnectedBlocksUtil.ConnectedBlockResult result
-    ) {
-        // Apply main block.
-        int blockId = BlockType.getAssetMap().getIndex(result.blockTypeKey());
-        if (blockId == Integer.MIN_VALUE) {
-            return;
-        }
-
-        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
-        if (chunk == null) {
-            return;
-        }
-
-        RotationTuple rot = RotationTuple.get(result.rotationIndex());
-        ConnectedBlocksUtil.setConnectedBlockAndNotifyNeighbors(blockId, rot, pos, placementNormal, chunk, chunk.getBlockChunk());
-
-        // Apply any additional blocks (some connected-block rulesets place extra blocks).
-        var extras = result.getAdditionalConnectedBlocks();
-        if (extras == null || extras.isEmpty()) {
-            return;
-        }
-
-        for (var e : extras.entrySet()) {
-            Vector3i p = e.getKey();
-            var pair = e.getValue();
-            if (p == null || pair == null) {
-                continue;
-            }
-
-            String key = pair.left();
-            int rIndex = pair.rightInt();
-
-            int id = BlockType.getAssetMap().getIndex(key);
-            if (id == Integer.MIN_VALUE) {
-                continue;
-            }
-
-            WorldChunk c = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(p.x, p.z));
-            if (c == null) {
-                continue;
-            }
-
-            RotationTuple rt = RotationTuple.get(rIndex);
-            ConnectedBlocksUtil.setConnectedBlockAndNotifyNeighbors(id, rt, p, placementNormal, c, c.getBlockChunk());
-        }
-    }
 
     private static void setNeighborSlot(
             @NonNullDecl UICommandBuilder cmd,

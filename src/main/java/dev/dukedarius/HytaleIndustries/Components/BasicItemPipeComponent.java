@@ -39,6 +39,13 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
                     o -> o.secondsAccumulator
             )
             .add()
+            .append(
+                    new KeyedCodec<>("ManualConfigMask", Codec.INTEGER),
+                    (o, val) -> o.manualConfigMask = val,
+                    o -> o.manualConfigMask
+            )
+            .addValidator(Validators.greaterThanOrEqual(0))
+            .add()
             .build();
 
     // Bitmask for pipe connections in 6 directions (like Adesi's)
@@ -50,6 +57,9 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
     
     // Time accumulator for extraction (runs once per second)
     private float secondsAccumulator;
+    
+    // Bitmask for manually configured sides (prevents auto-restoration)
+    private int manualConfigMask;
 
     public BasicItemPipeComponent() {
         this(0, 0);
@@ -59,12 +69,14 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
         this.pipeState = pipeState;
         this.sideConfig = sideConfig;
         this.secondsAccumulator = 0.0f;
+        this.manualConfigMask = 0;
     }
 
     public BasicItemPipeComponent(BasicItemPipeComponent other) {
         this.pipeState = other.pipeState;
         this.sideConfig = other.sideConfig;
         this.secondsAccumulator = other.secondsAccumulator;
+        this.manualConfigMask = other.manualConfigMask;
     }
 
     public int getPipeState() {
@@ -95,6 +107,7 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
         this.pipeState = other.pipeState;
         this.sideConfig = other.sideConfig;
         this.secondsAccumulator = other.secondsAccumulator;
+        this.manualConfigMask = other.manualConfigMask;
     }
 
     private static final Vector3i[] DIRECTIONS = {
@@ -127,7 +140,7 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
         };
     }
 
-    public void setConnectionState(Vector3i direction, ConnectionState state) {
+    public void setConnectionState(Vector3i direction, ConnectionState state, boolean manual) {
         int bitIndex = getBitIndex(direction);
         if (bitIndex == -1) return;
         
@@ -140,8 +153,25 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
         };
         
         sideConfig = (sideConfig & ~mask) | (v << shift);
+        
+        // Track manual configuration
+        if (manual) {
+            manualConfigMask |= (1 << bitIndex);
+        } else {
+            manualConfigMask &= ~(1 << bitIndex);
+        }
+    }
+    
+    public void setConnectionState(Vector3i direction, ConnectionState state) {
+        setConnectionState(direction, state, false);
     }
 
+    public boolean isManuallyConfigured(Vector3i direction) {
+        int bitIndex = getBitIndex(direction);
+        if (bitIndex == -1) return false;
+        return (manualConfigMask & (1 << bitIndex)) != 0;
+    }
+    
     public boolean isSideConnected(Vector3i direction) {
         return getConnectionState(direction) != ConnectionState.None;
     }
