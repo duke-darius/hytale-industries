@@ -29,6 +29,11 @@ import dev.dukedarius.HytaleIndustries.BlockStates.PowerCableBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.ConnectionState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.Direction;
 import dev.dukedarius.HytaleIndustries.Pipes.SideConfigurableConduit;
+import dev.dukedarius.HytaleIndustries.Components.BasicItemPipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.BasicPowerCableComponent;
+import dev.dukedarius.HytaleIndustries.Components.UpdatePipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.UpdatePowerCableComponent;
+import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
 import javax.annotation.Nullable;
@@ -94,6 +99,84 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         }
 
         SideConfigurableConduit conduit = null;
+        
+        // Check if it's an ECS BasicItemPipe first
+        ComponentType<ChunkStore, BasicItemPipeComponent> basicPipeType = HytaleIndustriesPlugin.INSTANCE.getBasicItemPipeComponentType();
+        BasicItemPipeComponent basicPipe = stateRef.getStore().getComponent(stateRef, basicPipeType);
+        
+        if (basicPipe != null) {
+            // Handle BasicItemPipe component
+            Vector3i dirVec = directionToVector(dir);
+            BasicItemPipeComponent.ConnectionState currentState = basicPipe.getConnectionState(dirVec);
+            BasicItemPipeComponent.ConnectionState nextState = switch (currentState) {
+                case Default -> BasicItemPipeComponent.ConnectionState.Extract;
+                case Extract -> BasicItemPipeComponent.ConnectionState.None;
+                case None -> BasicItemPipeComponent.ConnectionState.Default;
+            };
+            basicPipe.setConnectionState(dirVec, nextState);
+            stateRef.getStore().replaceComponent(stateRef, basicPipeType, basicPipe);
+            
+            // Mark for visual update
+            ComponentType<ChunkStore, UpdatePipeComponent> updateType = HytaleIndustriesPlugin.INSTANCE.getUpdatePipeComponentType();
+            stateRef.getStore().ensureComponent(stateRef, updateType);
+            
+            chunk.markNeedsSaving();
+            LOGGER.atInfo().log("BasicItemPipe UI changed " + dir + " at (" + x + "," + y + "," + z + ") state now " + nextState);
+            
+            UICommandBuilder commands = new UICommandBuilder();
+            UIEventBuilder events = new UIEventBuilder();
+            render(commands, events, store);
+            this.sendUpdate(commands, events, false);
+            return;
+        }
+        
+        // Check if it's an ECS BasicPowerCable
+        ComponentType<ChunkStore, BasicPowerCableComponent> basicCableType = HytaleIndustriesPlugin.INSTANCE.getBasicPowerCableComponentType();
+        BasicPowerCableComponent basicCable = stateRef.getStore().getComponent(stateRef, basicCableType);
+        
+        if (basicCable != null) {
+            // Handle BasicPowerCable component
+            Vector3i dirVec = directionToVector(dir);
+            BasicPowerCableComponent.ConnectionState currentState = basicCable.getConnectionState(dirVec);
+            BasicPowerCableComponent.ConnectionState nextState = switch (currentState) {
+                case Default -> BasicPowerCableComponent.ConnectionState.Extract;
+                case Extract -> BasicPowerCableComponent.ConnectionState.None;
+                case None -> BasicPowerCableComponent.ConnectionState.Default;
+            };
+            basicCable.setConnectionState(dirVec, nextState, true); // Mark as manual
+            stateRef.getStore().replaceComponent(stateRef, basicCableType, basicCable);
+            
+            // Mark this cable for visual update
+            ComponentType<ChunkStore, UpdatePowerCableComponent> updateCableType = HytaleIndustriesPlugin.INSTANCE.getUpdatePowerCableComponentType();
+            stateRef.getStore().ensureComponent(stateRef, updateCableType);
+            
+            // Mark neighbor cable in this direction for update too
+            int nx = x + dir.dx;
+            int ny = y + dir.dy;
+            int nz = z + dir.dz;
+            WorldChunk neighborChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));
+            if (neighborChunk != null) {
+                int nlx = nx & 31;
+                int nlz = nz & 31;
+                Ref<ChunkStore> neighborRef = neighborChunk.getBlockComponentEntity(nlx, ny, nlz);
+                if (neighborRef != null) {
+                    BasicPowerCableComponent neighborCable = neighborRef.getStore().getComponent(neighborRef, basicCableType);
+                    if (neighborCable != null) {
+                        neighborRef.getStore().ensureComponent(neighborRef, updateCableType);
+                        LOGGER.atInfo().log("Marked neighbor cable at (" + nx + "," + ny + "," + nz + ") for update");
+                    }
+                }
+            }
+            
+            chunk.markNeedsSaving();
+            LOGGER.atInfo().log("BasicPowerCable UI changed " + dir + " at (" + x + "," + y + "," + z + ") state now " + nextState);
+            
+            UICommandBuilder commands = new UICommandBuilder();
+            UIEventBuilder events = new UIEventBuilder();
+            render(commands, events, store);
+            this.sendUpdate(commands, events, false);
+            return;
+        }
 
         var st = world.getState(x, y, z, true);
         if (st instanceof ItemPipeBlockState) {
@@ -201,6 +284,26 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         cmd.set(borderSelector + ".Background", color);
     }
 
+    private static Vector3i directionToVector(Direction dir) {
+        return new Vector3i(dir.dx, dir.dy, dir.dz);
+    }
+    
+    private static ConnectionState basicToBlockStateConnectionState(BasicItemPipeComponent.ConnectionState state) {
+        return switch (state) {
+            case Default -> ConnectionState.Default;
+            case Extract -> ConnectionState.Extract;
+            case None -> ConnectionState.None;
+        };
+    }
+    
+    private static ConnectionState basicToBlockStateConnectionState(BasicPowerCableComponent.ConnectionState state) {
+        return switch (state) {
+            case Default -> ConnectionState.Default;
+            case Extract -> ConnectionState.Extract;
+            case None -> ConnectionState.None;
+        };
+    }
+    
     @Nullable
     private static SideConfigurableConduit getConduitState(@NonNullDecl World world, int x, int y, int z) {
         WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
@@ -215,6 +318,84 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         if (stateRef == null) {
             dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
             return null;
+        }
+        
+        // Check for BasicItemPipe ECS component first
+        ComponentType<ChunkStore, BasicItemPipeComponent> basicPipeType = HytaleIndustriesPlugin.INSTANCE.getBasicItemPipeComponentType();
+        BasicItemPipeComponent basicPipe = stateRef.getStore().getComponent(stateRef, basicPipeType);
+        if (basicPipe != null) {
+            // Wrap BasicItemPipeComponent to present as SideConfigurableConduit
+            return new SideConfigurableConduit() {
+                @Override
+                public ConnectionState getConnectionState(Direction dir) {
+                    return basicToBlockStateConnectionState(basicPipe.getConnectionState(directionToVector(dir)));
+                }
+                
+                @Override
+                public void setConnectionState(Direction dir, ConnectionState state) {
+                    // Not used in rendering, only in handleDataEvent
+                }
+                
+                @Override
+                public ConnectionState cycleConnectionState(Direction dir) {
+                    // Not used - handled in handleDataEvent
+                    return ConnectionState.Default;
+                }
+                
+                @Override
+                public boolean isSideConnected(Direction dir) {
+                    return basicPipe.isSideConnected(directionToVector(dir));
+                }
+                
+                @Override
+                public int getRawSideConfig() {
+                    return basicPipe.getSideConfig();
+                }
+                
+                @Override
+                public void setRawSideConfig(int raw) {
+                    basicPipe.setSideConfig(raw);
+                }
+            };
+        }
+        
+        // Check for BasicPowerCable ECS component
+        ComponentType<ChunkStore, BasicPowerCableComponent> basicCableType = HytaleIndustriesPlugin.INSTANCE.getBasicPowerCableComponentType();
+        BasicPowerCableComponent basicCable = stateRef.getStore().getComponent(stateRef, basicCableType);
+        if (basicCable != null) {
+            // Wrap BasicPowerCableComponent to present as SideConfigurableConduit
+            return new SideConfigurableConduit() {
+                @Override
+                public ConnectionState getConnectionState(Direction dir) {
+                    return basicToBlockStateConnectionState(basicCable.getConnectionState(directionToVector(dir)));
+                }
+                
+                @Override
+                public void setConnectionState(Direction dir, ConnectionState state) {
+                    // Not used in rendering, only in handleDataEvent
+                }
+                
+                @Override
+                public ConnectionState cycleConnectionState(Direction dir) {
+                    // Not used - handled in handleDataEvent
+                    return ConnectionState.Default;
+                }
+                
+                @Override
+                public boolean isSideConnected(Direction dir) {
+                    return basicCable.isSideConnected(directionToVector(dir));
+                }
+                
+                @Override
+                public int getRawSideConfig() {
+                    return basicCable.getSideConfig();
+                }
+                
+                @Override
+                public void setRawSideConfig(int raw) {
+                    basicCable.setSideConfig(raw);
+                }
+            };
         }
 
         var st = world.getState(x, y, z, true);

@@ -1,7 +1,9 @@
 package dev.dukedarius.HytaleIndustries;
 
 import com.hypixel.hytale.component.Component;
+import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -55,6 +57,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
         // Ensure custom Interaction types are registered BEFORE any assets are decoded.
         Interaction.CODEC.register("HytaleIndustries_ConfigurePipe", ConfigurePipeInteraction.class, ConfigurePipeInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_ConfigurePowerCable", ConfigurePipeInteraction.class, ConfigurePipeInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenBurningGenerator", OpenBurningGeneratorInteraction.class, OpenBurningGeneratorInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenSmallBattery", OpenSmallBatteryInteraction.class, OpenSmallBatteryInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenPoweredFurnace", OpenPoweredFurnaceInteraction.class, OpenPoweredFurnaceInteraction.CODEC);
@@ -72,6 +75,14 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     private final Config<ChunkLoaderRegistry> chunkLoaderConfig;
     private ChunkLoaderManager chunkLoaderManager;
 
+    // ECS Component types for basic item pipes
+    private ComponentType<ChunkStore, dev.dukedarius.HytaleIndustries.Components.BasicItemPipeComponent> basicItemPipeComponentType;
+    private ComponentType<ChunkStore, dev.dukedarius.HytaleIndustries.Components.UpdatePipeComponent> updatePipeComponentType;
+    
+    // ECS Component types for basic power cables
+    private ComponentType<ChunkStore, dev.dukedarius.HytaleIndustries.Components.BasicPowerCableComponent> basicPowerCableComponentType;
+    private ComponentType<ChunkStore, dev.dukedarius.HytaleIndustries.Components.UpdatePowerCableComponent> updatePowerCableComponentType;
+
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
         INSTANCE = this;
@@ -82,6 +93,22 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
     public ChunkLoaderManager getChunkLoaderManager() {
         return chunkLoaderManager;
+    }
+
+    public ComponentType<ChunkStore, dev.dukedarius.HytaleIndustries.Components.BasicItemPipeComponent> getBasicItemPipeComponentType() {
+        return basicItemPipeComponentType;
+    }
+
+    public ComponentType<ChunkStore, dev.dukedarius.HytaleIndustries.Components.UpdatePipeComponent> getUpdatePipeComponentType() {
+        return updatePipeComponentType;
+    }
+    
+    public ComponentType<ChunkStore, dev.dukedarius.HytaleIndustries.Components.BasicPowerCableComponent> getBasicPowerCableComponentType() {
+        return basicPowerCableComponentType;
+    }
+    
+    public ComponentType<ChunkStore, dev.dukedarius.HytaleIndustries.Components.UpdatePowerCableComponent> getUpdatePowerCableComponentType() {
+        return updatePowerCableComponentType;
     }
 
     @Override
@@ -101,6 +128,73 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         this.getBlockStateRegistry().registerBlockState(WindTurbineBlockState.class, WindTurbineBlockState.STATE_ID, WindTurbineBlockState.CODEC);
 
         this.getBlockStateRegistry().registerBlockState(ChunkLoaderBlockState.class, ChunkLoaderBlockState.STATE_ID, ChunkLoaderBlockState.CODEC);
+
+        // Register ECS components for basic item pipes
+        this.basicItemPipeComponentType = this.getChunkStoreRegistry().registerComponent(
+                dev.dukedarius.HytaleIndustries.Components.BasicItemPipeComponent.class,
+                "BasicItemPipe",
+                dev.dukedarius.HytaleIndustries.Components.BasicItemPipeComponent.CODEC
+        );
+        this.updatePipeComponentType = this.getChunkStoreRegistry().registerComponent(
+                dev.dukedarius.HytaleIndustries.Components.UpdatePipeComponent.class,
+                "UpdatePipeComponent",
+                dev.dukedarius.HytaleIndustries.Components.UpdatePipeComponent.CODEC
+        );
+
+        // Register ECS systems for basic item pipes
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.BasicItemPipeSystem(
+                        this.basicItemPipeComponentType,
+                        this.updatePipeComponentType
+                )
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.BasicItemPipeUpdateSystem(
+                        this.basicItemPipeComponentType,
+                        this.updatePipeComponentType
+                )
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.BasicItemPipeExtractionSystem(
+                        this.basicItemPipeComponentType
+                )
+        );
+        
+        // Register ECS components for basic power cables
+        this.basicPowerCableComponentType = this.getChunkStoreRegistry().registerComponent(
+                dev.dukedarius.HytaleIndustries.Components.BasicPowerCableComponent.class,
+                "BasicPowerCable",
+                dev.dukedarius.HytaleIndustries.Components.BasicPowerCableComponent.CODEC
+        );
+        this.updatePowerCableComponentType = this.getChunkStoreRegistry().registerComponent(
+                dev.dukedarius.HytaleIndustries.Components.UpdatePowerCableComponent.class,
+                "UpdatePowerCableComponent",
+                dev.dukedarius.HytaleIndustries.Components.UpdatePowerCableComponent.CODEC
+        );
+        
+        // Register ECS systems for basic power cables
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.BasicPowerCableSystem(
+                        this.basicPowerCableComponentType,
+                        this.updatePowerCableComponentType
+                )
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.BasicPowerCableUpdateSystem(
+                        this.basicPowerCableComponentType,
+                        this.updatePowerCableComponentType
+                )
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.BasicPowerCableTransferSystem(
+                        this.basicPowerCableComponentType
+                )
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.UpdatePowerCableSystem(
+                        this.updatePowerCableComponentType
+                )
+        );
 
         // Ensure machine inventories drop when the block is broken.
         this.getEntityStoreRegistry().registerSystem(new InventoryDropOnBreakSystem());

@@ -5,6 +5,7 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3i;
+import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -45,21 +46,28 @@ public class OpenChunkLoaderInteraction extends SimpleBlockInteraction {
 
         Player playerComponent = commandBuffer.getComponent(ref, Player.getComponentType());
         if (playerComponent == null) {
+            interactionContext.getState().state = InteractionState.Failed;
+            interactionContext.getState().state = InteractionState.Failed;
             return;
         }
 
         // Don't open if a custom page is already open.
         if (playerComponent.getPageManager().getCustomPage() != null) {
+            interactionContext.getState().state = InteractionState.Skip;
+            interactionContext.getState().state = InteractionState.Skip;
             return;
         }
 
         BlockState state = world.getState(pos.x, pos.y, pos.z, true);
         if (!(state instanceof ChunkLoaderBlockState)) {
+            interactionContext.getState().state = InteractionState.Skip;
             return;
         }
 
         PlayerRef playerRef = commandBuffer.getComponent(ref, PlayerRef.getComponentType());
         if (playerRef == null) {
+            interactionContext.getState().state = InteractionState.Failed;
+            interactionContext.getState().state = InteractionState.Failed;
             return;
         }
 

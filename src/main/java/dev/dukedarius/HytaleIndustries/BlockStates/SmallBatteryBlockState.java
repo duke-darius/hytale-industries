@@ -39,29 +39,19 @@ public class SmallBatteryBlockState extends BlockState implements StoresHE, Rece
     public void setHeStored(double he) {
         if (he < 0.0) {
             heStored = 0.0;
-            persistSelf();
-            return;
+        } else {
+            heStored = Math.min(MAX_HE, he);
         }
-        heStored = Math.min(MAX_HE, he);
-        persistSelf();
+        
+        // Mark chunk for saving - the component will be persisted automatically
+        var chunk = this.getChunk();
+        if (chunk != null) {
+            chunk.markNeedsSaving();
+        }
     }
 
     @Override
     public double getHeCapacity() {
         return MAX_HE;
-    }
-
-    private void persistSelf() {
-        var chunk = this.getChunk();
-        var pos = this.getBlockPosition();
-        if (chunk == null || pos == null) return;
-        var ref = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
-        if (ref == null) return;
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        ComponentType<ChunkStore, Component<ChunkStore>> type =
-                (ComponentType) BlockStateModule.get().getComponentType((Class) this.getClass());
-        if (type == null) return;
-        ref.getStore().replaceComponent(ref, type, this);
-        chunk.markNeedsSaving();
     }
 }
