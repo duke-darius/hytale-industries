@@ -54,9 +54,9 @@ jobs:
 
       - name: Locate built jar
         run: |
-          JAR=$(ls build/libs/*.jar | head -n 1)
+          JAR=$(ls build/libs/*.jar | grep -vE '(-javadoc|-sources)\\.jar$' | head -n 1)
           if [ -z "$JAR" ]; then
-            echo "No jar found in build/libs"; exit 1;
+            echo "No runtime jar found in build/libs"; ls build/libs; exit 1;
           fi
           echo "JAR_PATH=$JAR" >> "$GITHUB_ENV"
           echo "Located $JAR"
