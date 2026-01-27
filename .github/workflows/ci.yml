@@ -54,7 +54,10 @@ jobs:
 
       - name: Locate built jar
         run: |
-          JAR=$(ls build/libs/*.jar | grep -vE '(-javadoc|-sources)\\.jar$' | head -n 1)
+          JAR=$(find build/libs -maxdepth 1 -type f -name '*.jar' \
+               ! -name '*-javadoc.jar' ! -name '*-sources.jar' \
+               ! -name '*-javadoc-*.jar' ! -name '*-sources-*.jar' \
+               | sort | head -n 1)
           if [ -z "$JAR" ]; then
             echo "No runtime jar found in build/libs"; ls build/libs; exit 1;
           fi
