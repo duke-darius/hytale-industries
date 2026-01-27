@@ -201,8 +201,8 @@ public class PowerCableBlockState extends BlockState implements TickableBlockSta
             if (cs == ItemPipeBlockState.ConnectionState.Default && !(canCable || canEnergy)) {
                 setConnectionState(d, ItemPipeBlockState.ConnectionState.None);
                 cfg = sideConfig;
-            } else if (cs == ItemPipeBlockState.ConnectionState.None && canCable) {
-                // Only auto-open faces to other cables.
+            } else if (cs == ItemPipeBlockState.ConnectionState.None && (canCable || canEnergy)) {
+                // Auto-open faces to other cables or energy machines.
                 setConnectionState(d, ItemPipeBlockState.ConnectionState.Default);
                 cfg = sideConfig;
             }

@@ -23,7 +23,6 @@ import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderManager;
 import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderRegistry;
 import dev.dukedarius.HytaleIndustries.Commands.GetPipeStateCommand;
 import dev.dukedarius.HytaleIndustries.Commands.PipeHUDCommand;
-import dev.dukedarius.HytaleIndustries.ConnectedBlockRuleSets.PipeConnectedBlockRuleSet;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 
 import dev.dukedarius.HytaleIndustries.Commands.SetPipeSideCommand;
@@ -47,13 +46,6 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public static HytaleIndustriesPlugin INSTANCE;
 
     static {
-        // Ensure our ConnectedBlockRuleSet type is registered BEFORE any assets are decoded.
-        // If this runs too late, BlockType assets referencing {"Type":"Pipe"} will fail to load.
-        com.hypixel.hytale.server.core.universe.world.connectedblocks.ConnectedBlockRuleSet.CODEC.register(
-                "Pipe",
-                PipeConnectedBlockRuleSet.class,
-                PipeConnectedBlockRuleSet.CODEC
-        );
 
         // Ensure custom Interaction types are registered BEFORE any assets are decoded.
         Interaction.CODEC.register("HytaleIndustries_ConfigurePipe", ConfigurePipeInteraction.class, ConfigurePipeInteraction.CODEC);

@@ -105,6 +105,14 @@ Group {
 
         Group { Anchor: (Height: 10); }
 
+        // Error message
+        Label #ErrorLabel {
+          Text: "";
+          Style: (TextColor: #FF6B6B);
+        }
+
+        Group { Anchor: (Height: 10); }
+
         // Config card (visible while idle)
         Group #ConfigGroup {
           LayoutMode: Top;

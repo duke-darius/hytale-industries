@@ -144,10 +144,12 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
         if (v <= 0) return;
 
         if(currentStatus != QuarryStatus.ACTIVE){
+            HytaleIndustriesPlugin.LOGGER.atFine().log("Quarry at %s not active, status: %s", getBlockPosition(), currentStatus);
             return;
         }
 
         if (!hasScanBounds() || !hasCurrentPos()) {
+            HytaleIndustriesPlugin.LOGGER.atInfo().log("Quarry at %s - no scan bounds or current pos, stopping", getBlockPosition());
             currentStatus = QuarryStatus.IDLE;
             clearMiningState(true);
             persistSelf();
@@ -184,10 +186,12 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
         // Output inventory must exist directly above the quarry.
         ItemContainer outputContainer = getOutputContainerAbove(world);
         if (outputContainer == null) {
+            HytaleIndustriesPlugin.LOGGER.atInfo().log("Quarry at %s has no output container above", getBlockPosition());
             return;
         }
 
         if (heStored < HE_CONSUMPTION_PER_SECOND * v) {
+            HytaleIndustriesPlugin.LOGGER.atFine().log("Quarry at %s insufficient energy: %.2f < %.2f", getBlockPosition(), heStored, HE_CONSUMPTION_PER_SECOND * v);
             return;
         }
 
@@ -234,6 +238,11 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
 
     private static final int WORLD_MIN_Y = 0;
     private static final int WORLD_MAX_Y_EXCLUSIVE = 320;
+
+    @Nullable
+    public ItemContainer getOutputContainerAbovePublic(@Nonnull World world) {
+        return getOutputContainerAbove(world);
+    }
 
     @Nullable
     private ItemContainer getOutputContainerAbove(@Nonnull World world) {
@@ -435,6 +444,8 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
         double canReceive = HE_CAPACITY - heStored;
         double toReceive = Math.min(canReceive, he);
         heStored += toReceive;
+        HytaleIndustriesPlugin.LOGGER.atInfo().log("Quarry at %s received %.2f HE (total now: %.2f / %.2f)", 
+            getBlockPosition(), toReceive, heStored, HE_CAPACITY);
         return toReceive;
     }
 

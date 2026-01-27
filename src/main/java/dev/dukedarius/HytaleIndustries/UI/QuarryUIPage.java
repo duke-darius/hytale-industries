@@ -176,6 +176,24 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
             cmd.set("#PowerBar.TooltipText", String.format("%d/%d HE Stored", (int) he, (int) heCap));
             cmd.set("#PowerText.Text", PowerUtils.formatHe(he) + "/" + PowerUtils.formatHe(heCap) + " HE");
 
+            // Check for issues and display warnings
+            String errorMessage = "";
+            boolean canStart = isIdle;
+            
+            if (isIdle) {
+                // Check if output container exists above
+                if (quarry.getOutputContainerAbovePublic(world) == null) {
+                    errorMessage = "⚠ No output container above quarry!";
+                    canStart = false;
+                } else if (he < 50) { // Minimum energy to start
+                    errorMessage = "⚠ Insufficient energy to start (need 50 HE)";
+                    canStart = false;
+                }
+            }
+            
+            cmd.set("#ErrorLabel.Text", errorMessage);
+            cmd.set("#StartButton.Enabled", canStart);
+
             // Visibility logic
             cmd.set("#ConfigGroup.Visible", isIdle);
             cmd.set("#StartButton.Visible", isIdle);
