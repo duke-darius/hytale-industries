@@ -52,6 +52,21 @@ jobs:
           CI: "true"
         run: ./gradlew ciBuild -PuseHytaleMaven=true --no-daemon
 
+      - name: Locate built jar
+        run: |
+          JAR=$(ls build/libs/*.jar | head -n 1)
+          if [ -z "$JAR" ]; then
+            echo "No jar found in build/libs"; exit 1;
+          fi
+          echo "JAR_PATH=$JAR" >> "$GITHUB_ENV"
+          echo "Located $JAR"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-jar
+          path: ${{ env.JAR_PATH }}
+
       - name: Commit version bump
         if: ${{ github.event.inputs.create_release == 'true' }}
         run: |
@@ -77,3 +92,4 @@ jobs:
           tag_name: v${{ env.VERSION }}
           name: v${{ env.VERSION }}
           body: "Automated release for v${{ env.VERSION }}"
+          files: ${{ env.JAR_PATH }}
