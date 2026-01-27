@@ -400,7 +400,7 @@ public class BurningGeneratorBlockState extends BlockState implements TickableBl
         }
 
         chunk.setBlockInteractionState(pos.x, pos.y, pos.z, blockType, targetState, true);
-        LOGGER.atInfo().log("Generator at " + pos + " switched state from " + currentId + " to " + targetState);
+        LOGGER.atFine().log("Generator at " + pos + " switched state from " + currentId + " to " + targetState);
         
         // setBlockInteractionState may recreate the block component, losing our state.
         // We must re-persist ourselves to ensure fuel/energy data is preserved.

@@ -49,7 +49,7 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
     public void tick(float dt, int index, ArchetypeChunk<ChunkStore> archetypeChunk,
                      Store<ChunkStore> store, CommandBuffer<ChunkStore> commandBuffer) {
 
-        HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicItemPipeUpdateSystem] tick dt=" + dt + " pos=(" + index + ")");
+        HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicItemPipeUpdateSystem] tick dt=" + dt + " pos=(" + index + ")");
 
         var pipe = archetypeChunk.getComponent(index, pipeComponentType);
         var ref = archetypeChunk.getReferenceTo(index);
@@ -85,7 +85,7 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
         int y = ChunkUtil.yFromBlockInColumn(blockStateInfo.getIndex());
         int z = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(),
                 ChunkUtil.zFromBlockInColumn(blockStateInfo.getIndex()));
-        HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicItemPipeUpdateSystem] Updating pipe at: %s, %s, %s", x, y, z);
+        HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicItemPipeUpdateSystem] Updating pipe at: %s, %s, %s", x, y, z);
 
         // Recalculate connections using ItemPipeBlockState direction order:
         // 0=North(0,0,-1), 1=South(0,0,1), 2=West(-1,0,0), 3=East(1,0,0), 4=Up(0,1,0), 5=Down(0,-1,0)
@@ -128,12 +128,6 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
             }
         }
 
-        HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicItemPipeUpdateSystem] Occupied mask: %s", occupiedMask);
-
-        // Always update visual state (sideConfig may have changed via UI even if connections didn't)
-        // Update pipeState (connection bitmask)
-        pipe.setDirectionalState(occupiedMask);
-        
         // Reconcile sideConfig based on connections (like ItemPipeBlockState.reconcileNeighborFaces lines 258-269)
         // ONLY auto-adjusts Default state - respects Extract and manual None configuration
         for (int i = 0; i < directions.length; i++) {
@@ -151,9 +145,38 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
             else if (currentState == BasicItemPipeComponent.ConnectionState.None && hasPipe && !isManual) {
                 pipe.setConnectionState(dir, BasicItemPipeComponent.ConnectionState.Default, false);
             }
+            // Rule 3: If None and inventory neighbor exists, auto-restore to Default (but NOT if manually configured)
+            else if (currentState == BasicItemPipeComponent.ConnectionState.None && hasInv && !isManual) {
+                pipe.setConnectionState(dir, BasicItemPipeComponent.ConnectionState.Default, false);
+            }
             // Extract and manual None states are NEVER touched by reconciliation
         }
-        
+
+        // Recompute occupied mask after reconciliation using updated sideConfig
+        occupiedMask = 0;
+        for (int i = 0; i < directions.length; i++) {
+            Vector3i dir = directions[i];
+            boolean hasPipe = false;
+            boolean hasInv = hasInventory[i];
+            // recompute hasPipe using world data
+            var currentX = x + dir.x;
+            var currentY = y + dir.y;
+            var currentZ = z + dir.z;
+            var chunkIndex = ChunkUtil.indexChunkFromBlock(currentX, currentZ);
+            var chunkForBlock = world.getChunk(chunkIndex);
+            if (chunkForBlock != null) {
+                var entity = chunkForBlock.getBlockComponentEntity(currentX, currentY, currentZ);
+                if (entity != null) {
+                    var neighborPipe = store.getComponent(entity, pipeComponentType);
+                    if (neighborPipe != null) hasPipe = true;
+                }
+            }
+            if ((hasPipe || hasInv) && pipe.isSideConnected(dir)) {
+                occupiedMask |= 1 << i;
+            }
+        }
+        HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicItemPipeUpdateSystem] Occupied mask (recomputed): %s", occupiedMask);
+        pipe.setDirectionalState(occupiedMask);
         BlockType blockType = BlockType.getAssetMap().getAsset(
                 blockChunk.getBlock(
                         ChunkUtil.xFromBlockInColumn(blockStateInfo.getIndex()),
@@ -161,7 +184,7 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
                         ChunkUtil.zFromBlockInColumn(blockStateInfo.getIndex())
                 )
         );
-        HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicItemPipeUpdateSystem] Block type: %s", blockType.getId());
+        HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicItemPipeUpdateSystem] Block type: %s", blockType.getId());
 
         if (blockType == null) {
             HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicItemPipeUpdateSystem] Block type is null during update");
@@ -182,7 +205,7 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
             // Generate state name from sideConfig (like ItemPipeBlockState line 292-293)
             String stateName = String.format("State%03d", pipe.getSideConfig());
 
-            HytaleIndustriesPlugin.LOGGER.atInfo().log(
+            HytaleIndustriesPlugin.LOGGER.atFine().log(
                     "[BasicItemPipeUpdateSystem] Updating block state at (%s, %s, %s) to: %s",
                     x, y, z, stateName
             );

@@ -1,0 +1,79 @@
+name: CI Build (manual / release)
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: "Create release (bumps version, tags vX.Y.Z, publishes GitHub release)"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25-ea
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle.properties', '**/build.gradle', '**/settings.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Bump version (release only)
+        if: ${{ github.event.inputs.create_release == 'true' }}
+        run: ./gradlew incrementBuildVer --no-daemon
+
+      - name: Capture version
+        if: ${{ github.event.inputs.create_release == 'true' }}
+        run: |
+          VERSION=$(grep '^version=' gradle.properties | cut -d= -f2)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Captured version $VERSION"
+
+      - name: Build with Maven-sourced Hytale Server
+        env:
+          CI: "true"
+        run: ./gradlew ciBuild -PuseHytaleMaven=true --no-daemon
+
+      - name: Commit version bump
+        if: ${{ github.event.inputs.create_release == 'true' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -am "chore: bump version to $VERSION\n\nCo-Authored-By: Warp <agent@warp.dev>"
+            git push
+          fi
+
+      - name: Create tag
+        if: ${{ github.event.inputs.create_release == 'true' }}
+        run: |
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Publish GitHub release
+        if: ${{ github.event.inputs.create_release == 'true' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          body: "Automated release for v${{ env.VERSION }}"

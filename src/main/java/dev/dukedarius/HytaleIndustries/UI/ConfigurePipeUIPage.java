@@ -136,7 +136,7 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
                             neighborRef.getStore().replaceComponent(neighborRef, basicPipeType, neighborPipe);
                             neighborRef.getStore().ensureComponent(neighborRef, updateType);
                             neighborChunk.markNeedsSaving();
-                            LOGGER.atInfo().log("Propagated state " + nextState + " to neighbor pipe at (" + nx + "," + ny + "," + nz + ")");
+                            LOGGER.atFine().log("Propagated state " + nextState + " to neighbor pipe at (" + nx + "," + ny + "," + nz + ")");
                         }
                     }
                 }
@@ -157,14 +157,14 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
                         BasicItemPipeComponent neighborPipe = neighborRef.getStore().getComponent(neighborRef, basicPipeType);
                         if (neighborPipe != null) {
                             neighborRef.getStore().ensureComponent(neighborRef, updateType);
-                            LOGGER.atInfo().log("Marked neighbor pipe at (" + nx + "," + ny + "," + nz + ") for update");
+                            LOGGER.atFine().log("Marked neighbor pipe at (" + nx + "," + ny + "," + nz + ") for update");
                         }
                     }
                 }
             }
             
             chunk.markNeedsSaving();
-            LOGGER.atInfo().log("BasicItemPipe UI changed " + dir + " at (" + x + "," + y + "," + z + ") state now " + nextState);
+            LOGGER.atFine().log("BasicItemPipe UI changed " + dir + " at (" + x + "," + y + "," + z + ") state now " + nextState);
             
             UICommandBuilder commands = new UICommandBuilder();
             UIEventBuilder events = new UIEventBuilder();
@@ -215,7 +215,7 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
                             neighborRef.getStore().replaceComponent(neighborRef, basicCableType, neighborCable);
                             neighborRef.getStore().ensureComponent(neighborRef, updateCableType);
                             neighborChunk.markNeedsSaving();
-                            LOGGER.atInfo().log("Propagated state " + nextState + " to neighbor cable at (" + nx + "," + ny + "," + nz + ")");
+                            LOGGER.atFine().log("Propagated state " + nextState + " to neighbor cable at (" + nx + "," + ny + "," + nz + ")");
                         }
                     }
                 }
@@ -236,14 +236,14 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
                         BasicPowerCableComponent neighborCable = neighborRef.getStore().getComponent(neighborRef, basicCableType);
                         if (neighborCable != null) {
                             neighborRef.getStore().ensureComponent(neighborRef, updateCableType);
-                            LOGGER.atInfo().log("Marked neighbor cable at (" + nx + "," + ny + "," + nz + ") for update");
+                            LOGGER.atFine().log("Marked neighbor cable at (" + nx + "," + ny + "," + nz + ") for update");
                         }
                     }
                 }
             }
             
             chunk.markNeedsSaving();
-            LOGGER.atInfo().log("BasicPowerCable UI changed " + dir + " at (" + x + "," + y + "," + z + ") state now " + nextState);
+            LOGGER.atFine().log("BasicPowerCable UI changed " + dir + " at (" + x + "," + y + "," + z + ") state now " + nextState);
             
             UICommandBuilder commands = new UICommandBuilder();
             UIEventBuilder events = new UIEventBuilder();

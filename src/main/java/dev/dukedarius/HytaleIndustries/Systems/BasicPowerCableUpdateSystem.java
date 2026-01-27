@@ -54,7 +54,7 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
             return;
         }
         
-        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicPowerCable Update] Starting update for cable");
+        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable Update] Starting update for cable");
 
         var blockStateInfo = store.getComponent(ref, BlockStateInfo.getComponentType());
         if (blockStateInfo == null) {
@@ -88,7 +88,6 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
             new Vector3i(0, -1, 0)   // Down
         };
         
-        int occupiedMask = 0;
         boolean[] hasEnergy = new boolean[6];
         boolean[] hasCableNeighbor = new boolean[6];
         
@@ -116,7 +115,7 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
                         Vector3i oppositeDir = new Vector3i(-dir.x, -dir.y, -dir.z);
                         boolean neighborAllows = neighborCable.isSideConnected(oppositeDir);
                         boolean thisAllows = cable.isSideConnected(dir);
-                        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log(
                             "    Checking connection: dir=(%d,%d,%d), this side allows: %b, neighbor opposite allows: %b, neighbor sideConfig: %d",
                             dir.x, dir.y, dir.z, thisAllows, neighborAllows, neighborCable.getSideConfig()
                         );
@@ -130,18 +129,12 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
                 boolean hasEnergyBlock = hasEnergyAt(world, currentX, currentY, currentZ);
                 hasEnergy[i] = hasEnergyBlock;
                 
-                // Set connection bit if there's a valid cable connection OR an energy block (and side not blocked)
-                if (hasCable || (hasEnergyBlock && cable.isSideConnected(dir))) {
-                    occupiedMask |= 1 << i;
-                }
+                // track presence; actual mask computed after reconciliation
             }
         }
-
-        // Update pipeState (connection bitmask)
-        cable.setDirectionalState(occupiedMask);
         
         // Reconcile sideConfig based on connections
-        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicPowerCable Update] Reconciling at (%d,%d,%d), sideConfig before: %d", x, y, z, cable.getSideConfig());
+        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable Update] Reconciling at (%d,%d,%d), sideConfig before: %d", x, y, z, cable.getSideConfig());
         for (int i = 0; i < directions.length; i++) {
             Vector3i dir = directions[i];
             boolean neighborCableExists = hasCableNeighbor[i];
@@ -162,18 +155,35 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
             
             // Rule 1: If Default and no neighbor (cable or energy), auto-set to None
             if (currentState == BasicPowerCableComponent.ConnectionState.Default && !(neighborCableExists || hasEnergyBlock)) {
-                dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atInfo().log("  [%s] Rule 1: Default → None", dirName);
+                dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("  [%s] Rule 1: Default → None", dirName);
                 cable.setConnectionState(dir, BasicPowerCableComponent.ConnectionState.None, false);
             }
             // Rule 2: If None and cable neighbor exists, auto-restore to Default (but NOT if manually configured)
             else if (currentState == BasicPowerCableComponent.ConnectionState.None && neighborCableExists && !isManual) {
-                dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atInfo().log("  [%s] Rule 2: None → Default (neighborExists: %b, manual: %b)", dirName, neighborCableExists, isManual);
+                dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("  [%s] Rule 2: None → Default (neighborExists: %b, manual: %b)", dirName, neighborCableExists, isManual);
+                cable.setConnectionState(dir, BasicPowerCableComponent.ConnectionState.Default, false);
+            }
+            // Rule 3: If None and energy block exists, auto-restore to Default (unless manually blocked)
+            else if (currentState == BasicPowerCableComponent.ConnectionState.None && hasEnergyBlock && !isManual) {
+                dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("  [%s] Rule 3: None → Default (energy block present)", dirName);
                 cable.setConnectionState(dir, BasicPowerCableComponent.ConnectionState.Default, false);
             }
             // Extract and manual None states are NEVER touched by reconciliation
         }
-        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicPowerCable Update] After reconciliation, sideConfig: %d, pipeState: %d (binary: %s)", 
+        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable Update] After reconciliation, sideConfig: %d, pipeState: %d (binary: %s)",
             cable.getSideConfig(), cable.getPipeState(), Integer.toBinaryString(cable.getPipeState()));
+
+        // Recompute connection mask now that sideConfig may have changed
+        int occupiedMask = 0;
+        for (int i = 0; i < directions.length; i++) {
+            Vector3i dir = directions[i];
+            boolean neighborCableExists = hasCableNeighbor[i];
+            boolean hasEnergyBlock = hasEnergy[i];
+            if ((neighborCableExists || hasEnergyBlock) && cable.isSideConnected(dir)) {
+                occupiedMask |= 1 << i;
+            }
+        }
+        cable.setDirectionalState(occupiedMask);
         
         BlockType blockType = BlockType.getAssetMap().getAsset(
                 blockChunk.getBlock(
@@ -202,7 +212,7 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
             int lz = z & 31;
             
             String stateName = String.format("State%03d", cable.getSideConfig());
-            dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atInfo().log(
+            dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log(
                 "[BasicPowerCable Update] Setting state at (%d,%d,%d) to: %s (sideConfig: %d, pipeState: %d)",
                 x, y, z, stateName, cable.getSideConfig(), cable.getPipeState()
             );
@@ -236,7 +246,7 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
         boolean result = hasTransfers || hasReceives;
         
         if (result) {
-            dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicPowerCable Update] Found energy block at (%d,%d,%d) - transfers: %b, receives: %b", ox, oy, oz, hasTransfers, hasReceives);
+            dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable Update] Found energy block at (%d,%d,%d) - transfers: %b, receives: %b", ox, oy, oz, hasTransfers, hasReceives);
         }
         
         return result;

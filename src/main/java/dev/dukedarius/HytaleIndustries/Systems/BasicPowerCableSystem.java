@@ -84,7 +84,7 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
             return;
         }
 
-        HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicPowerCable] Cable spawned at (%d,%d,%d), initial sideConfig: %d", x, y, z, cableComponent.getSideConfig());
+        HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable] Cable spawned at (%d,%d,%d), initial sideConfig: %d", x, y, z, cableComponent.getSideConfig());
         
         // Calculate connection mask
         Vector3i[] directions = {
@@ -127,7 +127,7 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
                     if (neighborCable != null) {
                         // A cable neighbor exists - this direction should connect
                         hasCable = true;
-                        HytaleIndustriesPlugin.LOGGER.atInfo().log("  [%s] Found cable at (%d,%d,%d)", dirName, currentX, currentY, currentZ);
+                        HytaleIndustriesPlugin.LOGGER.atFine().log("  [%s] Found cable at (%d,%d,%d)", dirName, currentX, currentY, currentZ);
                     }
                 }
                 
@@ -135,7 +135,7 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
                 boolean hasEnergyBlock = hasEnergyAt(world, currentX, currentY, currentZ);
                 hasEnergy[i] = hasEnergyBlock;
                 if (hasEnergyBlock) {
-                    HytaleIndustriesPlugin.LOGGER.atInfo().log("  [%s] Found energy block at (%d,%d,%d)", dirName, currentX, currentY, currentZ);
+                    HytaleIndustriesPlugin.LOGGER.atFine().log("  [%s] Found energy block at (%d,%d,%d)", dirName, currentX, currentY, currentZ);
                 }
                 
                 // Set connection bit if there's a cable OR an energy block
@@ -145,7 +145,7 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
             }
         }
 
-        HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicPowerCable] Final occupiedMask: %d (binary: %s)", occupiedMask, Integer.toBinaryString(occupiedMask));
+        HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable] Final occupiedMask: %d (binary: %s)", occupiedMask, Integer.toBinaryString(occupiedMask));
         
         // Always update visual state on spawn
         if (cableComponent != null) {
@@ -206,7 +206,7 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
                     wc.setBlockInteractionState(finalX, finalY, finalZ, blockType, stateName, true);
 
                     // Mark neighboring cables for update
-                    HytaleIndustriesPlugin.LOGGER.atInfo().log("[BasicPowerCable] Marking neighbors for update at (%d,%d,%d)", finalX, finalY, finalZ);
+                    HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable] Marking neighbors for update at (%d,%d,%d)", finalX, finalY, finalZ);
                     for (int i = 0; i < directions.length; i++) {
                         Vector3i dir = directions[i];
                         int nx = finalX + dir.x;
@@ -221,7 +221,7 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
                             if (nEntity != null) {
                                 var nCable = _store.getComponent(nEntity, cableComponentType);
                                 if (nCable != null) {
-                                    HytaleIndustriesPlugin.LOGGER.atInfo().log("    Found neighbor cable at (%d,%d,%d), marking for update", nx, ny, nz);
+                                    HytaleIndustriesPlugin.LOGGER.atFine().log("    Found neighbor cable at (%d,%d,%d), marking for update", nx, ny, nz);
                                     _store.ensureComponent(nEntity, updateComponentType);
                                 }
                             }
@@ -301,19 +301,19 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
         int ox = origin[0], oy = origin[1], oz = origin[2];
         
         if (ox != x || oy != y || oz != z) {
-            HytaleIndustriesPlugin.LOGGER.atInfo().log("    Resolved filler block at (%d,%d,%d) to origin (%d,%d,%d)", x, y, z, ox, oy, oz);
+            HytaleIndustriesPlugin.LOGGER.atFine().log("    Resolved filler block at (%d,%d,%d) to origin (%d,%d,%d)", x, y, z, ox, oy, oz);
         }
 
         // Get the state and log what we found
         var state = world.getState(ox, oy, oz, true);
-        HytaleIndustriesPlugin.LOGGER.atInfo().log("    State at (%d,%d,%d): %s", ox, oy, oz, state == null ? "null" : state.getClass().getSimpleName());
+        HytaleIndustriesPlugin.LOGGER.atFine().log("    State at (%d,%d,%d): %s", ox, oy, oz, state == null ? "null" : state.getClass().getSimpleName());
         
         // Check if block has energy capability using HEComponents
         boolean hasTransfers = HEComponents.transfers(world, ox, oy, oz) != null;
         boolean hasReceives = HEComponents.receives(world, ox, oy, oz) != null;
         boolean result = hasTransfers || hasReceives;
         
-        HytaleIndustriesPlugin.LOGGER.atInfo().log("    Energy check at (%d,%d,%d) - transfers: %b, receives: %b, result: %b", ox, oy, oz, hasTransfers, hasReceives, result);
+        HytaleIndustriesPlugin.LOGGER.atFine().log("    Energy check at (%d,%d,%d) - transfers: %b, receives: %b, result: %b", ox, oy, oz, hasTransfers, hasReceives, result);
         
         return result;
     }

@@ -3,6 +3,7 @@ package dev.dukedarius.HytaleIndustries;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -35,7 +36,11 @@ import dev.dukedarius.HytaleIndustries.Interactions.OpenPoweredFurnaceInteractio
 import dev.dukedarius.HytaleIndustries.Interactions.OpenQuarryInteraction;
 
 import dev.dukedarius.HytaleIndustries.Interactions.OpenWindTurbineInteraction;
+import dev.dukedarius.HytaleIndustries.Systems.BlockBreakSystem;
+import dev.dukedarius.HytaleIndustries.Systems.BlockPlaceSystem;
 import dev.dukedarius.HytaleIndustries.Systems.InventoryDropOnBreakSystem;
+import dev.dukedarius.HytaleIndustries.Systems.EnergyNeighborUpdateOnPlaceSystem;
+import dev.dukedarius.HytaleIndustries.Systems.InventoryNeighborUpdateOnPlaceSystem;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -187,6 +192,13 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                         this.updatePowerCableComponentType
                 )
         );
+
+        this.getEntityStoreRegistry().registerSystem(new BlockBreakSystem());
+        this.getEntityStoreRegistry().registerSystem(new BlockPlaceSystem());
+
+        // Chunk-store systems
+        this.getChunkStoreRegistry().registerSystem(new EnergyNeighborUpdateOnPlaceSystem());
+        this.getChunkStoreRegistry().registerSystem(new InventoryNeighborUpdateOnPlaceSystem());
 
         // Ensure machine inventories drop when the block is broken.
         this.getEntityStoreRegistry().registerSystem(new InventoryDropOnBreakSystem());
