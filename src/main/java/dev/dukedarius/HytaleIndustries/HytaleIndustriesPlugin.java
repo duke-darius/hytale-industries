@@ -1,5 +1,6 @@
 package dev.dukedarius.HytaleIndustries;
 
+import com.hypixel.hytale.builtin.crafting.CraftingPlugin;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
@@ -10,16 +11,10 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
 import dev.dukedarius.HytaleIndustries.BlockStates.ChunkLoaderBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.PowerCableBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.PoweredCrusherBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.PoweredFurnaceBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.QuarryBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.WindTurbineBlockState;
 import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderManager;
 import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderRegistry;
-import dev.dukedarius.HytaleIndustries.Commands.GetPipeStateCommand;
-import dev.dukedarius.HytaleIndustries.Commands.PipeHUDCommand;
 import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
 import dev.dukedarius.HytaleIndustries.Components.ItemPipes.UpdatePipeComponent;
 import dev.dukedarius.HytaleIndustries.Components.PowerCables.BasicPowerCableComponent;
@@ -30,10 +25,10 @@ import dev.dukedarius.HytaleIndustries.Components.Energy.FuelInventory;
 import dev.dukedarius.HytaleIndustries.Components.Energy.ProducesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
+import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
 
-import dev.dukedarius.HytaleIndustries.Commands.SetPipeSideCommand;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenChunkLoaderInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenSmallBatteryInteraction;
@@ -101,6 +96,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     private ComponentType<ChunkStore, CableEndpoint> cableEndpointType;
     private ComponentType<ChunkStore, FuelInventory> fuelInventoryType;
     private ComponentType<ChunkStore, PoweredFurnaceInventory> poweredFurnaceInventoryType;
+    private ComponentType<ChunkStore, PoweredCrusherInventory> poweredCrusherInventoryType;
 
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -137,6 +133,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public ComponentType<ChunkStore, CableEndpoint> getCableEndpointType() { return cableEndpointType; }
     public ComponentType<ChunkStore, FuelInventory> getFuelInventoryType() { return fuelInventoryType; }
     public ComponentType<ChunkStore, PoweredFurnaceInventory> getPoweredFurnaceInventoryType() { return poweredFurnaceInventoryType; }
+    public ComponentType<ChunkStore, PoweredCrusherInventory> getPoweredCrusherInventoryType() { return poweredCrusherInventoryType; }
 
 
     @Override
@@ -145,11 +142,6 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
         chunkLoaderManager = new ChunkLoaderManager(this, chunkLoaderConfig);
 
-
-        this.getBlockStateRegistry().registerBlockState(ItemPipeBlockState.class, ItemPipeBlockState.STATE_ID, ItemPipeBlockState.CODEC);
-        this.getBlockStateRegistry().registerBlockState(PowerCableBlockState.class, PowerCableBlockState.STATE_ID, PowerCableBlockState.CODEC);
-        this.getBlockStateRegistry().registerBlockState(PoweredFurnaceBlockState.class, PoweredFurnaceBlockState.STATE_ID, PoweredFurnaceBlockState.CODEC);
-        this.getBlockStateRegistry().registerBlockState(PoweredCrusherBlockState.class, PoweredCrusherBlockState.STATE_ID, PoweredCrusherBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(QuarryBlockState.class, QuarryBlockState.STATE_ID, QuarryBlockState.CODEC);
         this.getBlockStateRegistry().registerBlockState(WindTurbineBlockState.class, WindTurbineBlockState.STATE_ID, WindTurbineBlockState.CODEC);
 
@@ -158,6 +150,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         InventoryAdapters.register(new BlockStateItemContainerAdapter());
         InventoryAdapters.register(new FuelInventoryAdapter());
         InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.PoweredFurnaceInventoryAdapter());
+        InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.PoweredCrusherInventoryAdapter());
 
         // Register ECS components for basic item pipes
         this.basicItemPipeComponentType = this.getChunkStoreRegistry().registerComponent(
@@ -238,6 +231,11 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 "PoweredFurnaceInventory",
                 PoweredFurnaceInventory.CODEC
         );
+        this.poweredCrusherInventoryType = this.getChunkStoreRegistry().registerComponent(
+                PoweredCrusherInventory.class,
+                "PoweredCrusherInventory",
+                PoweredCrusherInventory.CODEC
+        );
         
         // Register ECS systems for basic power cables
         this.getChunkStoreRegistry().registerSystem(
@@ -302,6 +300,17 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                         this.heProcessingType
                 )
         );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.PoweredCrusherInitSystem()
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.PoweredCrusherProcessingSystem(
+                        this.poweredCrusherInventoryType,
+                        this.storesHeType,
+                        this.consumesHeType,
+                        this.heProcessingType
+                )
+        );
 
         this.getEntityStoreRegistry().registerSystem(new BlockBreakSystem());
         this.getEntityStoreRegistry().registerSystem(new BlockPlaceSystem());
@@ -312,10 +321,6 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
         // Ensure machine inventories drop when the block is broken.
         this.getEntityStoreRegistry().registerSystem(new InventoryDropOnBreakSystem());
-
-        this.getCommandRegistry().registerCommand(new GetPipeStateCommand());
-        this.getCommandRegistry().registerCommand(new SetPipeSideCommand());
-        this.getCommandRegistry().registerCommand(new PipeHUDCommand());
 
     }
 

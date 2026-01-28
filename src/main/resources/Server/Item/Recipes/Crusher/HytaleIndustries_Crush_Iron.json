@@ -1,0 +1,17 @@
+{
+  "Id": "HytaleIndustries_Crush_Iron",
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Crusher"
+    }
+  ],
+  "TimeSeconds": 8.0,
+  "PrimaryOutput": {
+    "ItemId": "HytaleIndustries_CrushedIron",
+    "Quantity": 2
+  },
+  "Input": [
+    { "ItemId": "Ore_Iron", "Quantity": 1 }
+  ]
+}

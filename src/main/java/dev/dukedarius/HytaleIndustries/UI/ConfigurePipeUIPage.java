@@ -20,12 +20,9 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.ConnectionState;
-import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.Direction;
-import dev.dukedarius.HytaleIndustries.Pipes.SideConfigurableConduit;
 import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
-import dev.dukedarius.HytaleIndustries.Components.PowerCables.BasicPowerCableComponent;
 import dev.dukedarius.HytaleIndustries.Components.ItemPipes.UpdatePipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.PowerCables.BasicPowerCableComponent;
 import dev.dukedarius.HytaleIndustries.Components.PowerCables.UpdatePowerCableComponent;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
@@ -46,6 +43,40 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         this.x = pos.x;
         this.y = pos.y;
         this.z = pos.z;
+    }
+    /** Simple cardinal directions (block-relative). */
+    private enum Direction {
+        North(0, 0, -1),
+        South(0, 0, 1),
+        West(-1, 0, 0),
+        East(1, 0, 0),
+        Up(0, 1, 0),
+        Down(0, -1, 0);
+
+        final int dx, dy, dz;
+
+        Direction(int dx, int dy, int dz) {
+            this.dx = dx;
+            this.dy = dy;
+            this.dz = dz;
+        }
+    }
+
+    /** Connection state used for UI coloring; mirrors pipe/cable enums. */
+    private enum ConnectionState {
+        Default,
+        Extract,
+        None
+    }
+
+    /** Minimal conduit view for rendering. */
+    private interface SideConfigurableConduit {
+        ConnectionState getConnectionState(Direction dir);
+        void setConnectionState(Direction dir, ConnectionState state);
+        ConnectionState cycleConnectionState(Direction dir);
+        boolean isSideConnected(Direction dir);
+        int getRawSideConfig();
+        void setRawSideConfig(int raw);
     }
 
     @Override
@@ -92,8 +123,6 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
             return;
         }
 
-        SideConfigurableConduit conduit = null;
-        
         // Check if it's an ECS BasicItemPipe first
         ComponentType<ChunkStore, BasicItemPipeComponent> basicPipeType = HytaleIndustriesPlugin.INSTANCE.getBasicItemPipeComponentType();
         BasicItemPipeComponent basicPipe = stateRef.getStore().getComponent(stateRef, basicPipeType);

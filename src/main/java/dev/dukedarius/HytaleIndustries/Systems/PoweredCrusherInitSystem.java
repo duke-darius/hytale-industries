@@ -14,19 +14,17 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.dukedarius.HytaleIndustries.Components.Energy.ConsumesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
-import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
+import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nonnull;
 
-public class PoweredFurnaceInitSystem extends RefSystem<ChunkStore> {
+public class PoweredCrusherInitSystem extends RefSystem<ChunkStore> {
 
     private final Query<ChunkStore> query = Query.and(BlockStateInfo.getComponentType());
 
     @Override
-    public Query<ChunkStore> getQuery() {
-        return query;
-    }
+    public Query<ChunkStore> getQuery() { return query; }
 
     @Override
     public void onEntityAdded(@Nonnull Ref<ChunkStore> ref,
@@ -53,36 +51,35 @@ public class PoweredFurnaceInitSystem extends RefSystem<ChunkStore> {
             return;
         }
 
-        // Attach ECS components if missing.
         StoresHE stores = store.getComponent(ref, HytaleIndustriesPlugin.INSTANCE.getStoresHeType());
-//        if (stores == null) {
-//            stores = new StoresHE();
-//            stores.max = 10_000;
-//            stores.current = 0;
-//            buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getStoresHeType(), stores);
-//        }
+        if (stores == null) {
+            stores = new StoresHE();
+            stores.max = 10000;
+            stores.current = 0;
+            buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getStoresHeType(), stores);
+        }
 
         ConsumesHE consumes = store.getComponent(ref, HytaleIndustriesPlugin.INSTANCE.getConsumesHeType());
-//        if (consumes == null) {
-//            consumes = new ConsumesHE();
-//            consumes.heConsumption = 20; // 20 HE per tick flat while processing
-//            consumes.enabled = false;
-//            buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getConsumesHeType(), consumes);
-//        }
+        if (consumes == null) {
+            consumes = new ConsumesHE();
+            consumes.heConsumption = 20; // 20 HE per tick
+            consumes.enabled = false;
+            buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getConsumesHeType(), consumes);
+        }
 
         HEProcessing proc = store.getComponent(ref, HytaleIndustriesPlugin.INSTANCE.getHeProcessingType());
-//        if (proc == null) {
-//            proc = new HEProcessing();
-//            proc.setWorkRequired(0f);
-//            proc.setCurrentWork(0f);
-//            proc.setEnabled(false);
-//            buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getHeProcessingType(), proc);
-//        }
+        if (proc == null) {
+            proc = new HEProcessing();
+            proc.setWorkRequired(0f);
+            proc.setCurrentWork(0f);
+            proc.setEnabled(false);
+            buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getHeProcessingType(), proc);
+        }
 
-        PoweredFurnaceInventory inv = store.getComponent(ref, HytaleIndustriesPlugin.INSTANCE.getPoweredFurnaceInventoryType());
+        PoweredCrusherInventory inv = store.getComponent(ref, HytaleIndustriesPlugin.INSTANCE.getPoweredCrusherInventoryType());
         if (inv == null) {
-            inv = new PoweredFurnaceInventory();
-            buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getPoweredFurnaceInventoryType(), inv);
+            inv = new PoweredCrusherInventory();
+            buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getPoweredCrusherInventoryType(), inv);
         } else {
             boolean dirty = false;
             if (inv.input == null || inv.input.getCapacity() <= 0) {
@@ -94,7 +91,7 @@ public class PoweredFurnaceInitSystem extends RefSystem<ChunkStore> {
                 dirty = true;
             }
             if (dirty) {
-                buffer.replaceComponent(ref, HytaleIndustriesPlugin.INSTANCE.getPoweredFurnaceInventoryType(), inv);
+                buffer.replaceComponent(ref, HytaleIndustriesPlugin.INSTANCE.getPoweredCrusherInventoryType(), inv);
             }
         }
     }

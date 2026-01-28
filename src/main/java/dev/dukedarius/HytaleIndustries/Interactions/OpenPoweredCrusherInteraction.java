@@ -14,10 +14,9 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.SimpleBlockInteraction;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.PoweredCrusherBlockState;
 import dev.dukedarius.HytaleIndustries.UI.PoweredCrusherUIPage;
+import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
@@ -50,11 +49,13 @@ public class OpenPoweredCrusherInteraction extends SimpleBlockInteraction {
             return;
         }
 
-        BlockState state = world.getState(pos.x, pos.y, pos.z, true);
-        if (!(state instanceof PoweredCrusherBlockState)) {
-            interactionContext.getState().state = InteractionState.Skip;
-            return;
-        }
+        var chunk = world.getChunkIfInMemory(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
+        if (chunk == null) chunk = world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
+        if (chunk == null) { interactionContext.getState().state = InteractionState.Skip; return; }
+        var entity = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
+        if (entity == null) { interactionContext.getState().state = InteractionState.Skip; return; }
+        var inv = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getPoweredCrusherInventoryType());
+        if (inv == null) { interactionContext.getState().state = InteractionState.Skip; return; }
 
         PlayerRef playerRef = commandBuffer.getComponent(ref, PlayerRef.getComponentType());
         if (playerRef == null) {

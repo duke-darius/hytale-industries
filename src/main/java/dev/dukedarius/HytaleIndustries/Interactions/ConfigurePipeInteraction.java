@@ -17,7 +17,6 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.UI.ConfigurePipeUIPage;
 import dev.dukedarius.HytaleIndustries.Pipes.PipeSelectionStore;
-import dev.dukedarius.HytaleIndustries.Pipes.SideConfigurableConduit;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
@@ -57,7 +56,6 @@ public class ConfigurePipeInteraction extends SimpleBlockInteraction {
 
         // Check if it's a BlockState-based pipe (ItemPipe, PowerCable)
         var state = world.getState(pos.x, pos.y, pos.z, true);
-        boolean isSideConfigurable = state instanceof SideConfigurableConduit;
         
         // Check if it's an ECS-based pipe (BasicItemPipe or BasicPowerCable)
         boolean isBasicPipe = false;
@@ -81,7 +79,7 @@ public class ConfigurePipeInteraction extends SimpleBlockInteraction {
             }
         }
         
-        if (!isSideConfigurable && !isBasicPipe) {
+        if (!isBasicPipe) {
             interactionContext.getState().state = InteractionState.Skip;
             return;
         }

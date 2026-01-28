@@ -20,9 +20,8 @@ import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.component.AddReason;
-import dev.dukedarius.HytaleIndustries.BlockStates.PoweredCrusherBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.PoweredFurnaceBlockState;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
+import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import javax.annotation.Nonnull;
 
@@ -61,16 +60,17 @@ public class InventoryDropOnBreakSystem extends EntityEventSystem<EntityStore, B
 
         // Prefer ECS inventory if present
         PoweredFurnaceInventory pfInv = stateRef.getStore().getComponent(stateRef, HytaleIndustriesPlugin.INSTANCE.getPoweredFurnaceInventoryType());
+        PoweredCrusherInventory pcInv = stateRef.getStore().getComponent(stateRef, HytaleIndustriesPlugin.INSTANCE.getPoweredCrusherInventoryType());
         ItemContainer container = null;
         if (pfInv != null) {
             container = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(pfInv.input, pfInv.output);
-        } else {
-            BlockState state = BlockState.getBlockState(stateRef, stateRef.getStore());
-            if (!(state instanceof PoweredCrusherBlockState || state instanceof PoweredFurnaceBlockState)) {
-                return;
-            }
-            container = ((ItemContainerBlockState) state).getItemContainer();
+        } else if (pcInv != null) {
+            container = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(pcInv.input, pcInv.output);
+        }else {
+            // todo: handle InventoryBlockState
         }
+        if(container == null) return;
+        
         Ref<EntityStore> ref = archetypeChunk.getReferenceTo(index);
         ComponentAccessor<EntityStore> accessor = store;
         // Drop position: center of the broken block.

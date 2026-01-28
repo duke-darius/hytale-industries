@@ -18,10 +18,11 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.PoweredCrusherBlockState;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
+import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
+import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
+import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -77,16 +78,14 @@ public class PoweredCrusherUIPage extends InteractiveCustomUIPage<PoweredCrusher
         if (player == null) return;
 
         World world = store.getExternalData().getWorld();
-        BlockState st = world.getState(x, y, z, true);
-        if (!(st instanceof PoweredCrusherBlockState pc)) {
-            return;
-        }
+        var ctx = resolve(world);
+        if (ctx == null || ctx.inv == null) return;
 
         ContainerWindow win;
         if (UIEventData.ACTION_VIEW_INPUT.equals(data.action)) {
-            win = new ContainerWindow(pc.getInputContainer());
+            win = new ContainerWindow(ctx.inv.input);
         } else if (UIEventData.ACTION_VIEW_OUTPUT.equals(data.action)) {
-            win = new ContainerWindow(pc.getOutputContainer());
+            win = new ContainerWindow(ctx.inv.output);
         } else {
             return;
         }
@@ -97,7 +96,7 @@ public class PoweredCrusherUIPage extends InteractiveCustomUIPage<PoweredCrusher
 
     private void render(@Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder events, @Nonnull Store<EntityStore> store) {
         World world = store.getExternalData().getWorld();
-        BlockState st = world.getState(x, y, z, true);
+        var ctx = resolve(world);
         double he = 0.0;
         double heCap = 0.0;
         double progress = 0.0;
@@ -105,35 +104,45 @@ public class PoweredCrusherUIPage extends InteractiveCustomUIPage<PoweredCrusher
         int outputQty = 0;
         String inputName = "Empty";
         String outputName = "Empty";
-        if (st instanceof PoweredCrusherBlockState pc) {
-            he = pc.getHeStored();
-            heCap = pc.getHeCapacity();
-            progress = pc.getProgressPercent();
-            var in = pc.getInputStack();
+        boolean inputHas = false;
+        boolean outputHas = false;
+        if (ctx != null) {
+            if (ctx.stores != null) {
+                he = ctx.stores.current;
+                heCap = ctx.stores.max;
+            }
+            if (ctx.proc != null && ctx.proc.getWorkRequired() > 0f) {
+                progress = Math.min(1.0, Math.max(0.0, ctx.proc.getCurrentWork() / ctx.proc.getWorkRequired()));
+            }
+            var in = ctx.inv != null ? ctx.inv.input.getItemStack((short) 0) : null;
             if (in != null && !ItemStack.isEmpty(in)) {
                 inputQty = in.getQuantity();
                 inputName = in.getItemId();
+                inputHas = true;
             }
-            var out = pc.getOutputStack();
+            var out = ctx.inv != null ? ctx.inv.output.getItemStack((short) 0) : null;
             if (out != null && !ItemStack.isEmpty(out)) {
                 outputName = out.getItemId();
                 outputQty = out.getQuantity();
+                outputHas = true;
             }
         }
 
         cmd.set("#PowerBar.Value", Math.max(0.0, Math.min(1.0, he / heCap)));
         cmd.set("#PowerBar.TooltipText", String.format("%d/%d HE Stored", (int) he, (int) heCap));
-        if (inputQty > 0) {
+        if (inputHas) {
             cmd.set("#InputSlot.ItemId", inputName);
             cmd.set("#InputQty.Text", String.format("%d", inputQty));
         } else {
+            cmd.set("#InputSlot.ItemId", "");
             cmd.set("#InputQty.Text", "");
         }
 
-        if (outputQty > 0) {
+        if (outputHas) {
             cmd.set("#OutputSlot.ItemId", outputName);
             cmd.set("#OutputQty.Text", String.format("%d", outputQty));
         } else {
+            cmd.set("#OutputSlot.ItemId", "");
             cmd.set("#OutputQty.Text", "");
         }
 
@@ -206,5 +215,42 @@ public class PoweredCrusherUIPage extends InteractiveCustomUIPage<PoweredCrusher
                 .build();
 
         private String action;
+    }
+
+    private Context resolve(World world) {
+        if (world == null) return null;
+        var chunk = world.getChunkIfInMemory(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) chunk = world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) return null;
+        var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+        if (entity == null) return null;
+        var inv = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getPoweredCrusherInventoryType());
+        if (inv != null) {
+            boolean dirty = false;
+            if (inv.input == null || inv.input.getCapacity() <= 0) {
+                inv.input = new com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer((short) 1);
+                dirty = true;
+            }
+            if (inv.output == null || inv.output.getCapacity() <= 0) {
+                inv.output = new com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer((short) 1);
+                dirty = true;
+            }
+            if (dirty) {
+                entity.getStore().replaceComponent(entity, HytaleIndustriesPlugin.INSTANCE.getPoweredCrusherInventoryType(), inv);
+            }
+        }
+        var stores = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getStoresHeType());
+        var proc = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getHeProcessingType());
+        Context ctx = new Context();
+        ctx.inv = inv;
+        ctx.stores = stores;
+        ctx.proc = proc;
+        return ctx;
+    }
+
+    private static final class Context {
+        PoweredCrusherInventory inv;
+        StoresHE stores;
+        HEProcessing proc;
     }
 }
