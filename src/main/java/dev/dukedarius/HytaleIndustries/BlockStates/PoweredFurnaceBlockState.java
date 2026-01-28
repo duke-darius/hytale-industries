@@ -149,71 +149,10 @@ public class PoweredFurnaceBlockState extends BlockState implements TickableBloc
 
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<ChunkStore> archetypeChunk, @Nonnull Store<ChunkStore> store, @Nonnull CommandBuffer<ChunkStore> commandBuffer) {
-        dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] tick dt=" + dt + " pos=(" + getBlockX() + "," + getBlockY() + "," + getBlockZ() + ")");
-        if (dt <= 0) return;
+        // Processing now handled by ECS (PoweredFurnaceProcessingSystem). Keep tick as no-op.
+        return;
 
-        World world = store.getExternalData().getWorld();
-        // Ensure recipe is resolved.
-        if (recipe == null && recipeId != null) {
-            recipe = CraftingRecipe.getAssetMap().getAsset(recipeId);
-        }
-        if (recipe == null) {
-            findRecipe();
-            progress = 0.0f;
-        }
-
-        if (recipe == null) {
-            return; // nothing to do
-        }
-
-        List<ItemStack> outputs = com.hypixel.hytale.builtin.crafting.component.CraftingManager.getOutputItemStacks(recipe);
-        if (!outputContainer.canAddItemStacks(outputs, false, false)) {
-            return; // wait for space
-        }
-
-        // Ensure inputs still present
-        List<MaterialQuantity> inputs = com.hypixel.hytale.builtin.crafting.component.CraftingManager.getInputMaterials(recipe);
-        if (!hasAllInputs(inputs)) {
-            recipe = null;
-            recipeId = null;
-            progress = 0.0f;
-            return;
-        }
-
-        // Need HE to run.
-        double heNeeded = HE_CONSUMPTION_PER_SECOND * dt;
-        if (heStored < heNeeded) {
-            return; // pause until power arrives
-        }
-
-        setHeStored(heStored - heNeeded);
-
-        float effectiveTime = Math.max(0.0001f, recipe.getTimeSeconds() / SPEED_MULTIPLIER);
-        lastEffectiveTime = effectiveTime;
-        progress += dt;
-
-        if (progress >= effectiveTime) {
-            // consume inputs
-            ListTransaction<MaterialTransaction> tx = inputContainer.removeMaterials(inputs, true, true, true);
-            if (!tx.succeeded()) {
-                progress = 0.0f;
-                return;
-            }
-
-            ListTransaction<ItemStackTransaction> addTx = outputContainer.addItemStacks(outputs, false, false, false);
-            if (!addTx.succeeded()) {
-                // If this ever fails despite canAdd check, stop and let next tick retry.
-                progress = 0.0f;
-                return;
-            }
-
-            progress = 0.0f;
-            // keep same recipe if still possible; will re-check next tick
-            persistSelf();
-        } else {
-            // update animation state if desired later
-            persistSelf();
-        }
+        // Legacy logic removed
     }
 
     private boolean hasAllInputs(List<MaterialQuantity> inputs) {

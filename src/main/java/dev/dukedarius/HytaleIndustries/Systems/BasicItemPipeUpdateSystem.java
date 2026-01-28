@@ -13,7 +13,6 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
@@ -121,7 +120,7 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
                 }
                 
                 // Check for inventory - blocks with Bench config or state ID "container"
-                if (hasInventoryAt(world, currentX, currentY, currentZ)) {
+                if (hasInventoryAt(world, store, currentX, currentY, currentZ)) {
                     hasInventory[i] = true;
                 }
             }
@@ -226,7 +225,7 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
         });
     }
 
-    private static boolean hasInventoryAt(@Nonnull World world, int x, int y, int z) {
+    private static boolean hasInventoryAt(@Nonnull World world, Store<ChunkStore> store, int x, int y, int z) {
         if (y < 0 || y >= 320) {
             return false;
         }
@@ -235,9 +234,7 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
         int[] origin = resolveFillerOrigin(world, x, y, z);
         int ox = origin[0], oy = origin[1], oz = origin[2];
 
-        // Use World.getState() to check for ItemContainerBlockState (the interface)
-        var state = world.getState(ox, oy, oz, true);
-        return state instanceof ItemContainerBlockState;
+        return !dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters.find(world, store, ox, oy, oz).isEmpty();
     }
 
     @Nonnull

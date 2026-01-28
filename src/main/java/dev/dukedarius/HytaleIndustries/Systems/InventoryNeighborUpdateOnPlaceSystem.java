@@ -73,9 +73,8 @@ public class InventoryNeighborUpdateOnPlaceSystem extends RefSystem<ChunkStore> 
             var nEntity = nChunk.getBlockComponentEntity(nx & 31, ny, nz & 31);
             if (nEntity == null) continue;
 
-            var neighborStore = nEntity.getStore();
-            if (neighborStore.getComponent(nEntity, pipeType) != null) {
-                neighborStore.ensureComponent(nEntity, updatePipeType);
+            if (nEntity.getStore().getComponent(nEntity, pipeType) != null) {
+                commandBuffer.ensureComponent(nEntity, updatePipeType);
             }
         }
     }

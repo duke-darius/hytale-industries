@@ -15,7 +15,6 @@ import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
@@ -125,7 +124,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
                     }
                 }
 
-                if (hasInventoryAt(world, currentX, currentY, currentZ)) {
+                if (hasInventoryAt(world, storeChunkStore, currentX, currentY, currentZ)) {
                     hasInventory[i] = true;
                 }
             }
@@ -296,7 +295,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
         }
     }
 
-    private static boolean hasInventoryAt(@Nonnull World world, int x, int y, int z) {
+    private static boolean hasInventoryAt(@Nonnull World world, Store<ChunkStore> store, int x, int y, int z) {
         if (y < 0 || y >= 320) {
             return false;
         }
@@ -312,32 +311,13 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
             );
         }
 
-        // First check ECS block entity for FuelInventory (ECS machines)
-        Ref<ChunkStore> ref = null;
-        WorldChunk chunkAt = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(ox, oz));
-        if (chunkAt == null) chunkAt = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(ox, oz));
-        if (chunkAt != null) {
-            ref = chunkAt.getBlockComponentEntity(ox & 31, oy, oz & 31);
-        }
-        boolean hasInventory = false;
-        if (ref != null) {
-            var fuelInv = ref.getStore().getComponent(ref, HytaleIndustriesPlugin.INSTANCE.getFuelInventoryType());
-            if (fuelInv != null) {
-                hasInventory = true; // consider ECS fuel inventories connectable even when empty
-            }
-        }
-        // Fallback to legacy BlockState check
-        Object stateObj = null;
-        if (!hasInventory) {
-            stateObj = world.getState(ox, oy, oz, true);
-            hasInventory = stateObj instanceof ItemContainerBlockState;
-        }
-        
+        boolean hasInventory = !dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters.find(world, store, ox, oy, oz).isEmpty();
+
         HytaleIndustriesPlugin.LOGGER.atFine().log(
-            "Checking inventory at (%s,%s,%s): state=%s, hasInventory=%s",
-            ox, oy, oz, stateObj == null ? "null" : stateObj.getClass().getSimpleName(), hasInventory
+            "Checking inventory at (%s,%s,%s): hasInventory=%s",
+            ox, oy, oz, hasInventory
         );
-        
+
         return hasInventory;
     }
 

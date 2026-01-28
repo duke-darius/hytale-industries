@@ -115,6 +115,7 @@ public class BasicPowerCableTransferSystem extends EntityTickingSystem<ChunkStor
         long totalSend = (long) Math.min(budget, totalAvailable);
         if (totalSend <= 0) return;
 
+
         // Compute desired shares by free capacity
         long[] desired = new long[uniqueSinks.size()];
         long totalDesired = 0;
@@ -132,10 +133,11 @@ public class BasicPowerCableTransferSystem extends EntityTickingSystem<ChunkStor
         for (int i = 0; i < uniqueSinks.size(); i++) {
             Sink sink = uniqueSinks.get(i);
             if (sink.free() <= 0) continue;
-            long target = (long) Math.floor(desired[i] * scale);
+            long targetBase = (long) Math.floor(desired[i] * scale);
             if (i == uniqueSinks.size() - 1) {
-                target = Math.max(target, totalSend - sentSoFar); // give remainder to last sink
+                targetBase = Math.max(targetBase, totalSend - sentSoFar); // give remainder to last sink
             }
+            long target = Math.min(targetBase, sink.free()); // never exceed sink capacity
             if (target <= 0) continue;
 
             long delivered = pullFromSources(sources, target);
@@ -154,6 +156,7 @@ public class BasicPowerCableTransferSystem extends EntityTickingSystem<ChunkStor
         for (Sink s : uniqueSinks) {
             if (s.modified) buffer.replaceComponent(s.ref, storesType, s.store);
         }
+
     }
 
     private List<Sink> gatherSinks(World world, Store<ChunkStore> store, Pos start, BasicPowerCableComponent startCable) {
@@ -296,10 +299,9 @@ public class BasicPowerCableTransferSystem extends EntityTickingSystem<ChunkStor
             long avail = src.available();
             if (avail <= 0) continue;
             long send = Math.min(avail, remaining);
-            long delivered = (long) Math.max(0, Math.floor(send * (1f - src.loss)));
-            if (delivered <= 0) continue;
+            // No loss; deliver exactly what is drawn
             src.draw(send);
-            remaining -= delivered;
+            remaining -= send;
         }
         return requested - remaining;
     }

@@ -1,8 +1,8 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_BurningGenerator.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
   "TranslationProperties": {
     "Name": "Powered Furnace",
-    "Description": "Smelts using HE at 2x speed."
+    "Description": "A furnace that uses HE to smelt items."
   },
   "ItemEntity": {},
   "Interactions": {
@@ -19,6 +19,39 @@
         "Weight": 1
       }
     ],
+    "BlockEntity": {
+      "IsBlockComponent": true,
+      "Components": {
+        "StoresHE": {
+          "Max": 10000,
+          "Current": 0
+        },
+        "ConsumesHE": {
+          "HEConsumption": 20,
+          "Enabled": false
+        },
+        "HEProcessing": {
+          "WorkRequired": 0.0,
+          "CurrentWork": 0.0,
+          "Enabled": false
+        },
+        "PoweredFurnaceInventory": {
+          "Input": {
+            "Slots": 1,
+            "ItemStacks": []
+          },
+          "Output": {
+            "Slots": 1,
+            "ItemStacks": []
+          }
+        },
+        "CableEndpoint": {
+          "CapacityPerTick": 250,
+          "LossPerMeter": 0.0,
+          "Priority": 0
+        }
+      }
+    },
     "Flags": {
       "IsUsable": true,
       "IsStackable": true
@@ -111,10 +144,5 @@
         "Quantity": 1
       }
     ]
-  },
-  "State": {
-    "poweredFurnace": {
-      "BlockType": "HytaleIndustries_PoweredFurnace"
-    }
   }
 }

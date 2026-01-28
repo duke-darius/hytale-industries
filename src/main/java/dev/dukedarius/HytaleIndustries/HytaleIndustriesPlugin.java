@@ -31,6 +31,7 @@ import dev.dukedarius.HytaleIndustries.Components.Energy.ProducesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
+import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
 
 import dev.dukedarius.HytaleIndustries.Commands.SetPipeSideCommand;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteraction;
@@ -47,6 +48,9 @@ import dev.dukedarius.HytaleIndustries.Systems.InventoryDropOnBreakSystem;
 import dev.dukedarius.HytaleIndustries.Systems.EnergyNeighborUpdateOnPlaceSystem;
 import dev.dukedarius.HytaleIndustries.Systems.InventoryNeighborUpdateOnPlaceSystem;
 import dev.dukedarius.HytaleIndustries.Systems.BasicPowerCableTransferSystem;
+import dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters;
+import dev.dukedarius.HytaleIndustries.Inventory.adapters.BlockStateItemContainerAdapter;
+import dev.dukedarius.HytaleIndustries.Inventory.adapters.FuelInventoryAdapter;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -96,6 +100,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     private ComponentType<ChunkStore, HEProcessing> heProcessingType;
     private ComponentType<ChunkStore, CableEndpoint> cableEndpointType;
     private ComponentType<ChunkStore, FuelInventory> fuelInventoryType;
+    private ComponentType<ChunkStore, PoweredFurnaceInventory> poweredFurnaceInventoryType;
 
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -131,6 +136,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public ComponentType<ChunkStore, HEProcessing> getHeProcessingType() { return heProcessingType; }
     public ComponentType<ChunkStore, CableEndpoint> getCableEndpointType() { return cableEndpointType; }
     public ComponentType<ChunkStore, FuelInventory> getFuelInventoryType() { return fuelInventoryType; }
+    public ComponentType<ChunkStore, PoweredFurnaceInventory> getPoweredFurnaceInventoryType() { return poweredFurnaceInventoryType; }
 
 
     @Override
@@ -148,6 +154,10 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         this.getBlockStateRegistry().registerBlockState(WindTurbineBlockState.class, WindTurbineBlockState.STATE_ID, WindTurbineBlockState.CODEC);
 
         this.getBlockStateRegistry().registerBlockState(ChunkLoaderBlockState.class, ChunkLoaderBlockState.STATE_ID, ChunkLoaderBlockState.CODEC);
+        // Register inventory adapters for pipes
+        InventoryAdapters.register(new BlockStateItemContainerAdapter());
+        InventoryAdapters.register(new FuelInventoryAdapter());
+        InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.PoweredFurnaceInventoryAdapter());
 
         // Register ECS components for basic item pipes
         this.basicItemPipeComponentType = this.getChunkStoreRegistry().registerComponent(
@@ -223,6 +233,11 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 "FuelInventory",
                 FuelInventory.CODEC
         );
+        this.poweredFurnaceInventoryType = this.getChunkStoreRegistry().registerComponent(
+                PoweredFurnaceInventory.class,
+                "PoweredFurnaceInventory",
+                PoweredFurnaceInventory.CODEC
+        );
         
         // Register ECS systems for basic power cables
         this.getChunkStoreRegistry().registerSystem(
@@ -274,6 +289,17 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                         this.fuelInventoryType,
                         this.producesHeType,
                         this.storesHeType
+                )
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.PoweredFurnaceInitSystem()
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.PoweredFurnaceProcessingSystem(
+                        this.poweredFurnaceInventoryType,
+                        this.storesHeType,
+                        this.consumesHeType,
+                        this.heProcessingType
                 )
         );
 

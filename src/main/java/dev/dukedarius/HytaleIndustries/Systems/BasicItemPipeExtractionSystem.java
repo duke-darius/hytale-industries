@@ -9,21 +9,17 @@ import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3i;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.bench.Bench;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.bench.ProcessingBench;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
-import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
+import dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters;
+import dev.dukedarius.HytaleIndustries.Inventory.MachineInventory;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
-import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import javax.annotation.Nonnull;
@@ -115,7 +111,7 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
                 int sz = pipeZ + dir.z;
                 if (sy < WORLD_MIN_Y || sy >= WORLD_MAX_Y_EXCLUSIVE) continue;
 
-                SourceInventory sourceInv = getInventoryIfLoaded(world, sx, sy, sz);
+                SourceInventory sourceInv = getInventoryIfLoaded(world, store, sx, sy, sz);
                 if (sourceInv != null) {
                     sources.add(sourceInv);
                     excludedKeys.add(packBlockPos(sourceInv.x, sourceInv.y, sourceInv.z));
@@ -128,7 +124,7 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
         }
 
         // Find all reachable destination inventories through the pipe network
-        List<InventoryEndpoint> endpoints = findAllReachableInventories(world, pipeX, pipeY, pipeZ, excludedKeys, store);
+        List<InventoryEndpoint> endpoints = findAllReachableInventories(world, store, pipeX, pipeY, pipeZ, excludedKeys);
         if (endpoints.isEmpty()) {
             return;
         }
@@ -138,17 +134,12 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
         for (SourceInventory sourceInv : sources) {
             if (totalMoved >= 4) break;
 
-            ItemContainer source = sourceInv.container;
-            if (source == null || source.isEmpty()) continue;
-
-            SlotRange extractRange = getExtractableSlotRange(sourceInv.blockType, source);
-            if (extractRange.isEmpty()) continue;
+            MachineInventory source = sourceInv.inventory;
+            if (source == null || source.getContainer() == null || source.getContainer().isEmpty()) continue;
 
             for (InventoryEndpoint ep : endpoints) {
-                int count = moveUpToNItems(source, ep.container, extractRange, 4 - totalMoved);
-                if (count > 0) {
-                    totalMoved += count;
-                }
+                int count = moveUpToNItems(source, ep.inventory, 4 - totalMoved);
+                if (count > 0) totalMoved += count;
                 if (totalMoved >= 4) break;
             }
         }
@@ -164,110 +155,96 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
     }
 
     @Nullable
-    private static SourceInventory getInventoryIfLoaded(@Nonnull World world, int x, int y, int z) {
+    private static SourceInventory getInventoryIfLoaded(@Nonnull World world, Store<ChunkStore> store, int x, int y, int z) {
         int[] origin = resolveFillerOrigin(world, x, y, z);
         int ox = origin[0], oy = origin[1], oz = origin[2];
 
-        var state = world.getState(ox, oy, oz, true);
-        if (!(state instanceof ItemContainerBlockState containerState)) {
-            return null;
+        List<MachineInventory> inventories = InventoryAdapters.find(world, store, ox, oy, oz);
+        for (MachineInventory inv : inventories) {
+            if (inv != null && inv.hasOutputSlots()) {
+                return new SourceInventory(inv, ox, oy, oz);
+            }
         }
-
-        ItemContainer container = containerState.getItemContainer();
-        if (container == null) {
-            return null;
-        }
-
-        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(ox, oz));
-        if (chunk == null) {
-            chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(ox, oz));
-        }
-        if (chunk == null) {
-            return null;
-        }
-
-        BlockType blockType = chunk.getBlockType(ox & 31, oy, oz & 31);
-        return new SourceInventory(container, blockType, ox, oy, oz);
+        return null;
     }
 
     @Nonnull
-    private static SlotRange getExtractableSlotRange(@Nullable BlockType blockType, @Nonnull ItemContainer container) {
-        int cap = container.getCapacity();
-        if (cap <= 0) {
-            return new SlotRange(0, 0);
-        }
-
-        if (blockType != null) {
-            if (blockType.getState() != null && "poweredFurnace".equals(blockType.getState().getId())) {
-                // Combined container layout: [0]=input, [1]=output
-                if (cap >= 2) {
-                    return new SlotRange(cap - 1, cap);
-                }
-            }
-            Bench bench = blockType.getBench();
-            if (bench instanceof ProcessingBench processing) {
-                // Container layout: [inputs][fuel][outputs]
-                int tierLevel = 1;
-                int inputCount = 0;
-                try {
-                    inputCount = processing.getInput(tierLevel).length;
-                } catch (Throwable ignored) {
-                }
-                int fuelCount = processing.getFuel() != null ? processing.getFuel().length : 0;
-                int outputCount = 1;
-                try {
-                    outputCount = processing.getOutputSlotsCount(tierLevel);
-                } catch (Throwable ignored) {
-                }
-
-                int start = inputCount + fuelCount;
-                int end = start + outputCount;
-
-                if (start < 0 || start >= cap || end > cap) {
-                    int s = Math.max(0, cap - outputCount);
-                    return new SlotRange(s, cap);
-                }
-                return new SlotRange(start, end);
-            }
-        }
-
-        // Default: extract from any slot
-        return new SlotRange(0, cap);
-    }
-
-    private static int moveUpToNItems(@Nonnull ItemContainer source, @Nonnull ItemContainer destination, 
-                                      @Nonnull SlotRange range, int maxToMove) {
-        if (maxToMove <= 0 || range.isEmpty()) {
+    private static int moveUpToNItems(@Nonnull MachineInventory source, @Nonnull MachineInventory destination, int maxToMove) {
+        if (maxToMove <= 0) {
             return 0;
         }
 
         int totalMoved = 0;
-        for (int i = range.startInclusive; i < range.endExclusive && totalMoved < maxToMove; i++) {
+        var sourceContainer = source.getContainer();
+        var destContainer = destination.getContainer();
+        if (sourceContainer == null || destContainer == null) return 0;
+
+        for (int i = 0; i < source.getSlotCount() && totalMoved < maxToMove; i++) {
+            if (!source.getSlotIO(i).allowsOutput()) continue;
             short slot = (short) i;
-            ItemStack stack = source.getItemStack(slot);
+            ItemStack stack = sourceContainer.getItemStack(slot);
             if (stack == null || ItemStack.isEmpty(stack)) {
                 continue;
             }
 
             int beforeCount = stack.getQuantity();
             int toMove = Math.min(beforeCount, maxToMove - totalMoved);
-            var tx = source.moveItemStackFromSlot(slot, toMove, destination, false, true);
-            if (tx != null && tx.succeeded()) {
-                ItemStack stackAfter = source.getItemStack(slot);
-                int afterCount = (stackAfter == null || ItemStack.isEmpty(stackAfter)) ? 0 : stackAfter.getQuantity();
-                int movedNow = beforeCount - afterCount;
-                if (movedNow > 0) {
-                    totalMoved += movedNow;
-                }
+            if (!destination.hasInputSlots()) continue;
+
+            int movedNow = tryInsertRespectingIO(sourceContainer, slot, toMove, destination, destContainer);
+            if (movedNow > 0) {
+                totalMoved += movedNow;
             }
         }
 
         return totalMoved;
     }
 
-    private List<InventoryEndpoint> findAllReachableInventories(@Nonnull World world, int startPipeX, int startPipeY, 
-                                                                 int startPipeZ, LongOpenHashSet excludedKeys,
-                                                                 Store<ChunkStore> store) {
+    private static int tryInsertRespectingIO(com.hypixel.hytale.server.core.inventory.container.ItemContainer sourceContainer,
+                                             short sourceSlot,
+                                             int requested,
+                                             MachineInventory destInv,
+                                             com.hypixel.hytale.server.core.inventory.container.ItemContainer destContainer) {
+        ItemStack stack = sourceContainer.getItemStack(sourceSlot);
+        if (stack == null || ItemStack.isEmpty(stack) || requested <= 0) return 0;
+
+        int remaining = Math.min(requested, stack.getQuantity());
+        int moved = 0;
+
+        for (int d = 0; d < destInv.getSlotCount() && remaining > 0; d++) {
+            if (!destInv.getSlotIO(d).allowsInput()) continue;
+            short dstSlot = (short) d;
+            ItemStack dst = destContainer.getItemStack(dstSlot);
+
+            if (dst == null || ItemStack.isEmpty(dst)) {
+                int move = remaining;
+                ItemStack placed = stack.withQuantity(move);
+                destContainer.setItemStackForSlot(dstSlot, placed);
+                remaining -= move;
+                moved += move;
+            } else if (stack.getItemId().equals(dst.getItemId())) {
+                int maxStack = stack.getItem().getMaxStack();
+
+                int space = maxStack - dst.getQuantity();
+                if (space > 0) {
+                    int move = Math.min(space, remaining);
+                    destContainer.setItemStackForSlot(dstSlot, dst.withQuantity(dst.getQuantity() + move));
+                    remaining -= move;
+                    moved += move;
+                }
+            }
+        }
+
+        if (moved > 0) {
+            int newQty = stack.getQuantity() - moved;
+            sourceContainer.setItemStackForSlot(sourceSlot, newQty <= 0 ? ItemStack.EMPTY : stack.withQuantity(newQty));
+        }
+
+        return moved;
+    }
+
+    private List<InventoryEndpoint> findAllReachableInventories(@Nonnull World world, Store<ChunkStore> store, int startPipeX, int startPipeY,
+                                                                 int startPipeZ, LongOpenHashSet excludedKeys) {
         List<InventoryEndpoint> found = new ArrayList<>();
         LongOpenHashSet foundKeys = new LongOpenHashSet();
         LongOpenHashSet visited = new LongOpenHashSet();
@@ -349,29 +326,14 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
                     continue;
                 }
 
-                // ECS inventory: FuelInventory component (generic ECS container)
-                Ref<ChunkStore> invRef = chunk.getBlockComponentEntity(ox & 31, oy, oz & 31);
-                if (invRef != null) {
-                    var fuelInv = invRef.getStore().getComponent(invRef, HytaleIndustriesPlugin.INSTANCE.getFuelInventoryType());
-                    if (fuelInv != null && fuelInv.fuelContainer != null) {
-                        long invKey = packBlockPos(ox, oy, oz);
-                        if (!excludedKeys.contains(invKey) && foundKeys.add(invKey)) {
-                            found.add(new InventoryEndpoint(fuelInv.fuelContainer, invKey));
-                        }
+                List<MachineInventory> inventories = InventoryAdapters.find(world, store, ox, oy, oz);
+                for (MachineInventory inv : inventories) {
+                    long invKey = packBlockPos(ox, oy, oz);
+                    if (!inv.hasInputSlots()) {
+                        continue;
                     }
-                }
-
-                // Legacy BlockState inventory
-                if (!foundKeys.contains(packBlockPos(ox, oy, oz))) {
-                    var state = world.getState(ox, oy, oz, true);
-                    if (state instanceof ItemContainerBlockState containerState) {
-                        long invKey = packBlockPos(ox, oy, oz);
-                        if (!excludedKeys.contains(invKey) && foundKeys.add(invKey)) {
-                            ItemContainer container = containerState.getItemContainer();
-                            if (container != null) {
-                                found.add(new InventoryEndpoint(container, invKey));
-                            }
-                        }
+                    if (!excludedKeys.contains(invKey) && foundKeys.add(invKey)) {
+                        found.add(new InventoryEndpoint(inv, invKey));
                     }
                 }
             }
@@ -382,34 +344,14 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
 
     // Helper classes and methods
 
-    private static final class SlotRange {
-        final int startInclusive;
-        final int endExclusive;
-
-        SlotRange(int startInclusive, int endExclusive) {
-            this.startInclusive = Math.max(0, startInclusive);
-            this.endExclusive = Math.max(this.startInclusive, endExclusive);
-        }
-
-        boolean isEmpty() {
-            return this.endExclusive <= this.startInclusive;
-        }
-
-        int size() {
-            return this.endExclusive - this.startInclusive;
-        }
-    }
 
     private static final class SourceInventory {
-        final ItemContainer container;
-        final BlockType blockType;
+        final MachineInventory inventory;
         final int x;
         final int y;
         final int z;
-
-        SourceInventory(@Nonnull ItemContainer container, @Nullable BlockType blockType, int x, int y, int z) {
-            this.container = container;
-            this.blockType = blockType;
+        SourceInventory(@Nonnull MachineInventory inventory, int x, int y, int z) {
+            this.inventory = inventory;
             this.x = x;
             this.y = y;
             this.z = z;
@@ -417,11 +359,10 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
     }
 
     private static final class InventoryEndpoint {
-        final ItemContainer container;
+        final MachineInventory inventory;
         final long packedPos;
-
-        InventoryEndpoint(ItemContainer container, long packedPos) {
-            this.container = container;
+        InventoryEndpoint(MachineInventory inventory, long packedPos) {
+            this.inventory = inventory;
             this.packedPos = packedPos;
         }
     }
