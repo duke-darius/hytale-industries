@@ -14,9 +14,7 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.SimpleBlockInteraction;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.ChunkLoaderBlockState;
 import dev.dukedarius.HytaleIndustries.UI.ChunkLoaderUIPage;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
@@ -58,8 +56,17 @@ public class OpenChunkLoaderInteraction extends SimpleBlockInteraction {
             return;
         }
 
-        BlockState state = world.getState(pos.x, pos.y, pos.z, true);
-        if (!(state instanceof ChunkLoaderBlockState)) {
+        var chunk = world.getChunkIfInMemory(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
+        }
+        if (chunk == null) {
+            interactionContext.getState().state = InteractionState.Skip;
+            return;
+        }
+        var entity = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
+        var loaderType = dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.INSTANCE.getChunkLoaderComponentType();
+        if (entity == null || loaderType == null || entity.getStore().getComponent(entity, loaderType) == null) {
             interactionContext.getState().state = InteractionState.Skip;
             return;
         }

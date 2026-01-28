@@ -3,7 +3,6 @@ package dev.dukedarius.HytaleIndustries.UI;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
-import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.util.ChunkUtil;
@@ -16,11 +15,9 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.ChunkLoaderBlockState;
+import dev.dukedarius.HytaleIndustries.Components.ChunkLoading.ChunkLoaderComponent;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
 import javax.annotation.Nullable;
@@ -59,14 +56,13 @@ public class ChunkLoaderUIPage extends com.hypixel.hytale.server.core.entity.ent
             return;
         }
 
-        ChunkLoaderBlockState.LoadingMode newMode;
-        if (ChunkLoaderUIEventData.ACTION_SET_ACTIVE.equals(data.action)) {
-            newMode = ChunkLoaderBlockState.LoadingMode.Active;
-        } else if (ChunkLoaderUIEventData.ACTION_SET_BACKGROUND.equals(data.action)) {
-            newMode = ChunkLoaderBlockState.LoadingMode.Background;
-        } else {
-            return;
-        }
+        ChunkLoaderComponent.LoadingMode newMode =
+                ChunkLoaderUIEventData.ACTION_SET_ACTIVE.equals(data.action)
+                        ? ChunkLoaderComponent.LoadingMode.Active
+                        : ChunkLoaderUIEventData.ACTION_SET_BACKGROUND.equals(data.action)
+                        ? ChunkLoaderComponent.LoadingMode.Background
+                        : null;
+        if (newMode == null) return;
 
         World world = store.getExternalData().getWorld();
         WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
@@ -80,21 +76,15 @@ public class ChunkLoaderUIPage extends com.hypixel.hytale.server.core.entity.ent
         int lx = x & 31;
         int lz = z & 31;
         Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(lx, y, lz);
-        if (stateRef == null) {
-            return;
-        }
+        if (stateRef == null) return;
 
-        ComponentType<ChunkStore, ChunkLoaderBlockState> type = BlockStateModule.get().getComponentType(ChunkLoaderBlockState.class);
-        if (type == null) {
-            return;
-        }
+        var type = dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.INSTANCE.getChunkLoaderComponentType();
+        if (type == null) return;
 
-        ChunkLoaderBlockState st = stateRef.getStore().getComponent(stateRef, type);
-        if (st == null) {
-            return;
-        }
+        ChunkLoaderComponent st = stateRef.getStore().getComponent(stateRef, type);
+        if (st == null) return;
 
-        st.setLoadingMode(newMode);
+        st.loadingMode = newMode;
         stateRef.getStore().replaceComponent(stateRef, type, st);
         chunk.markNeedsSaving();
 
@@ -106,19 +96,27 @@ public class ChunkLoaderUIPage extends com.hypixel.hytale.server.core.entity.ent
     }
 
     private void render(@NonNullDecl UICommandBuilder cmd, @NonNullDecl UIEventBuilder events, @NonNullDecl Store<EntityStore> store) {
-        ChunkLoaderBlockState.LoadingMode mode = ChunkLoaderBlockState.LoadingMode.Background;
+        ChunkLoaderComponent.LoadingMode mode = ChunkLoaderComponent.LoadingMode.Background;
 
         World world = store.getExternalData().getWorld();
-        BlockState st = world.getState(x, y, z, true);
-        if (st instanceof ChunkLoaderBlockState cls) {
-            mode = cls.getLoadingMode();
+        var chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk != null) {
+            var ref = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+            var type = dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.INSTANCE.getChunkLoaderComponentType();
+            if (ref != null && type != null) {
+                ChunkLoaderComponent comp = ref.getStore().getComponent(ref, type);
+                if (comp != null) {
+                    mode = comp.loadingMode;
+                }
+            }
         }
 
         cmd.set("#ModeText.Text", "Mode: " + mode.name());
 
         // Simple highlighting.
-        String bg = mode == ChunkLoaderBlockState.LoadingMode.Background ? "#2D7D46" : "#404040";
-        String ac = mode == ChunkLoaderBlockState.LoadingMode.Active ? "#2D7D46" : "#404040";
+        String bg = mode == ChunkLoaderComponent.LoadingMode.Background ? "#2D7D46" : "#404040";
+        String ac = mode == ChunkLoaderComponent.LoadingMode.Active ? "#2D7D46" : "#404040";
         cmd.set("#BackgroundButton.Background", bg);
         cmd.set("#ActiveButton.Background", ac);
 

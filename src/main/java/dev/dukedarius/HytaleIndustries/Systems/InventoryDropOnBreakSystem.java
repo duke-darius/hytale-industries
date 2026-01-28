@@ -70,7 +70,7 @@ public class InventoryDropOnBreakSystem extends EntityEventSystem<EntityStore, B
             // todo: handle InventoryBlockState
         }
         if(container == null) return;
-        
+
         Ref<EntityStore> ref = archetypeChunk.getReferenceTo(index);
         ComponentAccessor<EntityStore> accessor = store;
         // Drop position: center of the broken block.

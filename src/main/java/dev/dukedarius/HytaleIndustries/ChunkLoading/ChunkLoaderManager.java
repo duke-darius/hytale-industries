@@ -5,7 +5,7 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.ChunkFlag;
 import com.hypixel.hytale.server.core.util.Config;
-import dev.dukedarius.HytaleIndustries.BlockStates.ChunkLoaderBlockState;
+import dev.dukedarius.HytaleIndustries.Components.ChunkLoading.ChunkLoaderComponent;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nullable;
@@ -187,9 +187,13 @@ public final class ChunkLoaderManager {
                 for (ChunkLoaderEntry e : entries) {
                     if (isChunkLoaderAt(world, e.blockX, e.blockY, e.blockZ)) {
                         valid++;
-                        var st = world.getState(e.blockX, e.blockY, e.blockZ, true);
-                        if (st instanceof ChunkLoaderBlockState cls && cls.getLoadingMode() == ChunkLoaderBlockState.LoadingMode.Active) {
-                            anyActive = true;
+                        var ref = chunk.getBlockComponentEntity(e.blockX & 31, e.blockY, e.blockZ & 31);
+                        var type = HytaleIndustriesPlugin.INSTANCE.getChunkLoaderComponentType();
+                        if (ref != null && type != null) {
+                            ChunkLoaderComponent comp = ref.getStore().getComponent(ref, type);
+                            if (comp != null && comp.loadingMode == ChunkLoaderComponent.LoadingMode.Active) {
+                                anyActive = true;
+                            }
                         }
                     } else {
                         stale.add(e);

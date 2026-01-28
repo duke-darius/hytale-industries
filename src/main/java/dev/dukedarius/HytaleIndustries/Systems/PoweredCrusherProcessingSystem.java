@@ -19,7 +19,6 @@ import dev.dukedarius.HytaleIndustries.Components.Energy.ConsumesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
-import dev.dukedarius.HytaleIndustries.BlockStates.PoweredCrusherBlockState;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
