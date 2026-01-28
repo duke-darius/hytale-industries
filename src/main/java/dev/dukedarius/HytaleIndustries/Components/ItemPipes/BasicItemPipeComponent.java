@@ -1,4 +1,4 @@
-package dev.dukedarius.HytaleIndustries.Components;
+package dev.dukedarius.HytaleIndustries.Components.ItemPipes;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -12,12 +12,12 @@ import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nonnull;
 
-public class BasicPowerCableComponent implements Component<ChunkStore> {
+public class BasicItemPipeComponent implements Component<ChunkStore> {
 
     @Nonnull
-    public static final BuilderCodec<BasicPowerCableComponent> CODEC = BuilderCodec.builder(
-            BasicPowerCableComponent.class,
-            BasicPowerCableComponent::new
+    public static final BuilderCodec<BasicItemPipeComponent> CODEC = BuilderCodec.builder(
+            BasicItemPipeComponent.class,
+            BasicItemPipeComponent::new
     )
             .append(
                     new KeyedCodec<>("PipeState", Codec.INTEGER),
@@ -48,26 +48,31 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
             .add()
             .build();
 
+    // Bitmask for pipe connections in 6 directions (like Adesi's)
     private int pipeState;
-
+    
+    // Per-side configuration: 2 bits per direction
+    // 0 = Default, 1 = Extract, 2 = None
     private int sideConfig;
-
+    
+    // Time accumulator for extraction (runs once per second)
     private float secondsAccumulator;
-
+    
+    // Bitmask for manually configured sides (prevents auto-restoration)
     private int manualConfigMask;
 
-    public BasicPowerCableComponent() {
+    public BasicItemPipeComponent() {
         this(0, 0);
     }
 
-    public BasicPowerCableComponent(int pipeState, int sideConfig) {
+    public BasicItemPipeComponent(int pipeState, int sideConfig) {
         this.pipeState = pipeState;
         this.sideConfig = sideConfig;
         this.secondsAccumulator = 0.0f;
         this.manualConfigMask = 0;
     }
 
-    public BasicPowerCableComponent(BasicPowerCableComponent other) {
+    public BasicItemPipeComponent(BasicItemPipeComponent other) {
         this.pipeState = other.pipeState;
         this.sideConfig = other.sideConfig;
         this.secondsAccumulator = other.secondsAccumulator;
@@ -98,7 +103,7 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
         this.secondsAccumulator = value;
     }
 
-    public void updateFrom(BasicPowerCableComponent other) {
+    public void updateFrom(BasicItemPipeComponent other) {
         this.pipeState = other.pipeState;
         this.sideConfig = other.sideConfig;
         this.secondsAccumulator = other.secondsAccumulator;
@@ -156,7 +161,7 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
             manualConfigMask &= ~(1 << bitIndex);
         }
     }
-
+    
     public void setConnectionState(Vector3i direction, ConnectionState state) {
         setConnectionState(direction, state, false);
     }
@@ -166,7 +171,7 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
         if (bitIndex == -1) return false;
         return (manualConfigMask & (1 << bitIndex)) != 0;
     }
-
+    
     public boolean isSideConnected(Vector3i direction) {
         return getConnectionState(direction) != ConnectionState.None;
     }
@@ -207,17 +212,17 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
 
     @Override
     public Component<ChunkStore> clone() {
-        return new BasicPowerCableComponent(this);
+        return new BasicItemPipeComponent(this);
     }
 
-    public static ComponentType<ChunkStore, BasicPowerCableComponent> getComponentType() {
-        return HytaleIndustriesPlugin.INSTANCE.getBasicPowerCableComponentType();
+    public static ComponentType<ChunkStore, BasicItemPipeComponent> getComponentType() {
+        return HytaleIndustriesPlugin.INSTANCE.getBasicItemPipeComponentType();
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("BasicPowerCableComponent{");
+        sb.append("BasicItemPipeComponent{");
         sb.append("pipeState=").append(Integer.toBinaryString(pipeState));
         sb.append(", sideConfig=").append(Integer.toBinaryString(sideConfig));
         sb.append(", connections=[");

@@ -15,9 +15,9 @@ import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
-import dev.dukedarius.HytaleIndustries.Components.BasicPowerCableComponent;
-import dev.dukedarius.HytaleIndustries.Components.UpdatePowerCableComponent;
-import dev.dukedarius.HytaleIndustries.Energy.HEComponents;
+import dev.dukedarius.HytaleIndustries.Components.PowerCables.BasicPowerCableComponent;
+import dev.dukedarius.HytaleIndustries.Components.PowerCables.UpdatePowerCableComponent;
+import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nonnull;
 
@@ -126,7 +126,7 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
                 }
                 
                 // Check for energy blocks
-                boolean hasEnergyBlock = hasEnergyAt(world, currentX, currentY, currentZ);
+                boolean hasEnergyBlock = hasEnergyAt(world, store, currentX, currentY, currentZ);
                 hasEnergy[i] = hasEnergyBlock;
                 
                 // track presence; actual mask computed after reconciliation
@@ -231,7 +231,7 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
         });
     }
 
-    private static boolean hasEnergyAt(@Nonnull World world, int x, int y, int z) {
+    private static boolean hasEnergyAt(@Nonnull World world, Store<ChunkStore> store, int x, int y, int z) {
         if (y < 0 || y >= 320) {
             return false;
         }
@@ -241,15 +241,30 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
         int ox = origin[0], oy = origin[1], oz = origin[2];
 
         // Check if block has energy capability
-        boolean hasTransfers = HEComponents.transfers(world, ox, oy, oz) != null;
-        boolean hasReceives = HEComponents.receives(world, ox, oy, oz) != null;
-        boolean result = hasTransfers || hasReceives;
-        
-        if (result) {
-            dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable Update] Found energy block at (%d,%d,%d) - transfers: %b, receives: %b", ox, oy, oz, hasTransfers, hasReceives);
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(ox, oz));
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(ox, oz));
         }
-        
-        return result;
+        if (chunk == null) {
+            return false;
+        }
+
+        var entity = chunk.getBlockComponentEntity(ox & 31, oy, oz & 31);
+        if (entity == null) {
+            return false;
+        }
+
+        var entityStore = entity.getStore();
+        boolean hasStore = entityStore.getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getStoresHeType()) != null;
+        boolean hasConsume = entityStore.getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getConsumesHeType()) != null;
+        boolean hasProduce = entityStore.getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getProducesHeType()) != null;
+        boolean hasCableEndpoint = entityStore.getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getCableEndpointType()) != null;
+        if (hasStore || hasConsume || hasProduce || hasCableEndpoint) {
+            dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable Update] Found energy block at (%d,%d,%d)", ox, oy, oz);
+            return true;
+        }
+
+        return false;
     }
 
     @Nonnull

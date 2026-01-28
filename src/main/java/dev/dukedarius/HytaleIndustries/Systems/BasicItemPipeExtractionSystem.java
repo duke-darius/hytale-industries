@@ -3,10 +3,10 @@ package dev.dukedarius.HytaleIndustries.Systems;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
@@ -21,8 +21,9 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
-import dev.dukedarius.HytaleIndustries.Components.BasicItemPipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
+import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import javax.annotation.Nonnull;
@@ -343,18 +344,33 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
                     continue;
                 }
 
-                // Non-pipe: check if it's an inventory (only allow delivery on Default faces)
+                // Non-pipe: inventory target (only allow delivery on Default faces)
                 if (currentPipe != null && currentPipe.getConnectionState(dir) != BasicItemPipeComponent.ConnectionState.Default) {
                     continue;
                 }
 
-                var state = world.getState(ox, oy, oz, true);
-                if (state instanceof ItemContainerBlockState containerState) {
-                    long invKey = packBlockPos(ox, oy, oz);
-                    if (!excludedKeys.contains(invKey) && foundKeys.add(invKey)) {
-                        ItemContainer container = containerState.getItemContainer();
-                        if (container != null) {
-                            found.add(new InventoryEndpoint(container, invKey));
+                // ECS inventory: FuelInventory component (generic ECS container)
+                Ref<ChunkStore> invRef = chunk.getBlockComponentEntity(ox & 31, oy, oz & 31);
+                if (invRef != null) {
+                    var fuelInv = invRef.getStore().getComponent(invRef, HytaleIndustriesPlugin.INSTANCE.getFuelInventoryType());
+                    if (fuelInv != null && fuelInv.fuelContainer != null) {
+                        long invKey = packBlockPos(ox, oy, oz);
+                        if (!excludedKeys.contains(invKey) && foundKeys.add(invKey)) {
+                            found.add(new InventoryEndpoint(fuelInv.fuelContainer, invKey));
+                        }
+                    }
+                }
+
+                // Legacy BlockState inventory
+                if (!foundKeys.contains(packBlockPos(ox, oy, oz))) {
+                    var state = world.getState(ox, oy, oz, true);
+                    if (state instanceof ItemContainerBlockState containerState) {
+                        long invKey = packBlockPos(ox, oy, oz);
+                        if (!excludedKeys.contains(invKey) && foundKeys.add(invKey)) {
+                            ItemContainer container = containerState.getItemContainer();
+                            if (container != null) {
+                                found.add(new InventoryEndpoint(container, invKey));
+                            }
                         }
                     }
                 }

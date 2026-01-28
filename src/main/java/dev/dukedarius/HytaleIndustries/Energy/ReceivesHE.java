@@ -1,5 +1,6 @@
 package dev.dukedarius.HytaleIndustries.Energy;
 
+@Deprecated(forRemoval = true)
 public interface ReceivesHE extends StoresHE {
 
     default double receiveHe(double amount) {

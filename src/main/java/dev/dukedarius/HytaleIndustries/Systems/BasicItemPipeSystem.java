@@ -18,12 +18,11 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
-import dev.dukedarius.HytaleIndustries.Components.BasicItemPipeComponent;
-import dev.dukedarius.HytaleIndustries.Components.UpdatePipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.ItemPipes.UpdatePipeComponent;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
 
@@ -313,13 +312,30 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
             );
         }
 
-        // Use World.getState() to check for ItemContainerBlockState (the interface)
-        var state = world.getState(ox, oy, oz, true);
-        boolean hasInventory = state instanceof ItemContainerBlockState;
+        // First check ECS block entity for FuelInventory (ECS machines)
+        Ref<ChunkStore> ref = null;
+        WorldChunk chunkAt = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(ox, oz));
+        if (chunkAt == null) chunkAt = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(ox, oz));
+        if (chunkAt != null) {
+            ref = chunkAt.getBlockComponentEntity(ox & 31, oy, oz & 31);
+        }
+        boolean hasInventory = false;
+        if (ref != null) {
+            var fuelInv = ref.getStore().getComponent(ref, HytaleIndustriesPlugin.INSTANCE.getFuelInventoryType());
+            if (fuelInv != null) {
+                hasInventory = true; // consider ECS fuel inventories connectable even when empty
+            }
+        }
+        // Fallback to legacy BlockState check
+        Object stateObj = null;
+        if (!hasInventory) {
+            stateObj = world.getState(ox, oy, oz, true);
+            hasInventory = stateObj instanceof ItemContainerBlockState;
+        }
         
         HytaleIndustriesPlugin.LOGGER.atFine().log(
             "Checking inventory at (%s,%s,%s): state=%s, hasInventory=%s",
-            ox, oy, oz, state == null ? "null" : state.getClass().getSimpleName(), hasInventory
+            ox, oy, oz, stateObj == null ? "null" : stateObj.getClass().getSimpleName(), hasInventory
         );
         
         return hasInventory;

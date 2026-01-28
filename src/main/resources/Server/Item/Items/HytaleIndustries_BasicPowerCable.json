@@ -2265,10 +2265,21 @@
       }
     },
     "BlockEntity": {
+      "IsBlockComponent": true,
       "Components": {
         "BasicPowerCable": {
-          "pipeState": 0,
-          "sideConfig": 0
+          "PipeState": 0,
+          "SideConfig": 0,
+          "SecondsAccumulator": 0.0,
+          "ManualConfigMask": 0
+        },
+        "UpdatePowerCable": {
+          "HasUpdated": false
+        },
+        "CableEndpoint": {
+          "CapacityPerTick": 1000,
+          "LossPerMeter": 0.0,
+          "Priority": 0
         }
       }
     }

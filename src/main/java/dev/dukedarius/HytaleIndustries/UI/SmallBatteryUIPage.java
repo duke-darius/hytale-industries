@@ -12,9 +12,9 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.SmallBatteryBlockState;
+import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPage.SmallBatteryUIEventData> {
 
     private static final long MAX_HE = 1_000_000L;
-    private static final long AUTO_UPDATE_PERIOD_MS = 250L; // 4 Hz
+    private static final long AUTO_UPDATE_PERIOD_MS = 33L; // ~30 Hz (every tick)
 
     private final int x;
     private final int y;
@@ -45,12 +45,10 @@ public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPa
     }
 
     @Override
-    public void build(
-            @NonNullDecl Ref<EntityStore> ref,
-            @NonNullDecl UICommandBuilder uiCommandBuilder,
-            @NonNullDecl UIEventBuilder uiEventBuilder,
-            @NonNullDecl Store<EntityStore> store
-    ) {
+    public void build(@NonNullDecl Ref<EntityStore> ref,
+                      @NonNullDecl UICommandBuilder uiCommandBuilder,
+                      @NonNullDecl UIEventBuilder uiEventBuilder,
+                      @NonNullDecl Store<EntityStore> store) {
         this.lastRef = ref;
         this.lastStore = store;
         this.lastWorld = store.getExternalData().getWorld();
@@ -67,16 +65,22 @@ public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPa
         super.onDismiss(ref, store);
     }
 
-    private void render(@NonNullDecl UICommandBuilder cmd, @NonNullDecl UIEventBuilder events, @NonNullDecl Store<EntityStore> store) {
-        World world = store.getExternalData().getWorld();
-
-        double he = 0.0;
-        BlockState state = world.getState(x, y, z, true);
-        if (state instanceof SmallBatteryBlockState battery) {
-            he = battery.getHeStored();
-        }
-
+    private void render(@NonNullDecl UICommandBuilder cmd,
+                        @NonNullDecl UIEventBuilder events,
+                        @NonNullDecl Store<EntityStore> store) {
+        double he = readHe(store);
         setHeText(cmd, he);
+    }
+
+    private double readHe(@NonNullDecl Store<EntityStore> store) {
+        World world = store.getExternalData().getWorld();
+        WorldChunk chunk = world.getChunkIfInMemory(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) chunk = world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) return 0.0;
+        var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+        if (entity == null) return 0.0;
+        StoresHE stores = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getStoresHeType());
+        return stores != null ? stores.current : 0.0;
     }
 
     private static long toDisplayHeInt(double he) {
@@ -93,19 +97,14 @@ public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPa
     }
 
     private void ensureTimerStarted() {
-        if (autoUpdateTask != null) {
-            return;
-        }
+        if (autoUpdateTask != null) return;
 
         autoUpdateTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(
                 () -> {
                     try {
                         World world = lastWorld;
-                        if (world == null) {
-                            return;
-                        }
+                        if (world == null) return;
 
-                        // Store access must happen on the owning World thread.
                         world.execute(() -> {
                             try {
                                 timerTickOnWorldThread();
@@ -117,7 +116,7 @@ public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPa
                         HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("SmallBatteryUI: timer scheduling crashed");
                     }
                 },
-                AUTO_UPDATE_PERIOD_MS,
+                0L,
                 AUTO_UPDATE_PERIOD_MS,
                 TimeUnit.MILLISECONDS
         );
@@ -126,9 +125,7 @@ public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPa
     private void stopTimer() {
         ScheduledFuture<?> t = autoUpdateTask;
         autoUpdateTask = null;
-        if (t != null) {
-            t.cancel(false);
-        }
+        if (t != null) t.cancel(false);
         lastRef = null;
         lastStore = null;
         lastWorld = null;
@@ -138,29 +135,16 @@ public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPa
         Ref<EntityStore> ref = lastRef;
         Store<EntityStore> store = lastStore;
         World world = lastWorld;
-        if (ref == null || store == null || world == null) {
-            return;
-        }
+        if (ref == null || store == null || world == null) return;
 
         Player player = store.getComponent(ref, Player.getComponentType());
-        if (player == null) {
-            return;
-        }
+        if (player == null) return;
 
-        if (player.getPageManager().getCustomPage() != this) {
-            return;
-        }
+        if (player.getPageManager().getCustomPage() != this) return;
 
-        double he = 0.0;
-        BlockState state = world.getState(x, y, z, true);
-        if (state instanceof SmallBatteryBlockState battery) {
-            he = battery.getHeStored();
-        }
-
+        double he = readHe(store);
         long heInt = toDisplayHeInt(he);
-        if (heInt == lastSentHeInt) {
-            return;
-        }
+        if (heInt == lastSentHeInt) return;
         lastSentHeInt = heInt;
 
         UICommandBuilder cmd = new UICommandBuilder();

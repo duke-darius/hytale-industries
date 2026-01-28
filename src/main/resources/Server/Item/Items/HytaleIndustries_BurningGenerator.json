@@ -19,6 +19,31 @@
         "Weight": 1
       }
     ],
+    "BlockEntity": {
+      "IsBlockComponent": true,
+      "Components": {
+        "StoresHE": {
+          "Max": 10000,
+          "Current": 0
+        },
+        "ProducesHE": {
+          "ProducedPerTick": 40,
+          "Enabled": true,
+          "Efficiency": 2.0
+        },
+        "FuelInventory": {
+          "FuelContainer": {
+            "Slots": 1,
+            "ItemStacks": []
+          }
+        },
+        "CableEndpoint": {
+          "CapacityPerTick": 250,
+          "LossPerMeter": 0.0,
+          "Priority": 0
+        }
+      }
+    },
     "Flags": {
       "IsUsable": true,
       "IsStackable": true
@@ -27,7 +52,6 @@
       "Use": "HytaleIndustries_OpenBurningGenerator_Root"
     },
     "State": {
-      "Id": "burningGenerator",
       "Definitions": {
         "default": {},
         "on": {
@@ -114,10 +138,5 @@
         "Quantity": 1
       }
     ]
-  },
-  "State": {
-    "burningGenerator": {
-      "BlockType": "HytaleIndustries_BurningGenerator"
-    }
   }
 }

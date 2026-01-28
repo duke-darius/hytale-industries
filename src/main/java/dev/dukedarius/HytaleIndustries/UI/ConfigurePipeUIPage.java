@@ -23,10 +23,10 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.ConnectionState;
 import dev.dukedarius.HytaleIndustries.BlockStates.ItemPipeBlockState.Direction;
 import dev.dukedarius.HytaleIndustries.Pipes.SideConfigurableConduit;
-import dev.dukedarius.HytaleIndustries.Components.BasicItemPipeComponent;
-import dev.dukedarius.HytaleIndustries.Components.BasicPowerCableComponent;
-import dev.dukedarius.HytaleIndustries.Components.UpdatePipeComponent;
-import dev.dukedarius.HytaleIndustries.Components.UpdatePowerCableComponent;
+import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.PowerCables.BasicPowerCableComponent;
+import dev.dukedarius.HytaleIndustries.Components.ItemPipes.UpdatePipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.PowerCables.UpdatePowerCableComponent;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
@@ -107,7 +107,8 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
                 case Extract -> BasicItemPipeComponent.ConnectionState.None;
                 case None -> BasicItemPipeComponent.ConnectionState.Default;
             };
-            basicPipe.setConnectionState(dirVec, nextState, true); // Mark as manual
+            boolean manual = nextState != BasicItemPipeComponent.ConnectionState.Default;
+            basicPipe.setConnectionState(dirVec, nextState, manual); // Only non-default is manual
             stateRef.getStore().replaceComponent(stateRef, basicPipeType, basicPipe);
             
             // Mark for visual update

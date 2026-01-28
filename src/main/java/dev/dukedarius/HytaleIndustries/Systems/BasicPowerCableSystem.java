@@ -17,8 +17,8 @@ import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
-import dev.dukedarius.HytaleIndustries.Components.BasicPowerCableComponent;
-import dev.dukedarius.HytaleIndustries.Components.UpdatePowerCableComponent;
+import dev.dukedarius.HytaleIndustries.Components.PowerCables.BasicPowerCableComponent;
+import dev.dukedarius.HytaleIndustries.Components.PowerCables.UpdatePowerCableComponent;
 import dev.dukedarius.HytaleIndustries.Energy.HEComponents;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
@@ -132,7 +132,7 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
                 }
                 
                 // Check for energy blocks (TransfersHE or ReceivesHE)
-                boolean hasEnergyBlock = hasEnergyAt(world, currentX, currentY, currentZ);
+                boolean hasEnergyBlock = hasEnergyAt(world, storeChunkStore, currentX, currentY, currentZ);
                 hasEnergy[i] = hasEnergyBlock;
                 if (hasEnergyBlock) {
                     HytaleIndustriesPlugin.LOGGER.atFine().log("  [%s] Found energy block at (%d,%d,%d)", dirName, currentX, currentY, currentZ);
@@ -291,7 +291,7 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
         }
     }
 
-    private static boolean hasEnergyAt(@Nonnull World world, int x, int y, int z) {
+    private static boolean hasEnergyAt(@Nonnull World world, Store<ChunkStore> store, int x, int y, int z) {
         if (y < 0 || y >= 320) {
             return false;
         }
@@ -300,22 +300,25 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
         int[] origin = resolveFillerOrigin(world, x, y, z);
         int ox = origin[0], oy = origin[1], oz = origin[2];
         
-        if (ox != x || oy != y || oz != z) {
-            HytaleIndustriesPlugin.LOGGER.atFine().log("    Resolved filler block at (%d,%d,%d) to origin (%d,%d,%d)", x, y, z, ox, oy, oz);
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(ox, oz));
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(ox, oz));
+        }
+        if (chunk == null) {
+            return false;
         }
 
-        // Get the state and log what we found
-        var state = world.getState(ox, oy, oz, true);
-        HytaleIndustriesPlugin.LOGGER.atFine().log("    State at (%d,%d,%d): %s", ox, oy, oz, state == null ? "null" : state.getClass().getSimpleName());
-        
-        // Check if block has energy capability using HEComponents
-        boolean hasTransfers = HEComponents.transfers(world, ox, oy, oz) != null;
-        boolean hasReceives = HEComponents.receives(world, ox, oy, oz) != null;
-        boolean result = hasTransfers || hasReceives;
-        
-        HytaleIndustriesPlugin.LOGGER.atFine().log("    Energy check at (%d,%d,%d) - transfers: %b, receives: %b, result: %b", ox, oy, oz, hasTransfers, hasReceives, result);
-        
-        return result;
+        var entity = chunk.getBlockComponentEntity(ox & 31, oy, oz & 31);
+        if (entity == null) {
+            return false;
+        }
+
+        var entityStore = entity.getStore();
+        boolean hasStore = entityStore.getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getStoresHeType()) != null;
+        boolean hasConsume = entityStore.getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getConsumesHeType()) != null;
+        boolean hasProduce = entityStore.getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getProducesHeType()) != null;
+        boolean hasCableEndpoint = entityStore.getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getCableEndpointType()) != null;
+        return hasStore || hasConsume || hasProduce || hasCableEndpoint;
     }
 
     @Nonnull

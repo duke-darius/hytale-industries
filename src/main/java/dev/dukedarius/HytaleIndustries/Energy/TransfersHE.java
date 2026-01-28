@@ -1,5 +1,6 @@
 package dev.dukedarius.HytaleIndustries.Energy;
 
+@Deprecated(forRemoval = true)
 public interface TransfersHE extends StoresHE {
     default double extractHe(double amount) {
         if (amount <= 0.0) {

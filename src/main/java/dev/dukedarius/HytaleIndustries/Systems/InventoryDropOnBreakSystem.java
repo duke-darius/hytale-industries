@@ -20,7 +20,6 @@ import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.component.AddReason;
-import dev.dukedarius.HytaleIndustries.BlockStates.BurningGeneratorBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.PoweredCrusherBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.PoweredFurnaceBlockState;
 import javax.annotation.Nonnull;
@@ -59,9 +58,7 @@ public class InventoryDropOnBreakSystem extends EntityEventSystem<EntityStore, B
         }
 
         BlockState state = BlockState.getBlockState(stateRef, stateRef.getStore());
-        if (!(state instanceof PoweredCrusherBlockState
-                || state instanceof PoweredFurnaceBlockState
-                || state instanceof BurningGeneratorBlockState)) {
+        if (!(state instanceof PoweredCrusherBlockState || state instanceof PoweredFurnaceBlockState)) {
             return;
         }
 

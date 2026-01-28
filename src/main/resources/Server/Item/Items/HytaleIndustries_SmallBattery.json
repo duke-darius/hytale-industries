@@ -19,6 +19,20 @@
         "Weight": 1
       }
     ],
+    "BlockEntity": {
+      "IsBlockComponent": true,
+      "Components": {
+        "StoresHE": {
+          "Max": 1000000,
+          "Current": 0
+        },
+        "CableEndpoint": {
+          "CapacityPerTick": 500,
+          "LossPerMeter": 0.0,
+          "Priority": 1
+        }
+      }
+    },
     "Flags": {
       "IsUsable": true,
       "IsStackable": true
@@ -26,12 +40,8 @@
     "Interactions": {
       "Use": "HytaleIndustries_OpenSmallBattery_Root"
     },
-    "State": {
-      "Id": "smallBattery",
-      "Definitions": {}
-    },
     "Gathering": {
-      "Breaking": {
+      "Breaking": { 
         "GatherType": "Rocks",
         "Quality": 0,
         "Quantity": 1

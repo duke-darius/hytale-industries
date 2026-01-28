@@ -16,12 +16,11 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
-import dev.dukedarius.HytaleIndustries.Components.BasicItemPipeComponent;
-import dev.dukedarius.HytaleIndustries.Components.UpdatePipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.ItemPipes.UpdatePipeComponent;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
 

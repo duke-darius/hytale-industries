@@ -1,4 +1,4 @@
-package dev.dukedarius.HytaleIndustries.Components;
+package dev.dukedarius.HytaleIndustries.Components.ItemPipes;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 

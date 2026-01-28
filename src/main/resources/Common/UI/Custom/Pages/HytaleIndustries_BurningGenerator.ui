@@ -24,6 +24,11 @@ Group {
         @Text = "HE: 0 / 10000";
       }
 
+      $C.@Title #ProdText {
+        @Alignment = Start;
+        @Text = "Output: 0 HE/t";
+      }
+
       Group { Anchor: (Height: 12, Left: 0, Top: 0); }
 
       $C.@TextButton #ViewContainerButton {

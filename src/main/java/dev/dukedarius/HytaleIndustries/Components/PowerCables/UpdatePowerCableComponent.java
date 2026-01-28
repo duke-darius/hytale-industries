@@ -1,4 +1,4 @@
-package dev.dukedarius.HytaleIndustries.Components;
+package dev.dukedarius.HytaleIndustries.Components.PowerCables;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;

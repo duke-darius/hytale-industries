@@ -13,7 +13,6 @@ import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
-import dev.dukedarius.HytaleIndustries.Energy.HEComponents;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nonnull;
@@ -55,10 +54,12 @@ public class EnergyNeighborUpdateOnPlaceSystem extends RefSystem<ChunkStore> {
         int z = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(),
                 ChunkUtil.zFromBlockInColumn(info.getIndex()));
 
-        // Only proceed if this block provides or receives energy
-        boolean isEnergy = HEComponents.transfers(world, x, y, z) != null
-                || HEComponents.receives(world, x, y, z) != null
-                || HEComponents.stores(world, x, y, z) != null;
+        // Only proceed if this block has any HE-related component
+        boolean isEnergy =
+                store.getComponent(refChunkStore, HytaleIndustriesPlugin.INSTANCE.getStoresHeType()) != null ||
+                store.getComponent(refChunkStore, HytaleIndustriesPlugin.INSTANCE.getConsumesHeType()) != null ||
+                store.getComponent(refChunkStore, HytaleIndustriesPlugin.INSTANCE.getProducesHeType()) != null ||
+                store.getComponent(refChunkStore, HytaleIndustriesPlugin.INSTANCE.getCableEndpointType()) != null;
         if (!isEnergy) return;
 
         var cableComponentType = HytaleIndustriesPlugin.INSTANCE.getBasicPowerCableComponentType();

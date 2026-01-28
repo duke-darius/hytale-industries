@@ -7,7 +7,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
-import dev.dukedarius.HytaleIndustries.Components.UpdatePowerCableComponent;
+import dev.dukedarius.HytaleIndustries.Components.PowerCables.UpdatePowerCableComponent;
 
 public class UpdatePowerCableSystem extends EntityTickingSystem<ChunkStore> {
 

@@ -11,10 +11,8 @@ import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.HytaleServer;
-import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
-import com.hypixel.hytale.server.core.entity.entities.player.windows.ContainerBlockWindow;
 import com.hypixel.hytale.server.core.entity.entities.player.windows.ContainerWindow;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -22,10 +20,10 @@ import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.BurningGeneratorBlockState;
+import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
+import dev.dukedarius.HytaleIndustries.Components.Energy.FuelInventory;
+import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
@@ -49,6 +47,7 @@ public class BurningGeneratorUIPage extends InteractiveCustomUIPage<BurningGener
 
     private transient ScheduledFuture<?> autoUpdateTask;
     private transient long lastSentHeInt = Long.MIN_VALUE;
+    private transient long lastSentProdInt = Long.MIN_VALUE;
 
     public BurningGeneratorUIPage(@NonNullDecl PlayerRef playerRef, @NonNullDecl Vector3i pos) {
         super(playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, BurningGeneratorUIEventData.CODEC);
@@ -100,55 +99,58 @@ public class BurningGeneratorUIPage extends InteractiveCustomUIPage<BurningGener
 
 
         World world = store.getExternalData().getWorld();
-        BlockState state = world.getState(x, y, z, true);
-        if (!(state instanceof BurningGeneratorBlockState gen)) {
-            HytaleIndustriesPlugin.LOGGER.atInfo().log("BurningGeneratorUI: block is not BurningGeneratorBlockState anymore");
-            return;
-        }
-
         WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
-        if (chunk == null) {
-            chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
-        }
-        if (chunk == null) {
-            return;
+        if (chunk == null) chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) return;
+        var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+        if (entity == null) return;
+        FuelInventory fuel = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getFuelInventoryType());
+        if (fuel == null) return;
+        if (fuel.fuelContainer == null) {
+            fuel.fuelContainer = new com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer((short) 1);
+            entity.getStore().replaceComponent(entity, HytaleIndustriesPlugin.INSTANCE.getFuelInventoryType(), fuel);
         }
 
-        int lx = x & 31;
-        int lz = z & 31;
-        BlockType blockType = chunk.getBlockType(lx, y, lz);
-        if (blockType == null) {
-            return;
-        }
-        int rotIndex = chunk.getRotationIndex(lx, y, lz);
-
-
-        // Inventory page reliably hosts plain ContainerWindow.
-        // ContainerBlockWindow may not render on Page.Inventory depending on client.
-        var genWin = new ContainerWindow(gen.getItemContainer());
+        var genWin = new ContainerWindow(fuel.fuelContainer);
         // Reset pending custom-page acknowledgements to avoid underflow when client sends its next ack.
         player.getPageManager().clearCustomPageAcknowledgements();
         boolean ok = player.getPageManager().setPageWithWindows(ref, store, Page.Inventory, false, genWin);
         HytaleIndustriesPlugin.LOGGER.atInfo().log("BurningGeneratorUI: setPageWithWindows(Page.Inventory) ok=" + ok);
 
-        if (!ok) {
-            // Fallback: try the Bench page with a block window (known to host container windows).
-            var genBlockWin = new ContainerBlockWindow(x, y, z, rotIndex, blockType, gen.getItemContainer());
-            boolean okBench = player.getPageManager().setPageWithWindows(ref, store, Page.Bench, false, genBlockWin);
-            HytaleIndustriesPlugin.LOGGER.atInfo().log("BurningGeneratorUI: fallback setPageWithWindows(Page.Bench) ok=" + okBench);
-        }
+        // No fallback; components handle inventory.
     }
 
     private void render(@NonNullDecl UICommandBuilder cmd, @NonNullDecl UIEventBuilder events, @NonNullDecl Store<EntityStore> store) {
         World world = store.getExternalData().getWorld();
 
         double he = 0.0;
-        var state = world.getState(x, y, z, true);
-        if (state instanceof BurningGeneratorBlockState gen) {
-            he = gen.getHeStored();
+        long hePerTick = 0;
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk != null) {
+            var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+            if (entity != null) {
+                StoresHE stores = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getStoresHeType());
+                if (stores != null) he = stores.current;
+                var produces = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getProducesHeType());
+                var fuelInv = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getFuelInventoryType());
+                boolean hasFuel = false;
+                if (fuelInv != null && fuelInv.fuelContainer != null) {
+                    try {
+                        var stack = fuelInv.fuelContainer.getItemStack((short) 0);
+                        hasFuel = stack != null && !com.hypixel.hytale.server.core.inventory.ItemStack.isEmpty(stack);
+                    } catch (IllegalArgumentException ignored) { }
+                }
+                if (produces != null && produces.enabled && hasFuel) {
+                    double eff = produces.efficiency > 0 ? produces.efficiency : 1.0;
+                    double mult = produces.productionMultiplier > 0 ? produces.productionMultiplier : 1.0;
+                    hePerTick = (long) Math.floor(Math.max(0, produces.producedPerTick) * eff * mult);
+                }
+            }
         }
 
         setHeText(cmd, he);
+        setProdText(cmd, hePerTick);
 
         bindEvents(events);
     }
@@ -173,6 +175,10 @@ public class BurningGeneratorUIPage extends InteractiveCustomUIPage<BurningGener
     private void setHeText(@NonNullDecl UICommandBuilder cmd, double he) {
         long heInt = toDisplayHeInt(he);
         cmd.set("#HeText.Text", "HE: " + heInt + " / " + MAX_HE);
+    }
+
+    private void setProdText(@NonNullDecl UICommandBuilder cmd, long hePerTick) {
+        cmd.set("#ProdText.Text", "Output: " + hePerTick + " HE/t");
     }
 
     private void ensureTimerStarted() {
@@ -236,20 +242,33 @@ public class BurningGeneratorUIPage extends InteractiveCustomUIPage<BurningGener
         }
 
         double he = 0.0;
-        BlockState state = world.getState(x, y, z, true);
-        if (state instanceof BurningGeneratorBlockState gen) {
-            he = gen.getHeStored();
+        long hePerTick = 0;
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk != null) {
+            var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+            if (entity != null) {
+                StoresHE stores = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getStoresHeType());
+                if (stores != null) he = stores.current;
+                var produces = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getProducesHeType());
+                if (produces != null && produces.enabled ) {
+                    double eff = produces.efficiency > 0 ? produces.efficiency : 1.0;
+                    double mult = produces.productionMultiplier > 0 ? produces.productionMultiplier : 1.0;
+                    hePerTick = (long) Math.floor(Math.max(0, produces.producedPerTick) * eff * mult);
+                }
+            }
         }
 
         long heInt = toDisplayHeInt(he);
-        if (heInt == lastSentHeInt) {
-            return;
-        }
+        long prodInt = hePerTick;
+        if (heInt == lastSentHeInt && prodInt == lastSentProdInt) return;
         lastSentHeInt = heInt;
+        lastSentProdInt = prodInt;
 
         UICommandBuilder cmd = new UICommandBuilder();
         UIEventBuilder events = new UIEventBuilder();
         cmd.set("#HeText.Text", "HE: " + heInt + " / " + MAX_HE);
+        cmd.set("#ProdText.Text", "Output: " + prodInt + " HE/t");
         bindEvents(events);
         sendUpdate(cmd, events, false);
     }
