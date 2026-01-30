@@ -51,10 +51,9 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
     public void onEntityAdded(Ref<ChunkStore> refChunkStore, AddReason addReason,
                               Store<ChunkStore> storeChunkStore,
                               CommandBuffer<ChunkStore> commandBufferChunkStore) {
-        HytaleIndustriesPlugin.LOGGER.atFine().log("Basic pipe added");
+        HytaleIndustriesPlugin.LOGGER.atFiner().log("Basic pipe added");
 
         if (addReason != AddReason.SPAWN) {
-            HytaleIndustriesPlugin.LOGGER.atFine().log("Basic pipe added reason is not SPAWN: %s", addReason);
             return;
         }
 
@@ -79,7 +78,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
         int z = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(),
                 ChunkUtil.zFromBlockInColumn(blockStateInfo.getIndex()));
 
-        HytaleIndustriesPlugin.LOGGER.atFine().log("Basic pipe spawned at: %s, %s, %s", x, y, z);
+        HytaleIndustriesPlugin.LOGGER.atFiner().log("Basic pipe spawned at: %s, %s, %s", x, y, z);
 
         var world = storeChunkStore.getExternalData().getWorld();
         var pipeComponent = storeChunkStore.getComponent(refChunkStore, pipeComponentType);
@@ -117,7 +116,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
                     if (neighborPipe != null) {
                         // A pipe neighbor exists - this direction should connect
                         occupiedMask |= 1 << i;
-                        HytaleIndustriesPlugin.LOGGER.atFine().log(
+                        HytaleIndustriesPlugin.LOGGER.atFiner().log(
                             "Found neighbor pipe at (%s,%s,%s) in direction %s",
                             currentX, currentY, currentZ, dir
                         );
@@ -132,7 +131,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
 
         // Always update visual state on spawn (even if mask is 0)
         if (pipeComponent != null) {
-            HytaleIndustriesPlugin.LOGGER.atFine().log("Setting pipe state to mask: %s", Integer.toBinaryString(occupiedMask));
+            HytaleIndustriesPlugin.LOGGER.atFiner().log("Setting pipe state to mask: %s", Integer.toBinaryString(occupiedMask));
 
             // Update pipeState (connection bitmask)
             pipeComponent.setDirectionalState(occupiedMask);
@@ -219,7 +218,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
                                 var neighborPipe = holder.getComponent(pipeComponentType);
 
                                 if (neighborPipe != null) {
-                                    HytaleIndustriesPlugin.LOGGER.atFine().log("Marking neighbor pipe for update at: %s, %s, %s", currentX, currentY, currentZ);
+                                    HytaleIndustriesPlugin.LOGGER.atFiner().log("Marking neighbor pipe for update at: %s, %s, %s", currentX, currentY, currentZ);
                                     _store.ensureComponent(entity, updateComponentType);
                                 }
                             }
@@ -233,10 +232,10 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
     public void onEntityRemove(Ref<ChunkStore> refChunkStore, RemoveReason removeReason,
                                Store<ChunkStore> storeChunkStore,
                                CommandBuffer<ChunkStore> commandBufferChunkStore) {
-        HytaleIndustriesPlugin.LOGGER.atFine().log("Basic pipe removed: %s", removeReason);
+        HytaleIndustriesPlugin.LOGGER.atFiner().log("Basic pipe removed: %s", removeReason);
 
         if (removeReason != RemoveReason.REMOVE) {
-            HytaleIndustriesPlugin.LOGGER.atFine().log("Basic pipe removal reason is not REMOVE: %s", removeReason);
+            HytaleIndustriesPlugin.LOGGER.atFiner().log("Basic pipe removal reason is not REMOVE: %s", removeReason);
             return;
         }
 
@@ -267,7 +266,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
         int z = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(),
                 ChunkUtil.zFromBlockInColumn(blockStateInfo.getIndex()));
 
-        HytaleIndustriesPlugin.LOGGER.atFine().log("Basic pipe removed at: %s, %s, %s", x, y, z);
+        HytaleIndustriesPlugin.LOGGER.atFiner().log("Basic pipe removed at: %s, %s, %s", x, y, z);
 
         var world = commandBufferChunkStore.getExternalData().getWorld();
 
@@ -287,7 +286,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
                 if (holder != null) {
                     var neighborPipe = commandBufferChunkStore.getComponent(entity, pipeComponentType);
                     if (neighborPipe != null && neighborPipe.canConnectTo(dir)) {
-                        HytaleIndustriesPlugin.LOGGER.atFine().log("Notifying neighbor pipe to update at: %s, %s, %s", currentX, currentY, currentZ);
+                        HytaleIndustriesPlugin.LOGGER.atFiner().log("Notifying neighbor pipe to update at: %s, %s, %s", currentX, currentY, currentZ);
                         commandBufferChunkStore.ensureComponent(entity, updateComponentType);
                     }
                 }
@@ -305,7 +304,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
         int ox = origin[0], oy = origin[1], oz = origin[2];
         
         if (ox != x || oy != y || oz != z) {
-            HytaleIndustriesPlugin.LOGGER.atFine().log(
+            HytaleIndustriesPlugin.LOGGER.atFiner().log(
                 "Resolved filler block at (%s,%s,%s) to origin (%s,%s,%s)",
                 x, y, z, ox, oy, oz
             );
@@ -313,7 +312,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
 
         boolean hasInventory = !dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters.find(world, store, ox, oy, oz).isEmpty();
 
-        HytaleIndustriesPlugin.LOGGER.atFine().log(
+        HytaleIndustriesPlugin.LOGGER.atFiner().log(
             "Checking inventory at (%s,%s,%s): hasInventory=%s",
             ox, oy, oz, hasInventory
         );

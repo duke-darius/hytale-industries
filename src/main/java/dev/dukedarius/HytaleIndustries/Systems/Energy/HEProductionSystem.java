@@ -30,6 +30,13 @@ public class HEProductionSystem extends EntityTickingSystem<ChunkStore> {
                      CommandBuffer<ChunkStore> buffer) {
         ProducesHE prod = chunk.getComponent(index, prodType);
         StoresHE energy = chunk.getComponent(index, storeType);
+
+        if(energy != null && energy.creative){
+            energy.current = energy.max;
+            buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
+            return;
+        }
+
         if (prod == null || energy == null || !prod.enabled) return;
         double eff = prod.efficiency > 0 ? prod.efficiency : 1.0;
         double mult = prod.productionMultiplier > 0 ? prod.productionMultiplier : 1.0;

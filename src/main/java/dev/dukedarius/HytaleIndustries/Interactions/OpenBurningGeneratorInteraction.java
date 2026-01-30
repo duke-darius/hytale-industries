@@ -7,8 +7,11 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.InteractionState;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.protocol.packets.interface_.Page;
 import com.hypixel.hytale.server.core.entity.InteractionContext;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.entity.entities.player.windows.ContainerWindow;
+import com.hypixel.hytale.server.core.entity.entities.player.windows.ItemStackContainerWindow;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHandler;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.SimpleBlockInteraction;
@@ -71,7 +74,8 @@ public class OpenBurningGeneratorInteraction extends SimpleBlockInteraction {
         }
 
         var page = new BurningGeneratorUIPage(playerRef, pos);
-        playerComponent.getPageManager().openCustomPage(ref, store, page);
+
+        playerComponent.getPageManager().openCustomPageWithWindows(ref, store, page);
     }
 
     @Override

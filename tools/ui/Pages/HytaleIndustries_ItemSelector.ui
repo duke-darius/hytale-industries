@@ -1,0 +1,341 @@
+$Common = "Game/Interface/InGame/Common.ui";
+$Container = "Game/Interface/InGame/Common/Container.ui";
+$Buttons = "Game/Interface/InGame/Common/Buttons.ui";
+$Label = "Game/Interface/InGame/Pages/Inventory/BuilderTools/Label.ui";
+$Row = "Pages/HytaleIndustries_ItemSelectorRow.ui";
+
+// Shared layout constants for item selector rows
+@RowHeight = 30;
+
+// Frosted overlay + decorated card container (matches other popups)
+$Common.@Overlay #ItemSelectorOverlay {
+  $Container.@DecoratedContainer {
+    Anchor: (Width: 480, Height: 420, Left: 35);
+
+    #Title {
+      $Container.@Title #TitleLabel {
+        @Title = "Item Selector";
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+
+      // Top header line with page info
+      Group #HeaderRow {
+        LayoutMode: Left;
+        Anchor: (Height: 28, Bottom: 4);
+
+        Label {
+          Text: "Browse & pick any items";
+          Style: (
+            ...$Label.@DefaultLabelStyle,
+            FontSize: 12,
+            TextColor: #8ea0b8
+          );
+        }
+
+        Group {
+          FlexWeight: 1;
+        }
+
+        Label #PageLabel {
+          Anchor: (Right: 4);
+          Style: (
+            ...$Label.@DefaultLabelStyle,
+            FontSize: 11,
+            TextColor: #7f93a9,
+            RenderUppercase: true
+          );
+        }
+      }
+
+      // Search bar
+      Group #SearchRow {
+        LayoutMode: Left;
+        Anchor: (Height: 30, Bottom: 6);
+
+        Label {
+          Text: "Search";
+          Anchor: (Width: 60);
+          Style: (
+            ...$Label.@DefaultLabelStyle,
+            FontSize: 12,
+            TextColor: #b7cedd
+          );
+        }
+
+        TextInput #SearchBox {
+          FlexWeight: 1;
+          Anchor: (Height: 24, Left: 6, Right: 6);
+          Style: $Common.@DefaultTextInputStyle;
+          PlaceholderText: "type to filter...";
+        }
+      }
+
+      // Summary of results and selection count
+      Group #SummaryRow {
+        LayoutMode: Left;
+        Anchor: (Height: 22, Bottom: 6);
+
+        Label #SummaryLabel {
+          Style: (
+            ...$Label.@DefaultLabelStyle,
+            FontSize: 11,
+            TextColor: #7f93a9
+          );
+        }
+      }
+
+      // List background card
+      Group #ListBackground {
+        LayoutMode: Top;
+        FlexWeight: 1;
+        Anchor: (Bottom: 8);
+        Background: #05070d;
+
+        Group {
+          Anchor: (Height: 1, Bottom: 1);
+          Background: #1e2634;
+        }
+
+        Group #RowsContainer {
+          LayoutMode: Top;
+          Anchor: (Top: 4, Bottom: 4, Left: 4, Right: 4);
+
+          // Row 0
+          Group #Row0 {
+            LayoutMode: Left;
+            Anchor: (Height: @RowHeight, Bottom: 2);
+
+            Button #Row0Button {
+              FlexWeight: 1;
+              Anchor: (Height: @RowHeight);
+              Style: $Row.@RowButtonStyle;
+
+              Label #Row0Label {
+                Anchor: (Left: 10);
+                Style: $Row.@RowLabelStyle;
+              }
+
+              Group #Row0Selected {
+                Anchor: (Right: 8, Width: 6, Height: 18);
+                Background: #48d185;
+                Visible: false;
+              }
+            }
+          }
+
+          // Row 1
+          Group #Row1 {
+            LayoutMode: Left;
+            Anchor: (Height: @RowHeight, Bottom: 2);
+
+            Button #Row1Button {
+              FlexWeight: 1;
+              Anchor: (Height: @RowHeight);
+              Style: $Row.@RowButtonStyle;
+
+              Label #Row1Label {
+                Anchor: (Left: 10);
+                Style: $Row.@RowLabelStyle;
+              }
+
+              Group #Row1Selected {
+                Anchor: (Right: 8, Width: 6, Height: 18);
+                Background: #48d185;
+                Visible: false;
+              }
+            }
+          }
+
+          // Row 2
+          Group #Row2 {
+            LayoutMode: Left;
+            Anchor: (Height: @RowHeight, Bottom: 2);
+
+            Button #Row2Button {
+              FlexWeight: 1;
+              Anchor: (Height: @RowHeight);
+              Style: $Row.@RowButtonStyle;
+
+              Label #Row2Label {
+                Anchor: (Left: 10);
+                Style: $Row.@RowLabelStyle;
+              }
+
+              Group #Row2Selected {
+                Anchor: (Right: 8, Width: 6, Height: 18);
+                Background: #48d185;
+                Visible: false;
+              }
+            }
+          }
+
+          // Row 3
+          Group #Row3 {
+            LayoutMode: Left;
+            Anchor: (Height: @RowHeight, Bottom: 2);
+
+            Button #Row3Button {
+              FlexWeight: 1;
+              Anchor: (Height: @RowHeight);
+              Style: $Row.@RowButtonStyle;
+
+              Label #Row3Label {
+                Anchor: (Left: 10);
+                Style: $Row.@RowLabelStyle;
+              }
+
+              Group #Row3Selected {
+                Anchor: (Right: 8, Width: 6, Height: 18);
+                Background: #48d185;
+                Visible: false;
+              }
+            }
+          }
+
+          // Row 4
+          Group #Row4 {
+            LayoutMode: Left;
+            Anchor: (Height: @RowHeight, Bottom: 2);
+
+            Button #Row4Button {
+              FlexWeight: 1;
+              Anchor: (Height: @RowHeight);
+              Style: $Row.@RowButtonStyle;
+
+              Label #Row4Label {
+                Anchor: (Left: 10);
+                Style: $Row.@RowLabelStyle;
+              }
+
+              Group #Row4Selected {
+                Anchor: (Right: 8, Width: 6, Height: 18);
+                Background: #48d185;
+                Visible: false;
+              }
+            }
+          }
+
+          // Row 5
+          Group #Row5 {
+            LayoutMode: Left;
+            Anchor: (Height: @RowHeight, Bottom: 2);
+
+            Button #Row5Button {
+              FlexWeight: 1;
+              Anchor: (Height: @RowHeight);
+              Style: $Row.@RowButtonStyle;
+
+              Label #Row5Label {
+                Anchor: (Left: 10);
+                Style: $Row.@RowLabelStyle;
+              }
+
+              Group #Row5Selected {
+                Anchor: (Right: 8, Width: 6, Height: 18);
+                Background: #48d185;
+                Visible: false;
+              }
+            }
+          }
+
+          // Row 6
+          Group #Row6 {
+            LayoutMode: Left;
+            Anchor: (Height: @RowHeight, Bottom: 2);
+
+            Button #Row6Button {
+              FlexWeight: 1;
+              Anchor: (Height: @RowHeight);
+              Style: $Row.@RowButtonStyle;
+
+              Label #Row6Label {
+                Anchor: (Left: 10);
+                Style: $Row.@RowLabelStyle;
+              }
+
+              Group #Row6Selected {
+                Anchor: (Right: 8, Width: 6, Height: 18);
+                Background: #48d185;
+                Visible: false;
+              }
+            }
+          }
+
+          // Row 7
+          Group #Row7 {
+            LayoutMode: Left;
+            Anchor: (Height: @RowHeight, Bottom: 2);
+
+            Button #Row7Button {
+              FlexWeight: 1;
+              Anchor: (Height: @RowHeight);
+              Style: $Row.@RowButtonStyle;
+
+              Label #Row7Label {
+                Anchor: (Left: 10);
+                Style: $Row.@RowLabelStyle;
+              }
+
+              Group #Row7Selected {
+                Anchor: (Right: 8, Width: 6, Height: 18);
+                Background: #48d185;
+                Visible: false;
+              }
+            }
+          }
+        }
+      }
+
+      // Footer buttons: paging + actions
+      Group #FooterRow {
+        LayoutMode: Left;
+        Anchor: (Height: 32, Top: 4);
+
+        Button #PrevPageButton {
+          Anchor: (Width: 26, Height: 26);
+          Style: $Buttons.@IconButton;
+
+          Group {
+            Anchor: (Width: 10, Height: 16);
+            Background: (TexturePath: "Game/Interface/InGame/Common/ArrowLeft.png");
+          }
+        }
+
+        Button #NextPageButton {
+          Anchor: (Width: 26, Height: 26, Left: 4);
+          Style: $Buttons.@IconButton;
+
+          Group {
+            Anchor: (Width: 10, Height: 16);
+            Background: (TexturePath: "Game/Interface/InGame/Common/ArrowRight.png");
+          }
+        }
+
+        Button #ClearButton {
+          Anchor: (Width: 70, Height: 26, Left: 10);
+          Style: $Buttons.@SecondaryTextButton;
+          Text: "Clear";
+        }
+
+        Group {
+          FlexWeight: 1;
+        }
+
+        Button #CancelButton {
+          Anchor: (Width: 80, Height: 26, Right: 6);
+          Style: $Buttons.@SecondaryTextButton;
+          Text: %client.general.button.cancel;
+        }
+
+        Button #ConfirmButton {
+          Anchor: (Width: 80, Height: 26, Right: 0);
+          Style: $Buttons.@PrimaryTextButton;
+          Text: "Confirm";
+        }
+      }
+    }
+  }
+}

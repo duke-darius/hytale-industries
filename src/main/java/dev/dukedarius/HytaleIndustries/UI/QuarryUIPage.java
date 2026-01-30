@@ -5,6 +5,7 @@ import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageEvent;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageEventType;
@@ -18,9 +19,9 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.QuarryBlockState;
+import dev.dukedarius.HytaleIndustries.Components.Quarry.QuarryComponent;
 import dev.dukedarius.HytaleIndustries.Energy.PowerUtils;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
@@ -74,10 +75,18 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
                                 @Nonnull Store<EntityStore> store,
                                 @Nonnull UIEventData data) {
         World world = store.getExternalData().getWorld();
-        BlockState st = world.getState(x, y, z, true);
-        if (!(st instanceof QuarryBlockState quarry)) {
-            return;
-        }
+        var chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) return;
+        
+        var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+        if (entity == null) return;
+        
+        var quarryType = HytaleIndustriesPlugin.INSTANCE.getQuarryComponentType();
+        if (quarryType == null) return;
+        
+        QuarryComponent quarry = entity.getStore().getComponent(entity, quarryType);
+        if (quarry == null) return;
 
         boolean didSomething = false;
 
@@ -111,11 +120,18 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         if (data.action != null) {
             switch (data.action) {
                 case UIEventData.ACTION_START -> {
-                    quarry.startMining();
+                    int lx = x & 31;
+                    int lz = z & 31;
+                    int rot = chunk.getRotationIndex(lx, y, lz);
+                    quarry.startMining(x, y, z, rot);
                     didSomething = true;
                 }
                 case UIEventData.ACTION_RESET -> {
                     quarry.reset();
+                    didSomething = true;
+                }
+                case UIEventData.ACTION_TOGGLE_GENTLE -> {
+                    quarry.gentle = !quarry.gentle;
                     didSomething = true;
                 }
                 case UIEventData.ACTION_CLOSE -> {
@@ -135,6 +151,10 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         if (!didSomething) {
             return;
         }
+        
+        // Persist changes to component
+        entity.getStore().replaceComponent(entity, quarryType, quarry);
+        chunk.markNeedsSaving();
 
         // Re-render immediately after any action/change.
         UICommandBuilder cmd = new UICommandBuilder();
@@ -148,10 +168,32 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
                         @Nonnull Store<EntityStore> store,
                         boolean includeInputValues) {
         World world = store.getExternalData().getWorld();
-        BlockState st = world.getState(x, y, z, true);
-
-        if (st instanceof QuarryBlockState quarry) {
-            boolean isIdle = quarry.currentStatus == QuarryBlockState.QuarryStatus.IDLE;
+        var chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) return;
+        
+        var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+        if (entity == null) return;
+        
+        var quarryType = HytaleIndustriesPlugin.INSTANCE.getQuarryComponentType();
+        if (quarryType == null) return;
+        
+        QuarryComponent quarry = entity.getStore().getComponent(entity, quarryType);
+        if (quarry != null) {
+            // Get StoresHE for actual HE values
+            var storesHeType = HytaleIndustriesPlugin.INSTANCE.getStoresHeType();
+            double he = 0.0;
+            double heCap = quarry.getHeCapacity();
+            
+            if (storesHeType != null) {
+                var storesHe = entity.getStore().getComponent(entity, storesHeType);
+                if (storesHe != null) {
+                    he = storesHe.current;
+                    heCap = storesHe.max;
+                }
+            }
+            
+            boolean isIdle = quarry.currentStatus == QuarryComponent.QuarryStatus.IDLE;
 
             cmd.set("#StatusLabel.Text", quarry.currentStatus.name());
 
@@ -170,29 +212,29 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
             }
 
             // Power bar
-            double he = quarry.getHeStored();
-            double heCap = quarry.getHeCapacity();
             cmd.set("#PowerBar.Value", Math.max(0.0, Math.min(1.0, he / heCap)));
             cmd.set("#PowerBar.TooltipText", String.format("%d/%d HE Stored", (int) he, (int) heCap));
             cmd.set("#PowerText.Text", PowerUtils.formatHe(he) + "/" + PowerUtils.formatHe(heCap) + " HE");
+
+            // Gentle toggle indicator
+            cmd.set("#GentleToggle.Text", "Gentle: " + (quarry.gentle ? "ON" : "OFF"));
+            cmd.set("#GentleStatusLabel.Text", quarry.gentle ? "ON" : "OFF");
+            cmd.set("#GentleStatusRow.Visible", !isIdle);
+            cmd.set("#GentleToggle.Visible", isIdle);
 
             // Check for issues and display warnings
             String errorMessage = "";
             boolean canStart = isIdle;
             
             if (isIdle) {
-                // Check if output container exists above
-                if (quarry.getOutputContainerAbovePublic(world) == null) {
-                    errorMessage = "⚠ No output container above quarry!";
-                    canStart = false;
-                } else if (he < 50) { // Minimum energy to start
+                if (he < 50) { // Minimum energy to start
                     errorMessage = "⚠ Insufficient energy to start (need 50 HE)";
                     canStart = false;
                 }
             }
             
             cmd.set("#ErrorLabel.Text", errorMessage);
-            cmd.set("#StartButton.Enabled", canStart);
+            cmd.set("#StartButton.Visible", canStart);
 
             // Visibility logic
             cmd.set("#ConfigGroup.Visible", isIdle);
@@ -238,10 +280,27 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         Ref<EntityStore> ref = lastRef;
         Store<EntityStore> store = lastStore;
         World world = lastWorld;
-        if (ref == null || store == null || world == null) return;
+        if (ref == null || store == null || world == null) {
+            stopTimer();
+            return;
+        }
+        
+        try {
+            ref.validate();
+        } catch (IllegalStateException e) {
+            stopTimer();
+            return;
+        }
+        
         Player player = store.getComponent(ref, Player.getComponentType());
-        if (player == null) return;
-        if (player.getPageManager().getCustomPage() != this) return;
+        if (player == null) {
+            stopTimer();
+            return;
+        }
+        if (player.getPageManager().getCustomPage() != this) {
+            stopTimer();
+            return;
+        }
 
         UICommandBuilder cmd = new UICommandBuilder();
         UIEventBuilder events = new UIEventBuilder();
@@ -262,6 +321,12 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         events.addEventBinding(CustomUIEventBindingType.ValueChanged, "#YStartValue",
                 EventData.of(UIEventData.KEY_Y_START_VALUE, "#YStartValue.Value"), false);
 
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#GentleToggle",
+                new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_TOGGLE_GENTLE), false);
+
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#GentleToggle",
+                new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_TOGGLE_GENTLE), false);
+
     }
 
     public static final class UIEventData {
@@ -273,6 +338,7 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         static final String ACTION_START = "Start";
         static final String ACTION_RESET = "Reset";
         static final String ACTION_CLOSE = "Close";
+        static final String ACTION_TOGGLE_GENTLE = "ToggleGentle";
         static final String ACTION_WIDTH_INC = "WidthInc";
         static final String ACTION_WIDTH_DEC = "WidthDec";
         static final String ACTION_DEPTH_INC = "DepthInc";

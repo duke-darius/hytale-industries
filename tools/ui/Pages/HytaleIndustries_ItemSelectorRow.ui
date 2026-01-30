@@ -1,0 +1,21 @@
+$Label = "Game/Interface/InGame/Pages/Inventory/BuilderTools/Label.ui";
+$Buttons = "Game/Interface/InGame/Common/Buttons.ui";
+
+// Reusable visual component for Item Selector rows.
+// Provides shared styles used by each row in HytaleIndustries_ItemSelector.ui
+
+@RowButtonStyle = ButtonStyle(
+  Default: (Background: (Color: #10141d)),
+  Hovered: (Background: (Color: #151a26)),
+  Pressed: (Background: (Color: #0b0f18)),
+  Focused: (Background: (Color: #151a26)),
+  Disabled: (Background: (Color: #05070c)),
+  Sounds: $Buttons.@ButtonSmall
+);
+
+@RowLabelStyle = (
+  ...$Label.@DefaultLabelStyle,
+  FontSize: 13,
+  TextColor: #d8e6ff,
+  VerticalAlignment: Center
+);

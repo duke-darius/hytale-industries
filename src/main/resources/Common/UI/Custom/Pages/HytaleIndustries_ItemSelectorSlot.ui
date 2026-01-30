@@ -1,0 +1,19 @@
+$C = "../Common.ui";
+
+Group {
+  ItemSlotButton #ItemButton {
+    Anchor: (Width: 60, Height: 60);
+    LayoutMode: Full;
+    Padding: 2;
+
+    Group #ItemBorder {
+      Anchor: (Full: 0);
+      Background: #000000;
+      Padding: 2;
+
+      ItemSlot #ItemSlot {
+        Anchor: (Full: 0);
+      }
+    }
+  }
+}

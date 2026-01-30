@@ -26,8 +26,33 @@
     "Interactions": {
       "Use": "HytaleIndustries_OpenQuarry_Root"
     },
+    "BlockEntity": {
+      "IsBlockComponent": true,
+      "Components": {
+        "StoresHE": {
+          "Max": 100000,
+          "Current": 0
+        },
+        "Quarry": {
+          "HeStored": 0.0,
+          "Progress": 0.0,
+          "Inventory": {
+            "Slots": 20,
+            "ItemStacks": []
+          },
+          "Width": 5,
+          "Depth": 5,
+          "YStart": 319,
+          "Status": "IDLE",
+          "Speed": 30.0,
+          "Efficiency": 0.5
+        },
+        "ConsumeHE": {
+
+        }
+      }
+    },
     "State": {
-      "Id": "quarry",
       "Definitions": {
         "default": {}
       }

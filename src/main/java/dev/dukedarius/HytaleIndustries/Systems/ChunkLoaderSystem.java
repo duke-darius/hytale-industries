@@ -42,20 +42,32 @@ public class ChunkLoaderSystem extends EntityTickingSystem<ChunkStore> {
         apply(ref, store, buffer, false);
     }
 
+
     private void apply(Ref<ChunkStore> ref,
                        Store<ChunkStore> store,
                        CommandBuffer<ChunkStore> buffer,
                        boolean forceRegister) {
         ChunkLoaderComponent comp = store.getComponent(ref, loaderType);
-        if (comp == null) return;
+        if (comp == null) {
+            return;
+        }
 
         var info = store.getComponent(ref, BlockStateInfo.getComponentType());
-        if (info == null) return;
+        if (info == null) {
+            HytaleIndustriesPlugin.LOGGER.atFine().log("[ChunkLoader] missing BlockStateInfo");
+            return;
+        }
         var chunkRef = info.getChunkRef();
-        if (chunkRef == null || !chunkRef.isValid()) return;
+        if (chunkRef == null || !chunkRef.isValid()) {
+            HytaleIndustriesPlugin.LOGGER.atFine().log("[ChunkLoader] invalid chunkRef");
+            return;
+        }
         WorldChunk wc = store.getComponent(chunkRef, WorldChunk.getComponentType());
         BlockChunk blockChunk = store.getComponent(chunkRef, BlockChunk.getComponentType());
-        if (wc == null || blockChunk == null) return;
+        if (wc == null || blockChunk == null) {
+            HytaleIndustriesPlugin.LOGGER.atFine().log("[ChunkLoader] missing worldchunk/blockchunk");
+            return;
+        }
 
         int x = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getX(), ChunkUtil.xFromBlockInColumn(info.getIndex()));
         int y = ChunkUtil.yFromBlockInColumn(info.getIndex());
@@ -64,11 +76,14 @@ public class ChunkLoaderSystem extends EntityTickingSystem<ChunkStore> {
         comp.ensureKeepLoaded(wc);
 
         long now = System.nanoTime();
-        if (forceRegister || now - comp.lastRegisterNanos > 5_000_000_000L) { // 5s
+        boolean firstTime = comp.lastRegisterNanos == 0L;
+        if (forceRegister || firstTime || now - comp.lastRegisterNanos > 1_000_000_000L) { // 1s
             var world = wc.getWorld();
             if (world != null && HytaleIndustriesPlugin.INSTANCE != null && HytaleIndustriesPlugin.INSTANCE.getChunkLoaderManager() != null) {
                 HytaleIndustriesPlugin.INSTANCE.getChunkLoaderManager()
                         .registerLoader(world.getName(), x, y, z);
+                HytaleIndustriesPlugin.LOGGER.atInfo().log("[ChunkLoader] registered at %s (%d,%d,%d)",
+                        world.getName(), x, y, z);
             }
             comp.lastRegisterNanos = now;
             buffer.replaceComponent(ref, loaderType, comp);

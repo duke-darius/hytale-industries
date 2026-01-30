@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
 import dev.dukedarius.HytaleIndustries.Components.ChunkLoading.ChunkLoaderComponent;
+import dev.dukedarius.HytaleIndustries.Components.Quarry.QuarryComponent;
 import dev.dukedarius.HytaleIndustries.BlockStates.QuarryBlockState;
 import dev.dukedarius.HytaleIndustries.BlockStates.WindTurbineBlockState;
 import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderManager;
@@ -98,6 +99,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     private ComponentType<ChunkStore, PoweredFurnaceInventory> poweredFurnaceInventoryType;
     private ComponentType<ChunkStore, PoweredCrusherInventory> poweredCrusherInventoryType;
     private ComponentType<ChunkStore, ChunkLoaderComponent> chunkLoaderComponentType;
+    private ComponentType<ChunkStore, QuarryComponent> quarryComponentType;
 
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -136,6 +138,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public ComponentType<ChunkStore, PoweredFurnaceInventory> getPoweredFurnaceInventoryType() { return poweredFurnaceInventoryType; }
     public ComponentType<ChunkStore, PoweredCrusherInventory> getPoweredCrusherInventoryType() { return poweredCrusherInventoryType; }
     public ComponentType<ChunkStore, ChunkLoaderComponent> getChunkLoaderComponentType() { return chunkLoaderComponentType; }
+    public ComponentType<ChunkStore, QuarryComponent> getQuarryComponentType() { return quarryComponentType; }
 
 
     @Override
@@ -144,7 +147,10 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
         chunkLoaderManager = new ChunkLoaderManager(this, chunkLoaderConfig);
 
-        this.getBlockStateRegistry().registerBlockState(QuarryBlockState.class, QuarryBlockState.STATE_ID, QuarryBlockState.CODEC);
+        this.getCommandRegistry().registerCommand(new dev.dukedarius.HytaleIndustries.Commands.DebugItemSelectorCommand());
+
+        this.getCommandRegistry().registerCommand(new dev.dukedarius.HytaleIndustries.Commands.ShowChunksCommand());
+
         this.getBlockStateRegistry().registerBlockState(WindTurbineBlockState.class, WindTurbineBlockState.STATE_ID, WindTurbineBlockState.CODEC);
 
         // Register inventory adapters for pipes
@@ -242,6 +248,11 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 "PoweredCrusherInventory",
                 PoweredCrusherInventory.CODEC
         );
+        this.quarryComponentType = this.getChunkStoreRegistry().registerComponent(
+                QuarryComponent.class,
+                "Quarry",
+                QuarryComponent.CODEC
+        );
         
         // Register ECS systems for basic power cables
         this.getChunkStoreRegistry().registerSystem(
@@ -326,6 +337,14 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         this.getChunkStoreRegistry().registerSystem(new InventoryNeighborUpdateOnPlaceSystem());
         this.getChunkStoreRegistry().registerSystem(new dev.dukedarius.HytaleIndustries.Systems.ChunkLoaderSystem(
                 this.chunkLoaderComponentType
+        ));
+        this.getChunkStoreRegistry().registerSystem(new dev.dukedarius.HytaleIndustries.Systems.ChunkLoaderInitSystem(
+                this.chunkLoaderComponentType
+        ));
+        this.getChunkStoreRegistry().registerSystem(new dev.dukedarius.HytaleIndustries.Systems.QuarrySystem(
+                this.quarryComponentType,
+                this.storesHeType,
+                this.consumesHeType
         ));
 
         // Ensure machine inventories drop when the block is broken.

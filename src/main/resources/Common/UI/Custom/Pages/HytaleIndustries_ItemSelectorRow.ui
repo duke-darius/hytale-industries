@@ -1,0 +1,18 @@
+$C = "../Common.ui";
+
+Group #Row {
+  Anchor: (Top: 0, Left: 0, Right: 0);
+  Padding: (Left: 4, Right: 4, Top: 2, Bottom: 2);
+  LayoutMode: Left;
+
+  ItemSlot #ItemIcon {
+    Anchor: (Width: 76, Height: 76);
+  }
+
+  Label #ItemName {
+    Text: "";
+    Anchor: (Left: 0, Right: 0);
+
+    FlexWeight: 1;
+  }
+}

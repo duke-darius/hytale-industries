@@ -1,0 +1,131 @@
+$C = "../Common.ui";
+$Row = "HytaleIndustries_ItemSelectorRow.ui";
+
+@RowHeight = 30;
+
+Group {
+  Anchor: (Width: 660, Height: 600);
+
+  $C.@Container {
+
+    #Title {
+      Group {
+        $C.@Title {
+          @Text = "Item Selector";
+        }
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Left: 12, Right: 12, Top: 12, Bottom: 12);
+
+      // Top header line with page info
+      Group #HeaderRow {
+        LayoutMode: Left;
+        Anchor: (Height: 28, Bottom: 4);
+
+        Label {
+          Text: "Browse & pick any items";
+          Style: (
+            FontSize: 12,
+            TextColor: #8ea0b8
+          );
+        }
+
+        Group {
+          FlexWeight: 1;
+        }
+
+        Label #PageLabel {
+          Anchor: (Right: 4);
+          Style: (
+            FontSize: 11,
+            TextColor: #7f93a9,
+            RenderUppercase: true
+          );
+        }
+      }
+
+      // Search bar
+      Group #SearchRow {
+        LayoutMode: Left;
+        Anchor: (Height: 30, Bottom: 6);
+
+        Label {
+          Text: "Search";
+          Anchor: (Width: 60);
+          Style: (
+            FontSize: 12,
+            TextColor: #b7cedd
+          );
+        }
+
+        $C.@TextField #SearchBox {
+          @Anchor = (Height: 24, Left: 6, Right: 6);
+          FlexWeight: 1;
+          PlaceholderText: "type to filter...";
+        }
+      }
+
+      // Summary of results and selection count
+      Group #SummaryRow {
+        LayoutMode: Left;
+        Anchor: (Height: 22, Bottom: 6);
+
+        Label #SummaryLabel {
+          Style: (
+            FontSize: 11,
+            TextColor: #7f93a9
+          );
+        }
+      }
+
+      // List background card
+      Group #ListBackground {
+        LayoutMode: Top;
+        FlexWeight: 1;
+        Anchor: (Bottom: 8);
+        Background: #05070d;
+
+        Group {
+          Anchor: (Height: 1, Bottom: 1);
+          Background: #1e2634;
+        }
+
+        Group #RowsContainerScrollbox {
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Anchor: (Top: 4, Bottom: 4, Left: 4, Right: 4);
+
+          Group #RowsContainer {
+            LayoutMode: LeftCenterWrap;
+            Anchor: (Width: 640);
+          }
+        }
+      }
+
+      // Footer buttons: paging + actions
+      Group #FooterRow {
+        LayoutMode: Left;
+        Anchor: (Height: 40, Top: 4);
+
+
+        $C.@TextButton #CancelButton {
+          @Text = "Cancel";
+          @Anchor = Anchor(Width: 180, Height: 26, Right: 6);
+        }
+
+
+        Group {
+          FlexWeight: 1;
+        }
+
+        $C.@TextButton #ConfirmButton {
+          @Text = "Confirm";
+          @Anchor = Anchor(Width: 180, Height: 26, Right: 0);
+        }
+      }
+    }
+  }
+}

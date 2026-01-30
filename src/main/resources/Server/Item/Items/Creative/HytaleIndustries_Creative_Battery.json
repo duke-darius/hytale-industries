@@ -1,0 +1,101 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_SmallBattery.png",
+  "TranslationProperties": {
+    "Name": "[CREATIVE] Battery",
+    "Description": "Stores up to 9223372036854775807 HE."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlaceSmallBattery_Root"
+  },
+  "InteractionConfig": {},
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_SmallBattery/HytaleIndustries_SmallBattery.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_SmallBattery/HytaleIndustries_SmallBattery.png",
+        "Weight": 1
+      }
+    ],
+    "BlockEntity": {
+      "IsBlockComponent": true,
+      "Components": {
+        "StoresHE": {
+          "Max": 9223372036854775807,
+          "Current": 0,
+          "Creative": true
+        },
+        "ProducesHE": {
+
+        },
+        "CableEndpoint": {
+          "CapacityPerTick": 9223372036854775807,
+          "LossPerMeter": 0.0,
+          "Priority": 1
+        }
+      }
+    },
+    "Flags": {
+      "IsUsable": true,
+      "IsStackable": true
+    },
+    "Interactions": {
+      "Use": "HytaleIndustries_OpenSmallBattery_Root"
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks",
+        "Quality": 0,
+        "Quantity": 1
+      }
+    },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Supporting": {
+      "Up": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "Down": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "North": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "South": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "East": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "West": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ]
+    },
+    "IgnoreSupportWhenPlaced": true,
+    "Group": "@Tech",
+    "Support": {},
+    "MaxSupportDistance": 0,
+    "SupportsRequiredFor": "Any"
+  },
+  "MaxStack": 64
+}

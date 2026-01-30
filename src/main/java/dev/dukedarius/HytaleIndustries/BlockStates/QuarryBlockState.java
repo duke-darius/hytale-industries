@@ -23,7 +23,6 @@ import com.hypixel.hytale.server.core.universe.world.chunk.ChunkFlag;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.state.TickableBlockState;
 import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockStateModule;
 import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
@@ -35,6 +34,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
+@SuppressWarnings("removal")
 public class QuarryBlockState extends BlockState implements TickableBlockState, ItemContainerBlockState, StoresHE, ReceivesHE {
 
     public static final String STATE_ID = "quarry";
@@ -224,16 +224,16 @@ public class QuarryBlockState extends BlockState implements TickableBlockState, 
     }
 
     private void persistSelf() {
-        var chunk = getChunk();
-        var pos = getBlockPosition();
-        if (chunk == null || pos == null) return;
-        var stateRef = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
-        if (stateRef == null) return;
-        ComponentType<ChunkStore, Component<ChunkStore>> type =
-                (ComponentType) BlockStateModule.get().getComponentType((Class) this.getClass());
-        if (type == null) return;
-        stateRef.getStore().replaceComponent(stateRef, type, this);
-        chunk.markNeedsSaving();
+//        var chunk = getChunk();
+//        var pos = getBlockPosition();
+//        if (chunk == null || pos == null) return;
+//        var stateRef = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
+//        if (stateRef == null) return;
+//        ComponentType<ChunkStore, Component<ChunkStore>> type =
+//                (ComponentType) BlockStateModule.get().getComponentType((Class) this.getClass());
+//        if (type == null) return;
+//        stateRef.getStore().replaceComponent(stateRef, type, this);
+//        chunk.markNeedsSaving();
     }
 
     private static final int WORLD_MIN_Y = 0;

@@ -21,10 +21,16 @@ public class StoresHE implements Component<ChunkStore> {
                     o -> o.current
             )
             .add()
+            .append(new KeyedCodec<>("Creative", Codec.BOOLEAN),
+                    ( o, val) -> o.creative = val,
+                    o -> o.creative
+            )
+            .add()
             .build();
 
     public long max;
     public long current;
+    public boolean creative = false;
 
     /** Attempts to add energy and returns leftover. */
     public long addEnergy(long amount) {

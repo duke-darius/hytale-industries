@@ -1,7 +1,7 @@
 ﻿$C = "../Common.ui";
 
 Group {
-  Anchor: (Width: 460, Height: 400);
+  Anchor: (Width: 460, Height: 550);
 
   $C.@Container {
 
@@ -103,6 +103,23 @@ Group {
           }
         }
 
+        // Gentle status (visible while active)
+        Group #GentleStatusRow {
+          Anchor: (Height: 32);
+          LayoutMode: Left;
+
+          Label {
+            Anchor: (Width: 74);
+            Text: "GENTLE";
+            Style: (VerticalAlignment: Center, TextColor: #AAB3C2);
+          }
+
+          Label #GentleStatusLabel {
+            Text: "OFF";
+            Style: (VerticalAlignment: Center, TextColor: #EAF2FF);
+          }
+        }
+
         Group { Anchor: (Height: 10); }
 
         // Error message
@@ -179,8 +196,27 @@ Group {
             }
 
           }
+          Group { Anchor: (Height: 8); }
+
+          // Gentle toggle row
+          Group {
+            Anchor: (Height: 36);
+            LayoutMode: Left;
+
+            Label {
+              Anchor: (Width: 74);
+              Text: "Gentle";
+              Style: (VerticalAlignment: Center, TextColor: #D7DEEA);
+            }
+
+            $C.@TextButton #GentleToggle {
+              @Text = "Gentle: OFF";
+              Anchor: (Width: 220, Height: 32);
+            }
+          }
 
           Group { Anchor: (Height: 10); }
+
 
           Label {
             Text: "Output: place an inventory above the quarry";

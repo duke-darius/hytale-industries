@@ -15,6 +15,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
+import dev.dukedarius.HytaleIndustries.Energy.PowerUtils;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPage.SmallBatteryUIEventData> {
 
-    private static final long MAX_HE = 1_000_000L;
+
     private static final long AUTO_UPDATE_PERIOD_MS = 33L; // ~30 Hz (every tick)
 
     private final int x;
@@ -33,6 +34,8 @@ public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPa
     private transient Ref<EntityStore> lastRef;
     private transient Store<EntityStore> lastStore;
     private transient World lastWorld;
+
+    private transient long MAX_HE = 1_000_000L;
 
     private transient ScheduledFuture<?> autoUpdateTask;
     private transient long lastSentHeInt = Long.MIN_VALUE;
@@ -80,10 +83,16 @@ public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPa
         var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
         if (entity == null) return 0.0;
         StoresHE stores = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getStoresHeType());
-        return stores != null ? stores.current : 0.0;
+        if(stores != null){
+            MAX_HE = stores.max;
+            return stores.current;
+        }else{
+            MAX_HE = 1_000_000L;
+            return 0.0;
+        }
     }
 
-    private static long toDisplayHeInt(double he) {
+    private long toDisplayHeInt(double he) {
         long heInt = (long) Math.floor(Math.max(0.0, he));
         if (heInt > MAX_HE) {
             heInt = MAX_HE;
@@ -149,7 +158,7 @@ public class SmallBatteryUIPage extends InteractiveCustomUIPage<SmallBatteryUIPa
 
         UICommandBuilder cmd = new UICommandBuilder();
         UIEventBuilder events = new UIEventBuilder();
-        cmd.set("#HeText.Text", "HE: " + heInt + " / " + MAX_HE);
+        cmd.set("#HeText.Text", "HE: " + PowerUtils.formatCompact(heInt) + " / " + PowerUtils.formatCompact(MAX_HE));
         sendUpdate(cmd, events, false);
     }
 

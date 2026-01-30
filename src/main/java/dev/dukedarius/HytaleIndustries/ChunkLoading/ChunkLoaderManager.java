@@ -103,6 +103,8 @@ public final class ChunkLoaderManager {
 
         if (changed) {
             try {
+                HytaleIndustriesPlugin.LOGGER.atInfo().log("[ChunkLoader] saved entry %s (%d,%d,%d) -> chunk (%d,%d)",
+                        worldName, blockX, blockY, blockZ, chunkX, chunkZ);
                 config.save();
             } catch (Throwable t) {
                 plugin.getLogger().atSevere().withCause(t).log("Failed to save chunk loader config after register");

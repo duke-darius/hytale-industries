@@ -14,9 +14,10 @@ import com.hypixel.hytale.server.core.modules.interaction.interaction.CooldownHa
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.client.SimpleBlockInteraction;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.QuarryBlockState;
+import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.math.util.ChunkUtil;
+import dev.dukedarius.HytaleIndustries.Components.Quarry.QuarryComponent;
 import dev.dukedarius.HytaleIndustries.UI.QuarryUIPage;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
@@ -50,8 +51,15 @@ public class OpenQuarryInteraction extends SimpleBlockInteraction {
             return;
         }
 
-        BlockState state = world.getState(pos.x, pos.y, pos.z, true);
-        if (!(state instanceof QuarryBlockState)) {
+        var chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
+        if (chunk == null) chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
+        if (chunk == null) {
+            interactionContext.getState().state = InteractionState.Skip;
+            return;
+        }
+        var entity = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
+        var quarryType = dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.INSTANCE.getQuarryComponentType();
+        if (entity == null || quarryType == null || entity.getStore().getComponent(entity, quarryType) == null) {
             interactionContext.getState().state = InteractionState.Skip;
             return;
         }
