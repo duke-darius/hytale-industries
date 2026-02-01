@@ -1,0 +1,17 @@
+{
+  "Input": [
+    {
+      "ItemId": "HytaleIndustries_CrushedGold"
+    }
+  ],
+  "PrimaryOutput": {
+    "ItemId": "Ingredient_Bar_Gold"
+  },
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Furnace"
+    }
+  ],
+  "TimeSeconds": 7
+}

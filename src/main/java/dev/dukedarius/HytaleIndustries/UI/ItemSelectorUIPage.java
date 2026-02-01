@@ -76,29 +76,40 @@ public class ItemSelectorUIPage extends InteractiveCustomUIPage<ItemSelectorUIPa
                                 @Nonnull UIEventData data) {
 
         HytaleIndustriesPlugin.LOGGER.atInfo().log("ItemSelectorUI: handleDataEvent action=" + data.action);
-        boolean changed = false;
 
-        if(data.action == null) {
+        if (data.action == null) {
             return;
         }
 
-        if(data.action == ItemSelectorUIPage.UIEventData.ACTION_CONFIRM) {
-
+        // Handle confirm / cancel first – these close or finalize the selector
+        if (UIEventData.ACTION_CONFIRM.equals(data.action)) {
+            onConfirm(ref, store);
+            return;
         }
-        if(data.action == ItemSelectorUIPage.UIEventData.ACTION_CANCEL) {
-
+        if (UIEventData.ACTION_CANCEL.equals(data.action)) {
+            PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
+            if (playerRef != null) {
+                closePage(ref, store);
+                ItemSelectorHelper.onClosed(playerRef);
+            }
+            return;
         }
-        if(data.action.equals(UIEventData.ACTION_TOGGLE_INDEX)) {
+
+        boolean changed = false;
+
+        if (UIEventData.ACTION_TOGGLE_INDEX.equals(data.action)) {
             String id = data.id;
-            if(id == null) return;
-            if(selected.contains(id)) {
+            if (id == null) {
+                return;
+            }
+            if (selected.contains(id)) {
                 selected.remove(id);
             } else {
                 selected.add(id);
             }
             changed = true;
         }
-        if(data.action.equals(UIEventData.ACTION_SET_SEARCH)){
+        if (UIEventData.ACTION_SET_SEARCH.equals(data.action)) {
             this.searchText = data.searchText;
             changed = true;
         }
@@ -174,16 +185,21 @@ public class ItemSelectorUIPage extends InteractiveCustomUIPage<ItemSelectorUIPa
     private void onConfirm(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
         Player player = store.getComponent(ref, Player.getComponentType());
-        if (playerRef != null) {
-            try {
-                ItemSelectorHelper.onSelectionConfirmed(playerRef, new ArrayList<>(selected));
-            } catch (Throwable t) {
-                HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("ItemSelector: selection callback failed");
-            }
+        if (playerRef == null || player == null) {
+            return;
         }
-        if (player != null) {
-            closePage(ref, store);
+
+        // First dismiss this selector page so the caller can safely open another page
+        closePage(ref, store);
+
+        try {
+            ItemSelectorHelper.onSelectionConfirmed(playerRef, new ArrayList<>(selected));
+        } catch (Throwable t) {
+            HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("ItemSelector: selection callback failed");
         }
+
+        // Notify any close callback (e.g. to restore the underlying UI)
+        ItemSelectorHelper.onClosed(playerRef);
     }
 
     private void closePage(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {

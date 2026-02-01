@@ -21,7 +21,6 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
-import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 
@@ -111,8 +110,8 @@ public class PoweredCrusherUIPage extends InteractiveCustomUIPage<PoweredCrusher
                 he = ctx.stores.current;
                 heCap = ctx.stores.max;
             }
-            if (ctx.proc != null && ctx.proc.getWorkRequired() > 0f) {
-                progress = Math.min(1.0, Math.max(0.0, ctx.proc.getCurrentWork() / ctx.proc.getWorkRequired()));
+            if (ctx.inv != null && ctx.inv.workRequired > 0f) {
+                progress = Math.min(1.0, Math.max(0.0, ctx.inv.currentWork / ctx.inv.workRequired));
             }
             var in = ctx.inv != null ? ctx.inv.input.getItemStack((short) 0) : null;
             if (in != null && !ItemStack.isEmpty(in)) {
@@ -240,17 +239,14 @@ public class PoweredCrusherUIPage extends InteractiveCustomUIPage<PoweredCrusher
             }
         }
         var stores = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getStoresHeType());
-        var proc = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getHeProcessingType());
         Context ctx = new Context();
         ctx.inv = inv;
         ctx.stores = stores;
-        ctx.proc = proc;
         return ctx;
     }
 
     private static final class Context {
         PoweredCrusherInventory inv;
         StoresHE stores;
-        HEProcessing proc;
     }
 }

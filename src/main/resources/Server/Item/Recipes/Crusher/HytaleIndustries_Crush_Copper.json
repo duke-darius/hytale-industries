@@ -1,0 +1,17 @@
+{
+  "Id": "HytaleIndustries_Crush_Copper",
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Crusher"
+    }
+  ],
+  "TimeSeconds": 8.0,
+  "PrimaryOutput": {
+    "ItemId": "HytaleIndustries_CrushedCopper",
+    "Quantity": 2
+  },
+  "Input": [
+    { "ItemId": "Ore_Copper", "Quantity": 1 }
+  ]
+}

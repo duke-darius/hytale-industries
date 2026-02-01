@@ -30,11 +30,6 @@
           "HEConsumption": 20,
           "Enabled": false
         },
-        "HEProcessing": {
-          "WorkRequired": 0.0,
-          "CurrentWork": 0.0,
-          "Enabled": false
-        },
         "PoweredFurnaceInventory": {
           "Input": {
             "Slots": 1,

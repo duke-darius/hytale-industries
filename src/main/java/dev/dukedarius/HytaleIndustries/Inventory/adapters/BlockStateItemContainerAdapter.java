@@ -13,6 +13,7 @@ import dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapter;
 import dev.dukedarius.HytaleIndustries.Inventory.MachineInventory;
 import dev.dukedarius.HytaleIndustries.Inventory.SlotIO;
 import dev.dukedarius.HytaleIndustries.Inventory.containers.ContainerMachineInventory;
+import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,8 +38,32 @@ public class BlockStateItemContainerAdapter implements InventoryAdapter {
         if (chunk != null) {
             blockType = chunk.getBlockType(x & 31, y, z & 31);
         }
-        BlockType finalBlockType = blockType;
 
+        // Normalize block id (strip leading '*' and state suffix) so we can special-case our own conduit blocks.
+        String baseId = null;
+        if (blockType != null) {
+            baseId = blockType.getId();
+            if (baseId != null) {
+                if (baseId.startsWith("*")) {
+                    baseId = baseId.substring(1);
+                }
+                int stateIdx = baseId.indexOf("_State_");
+                if (stateIdx > 0) {
+                    baseId = baseId.substring(0, stateIdx);
+                }
+            }
+        }
+
+        // Pipes and power cables use ItemContainerBlockState internally for visuals, but they do NOT have real inventories.
+        // Never expose them as MachineInventory, otherwise item pipes will think cables are destinations.
+        if ("HytaleIndustries_BasicItemPipe".equals(baseId) || "HytaleIndustries_BasicPowerCable".equals(baseId)) {
+            HytaleIndustriesPlugin.LOGGER.atFine().log(
+                    "[BlockStateItemContainerAdapter] Skipping conduit block at (%d,%d,%d) id=%s as inventory",
+                    x, y, z, baseId);
+            return Collections.emptyList();
+        }
+
+        BlockType finalBlockType = blockType;
         return Collections.singletonList(new ContainerMachineInventory(container, slot -> mapSlotIO(finalBlockType, container, slot)));
     }
 

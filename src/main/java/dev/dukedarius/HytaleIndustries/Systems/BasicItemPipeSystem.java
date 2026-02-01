@@ -26,6 +26,8 @@ import javax.annotation.Nonnull;
 public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
 
     public static final String PIPE_STATE_ID = "basicItemPipe";
+    private static final String ITEM_PIPE_BLOCK_ID = "HytaleIndustries_BasicItemPipe";
+    private static final String POWER_CABLE_BLOCK_ID = "HytaleIndustries_BasicPowerCable";
     
     private final ComponentType<ChunkStore, BasicItemPipeComponent> pipeComponentType;
     private final ComponentType<ChunkStore, UpdatePipeComponent> updateComponentType;
@@ -111,15 +113,21 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
                 var holder = chunkForBlock.getBlockComponentHolder(currentX, currentY, currentZ);
                 var entity = chunkForBlock.getBlockComponentEntity(currentX, currentY, currentZ);
 
-                if (holder != null) {
-                    var neighborPipe = storeChunkStore.getComponent(entity, pipeComponentType);
-                    if (neighborPipe != null) {
-                        // A pipe neighbor exists - this direction should connect
-                        occupiedMask |= 1 << i;
-                        HytaleIndustriesPlugin.LOGGER.atFiner().log(
-                            "Found neighbor pipe at (%s,%s,%s) in direction %s",
-                            currentX, currentY, currentZ, dir
-                        );
+                if (holder != null && entity != null) {
+                    // Only treat actual item pipes as neighbors, never power cables or other blocks.
+                    BlockType neighborType = chunkForBlock.getBlockType(currentX & 31, currentY, currentZ & 31);
+                    String neighborId = neighborType != null ? neighborType.getId() : null;
+                    String baseId = normalizeBlockId(neighborId);
+                    if (ITEM_PIPE_BLOCK_ID.equals(baseId)) {
+                        var neighborPipe = storeChunkStore.getComponent(entity, pipeComponentType);
+                        if (neighborPipe != null) {
+                            // A pipe neighbor exists - this direction should connect
+                            occupiedMask |= 1 << i;
+                            HytaleIndustriesPlugin.LOGGER.atFiner().log(
+                                "Found neighbor pipe at (%s,%s,%s) in direction %s",
+                                currentX, currentY, currentZ, dir
+                            );
+                        }
                     }
                 }
 
@@ -283,11 +291,16 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
                 var holder = neighborChunk.getBlockComponentHolder(currentX, currentY, currentZ);
                 var entity = neighborChunk.getBlockComponentEntity(currentX, currentY, currentZ);
 
-                if (holder != null) {
-                    var neighborPipe = commandBufferChunkStore.getComponent(entity, pipeComponentType);
-                    if (neighborPipe != null && neighborPipe.canConnectTo(dir)) {
-                        HytaleIndustriesPlugin.LOGGER.atFiner().log("Notifying neighbor pipe to update at: %s, %s, %s", currentX, currentY, currentZ);
-                        commandBufferChunkStore.ensureComponent(entity, updateComponentType);
+                if (holder != null && entity != null) {
+                    BlockType neighborType = neighborChunk.getBlockType(currentX & 31, currentY, currentZ & 31);
+                    String neighborId = neighborType != null ? neighborType.getId() : null;
+                    String baseId = normalizeBlockId(neighborId);
+                    if (ITEM_PIPE_BLOCK_ID.equals(baseId)) {
+                        var neighborPipe = commandBufferChunkStore.getComponent(entity, pipeComponentType);
+                        if (neighborPipe != null && neighborPipe.canConnectTo(dir)) {
+                            HytaleIndustriesPlugin.LOGGER.atFiner().log("Notifying neighbor pipe to update at: %s, %s, %s", currentX, currentY, currentZ);
+                            commandBufferChunkStore.ensureComponent(entity, updateComponentType);
+                        }
                     }
                 }
             }
@@ -302,7 +315,7 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
         // Resolve filler blocks to their origin
         int[] origin = resolveFillerOrigin(world, x, y, z);
         int ox = origin[0], oy = origin[1], oz = origin[2];
-        
+
         if (ox != x || oy != y || oz != z) {
             HytaleIndustriesPlugin.LOGGER.atFiner().log(
                 "Resolved filler block at (%s,%s,%s) to origin (%s,%s,%s)",
@@ -310,7 +323,25 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
             );
         }
 
-        boolean hasInventory = !dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters.find(world, store, ox, oy, oz).isEmpty();
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(ox, oz));
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(ox, oz));
+        }
+        if (chunk != null) {
+            BlockType type = chunk.getBlockType(ox & 31, oy, oz & 31);
+            String blockId = type != null ? type.getId() : null;
+            String baseId = normalizeBlockId(blockId);
+            if (ITEM_PIPE_BLOCK_ID.equals(baseId) || POWER_CABLE_BLOCK_ID.equals(baseId)) {
+                HytaleIndustriesPlugin.LOGGER.atFiner().log(
+                    "Checking inventory at (%s,%s,%s): skipping conduit block baseId=%s",
+                    ox, oy, oz, baseId
+                );
+                return false;
+            }
+        }
+
+        boolean hasInventory = !dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters
+                .find(world, store, ox, oy, oz).isEmpty();
 
         HytaleIndustriesPlugin.LOGGER.atFiner().log(
             "Checking inventory at (%s,%s,%s): hasInventory=%s",
@@ -337,5 +368,20 @@ public class BasicItemPipeSystem extends RefSystem<ChunkStore> {
         int dy = FillerBlockUtil.unpackY(filler);
         int dz = FillerBlockUtil.unpackZ(filler);
         return new int[]{x - dx, y - dy, z - dz};
+    }
+
+    private static String normalizeBlockId(String blockId) {
+        if (blockId == null) {
+            return null;
+        }
+        String base = blockId;
+        if (base.startsWith("*")) {
+            base = base.substring(1);
+        }
+        int stateIdx = base.indexOf("_State_");
+        if (stateIdx > 0) {
+            base = base.substring(0, stateIdx);
+        }
+        return base;
     }
 }

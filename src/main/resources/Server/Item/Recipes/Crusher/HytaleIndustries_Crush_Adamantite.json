@@ -1,0 +1,17 @@
+{
+  "Id": "HytaleIndustries_Crush_Adamantite",
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Crusher"
+    }
+  ],
+  "TimeSeconds": 8.0,
+  "PrimaryOutput": {
+    "ItemId": "HytaleIndustries_CrushedAdamantite",
+    "Quantity": 2
+  },
+  "Input": [
+    { "ItemId": "Ore_Adamantite", "Quantity": 1 }
+  ]
+}

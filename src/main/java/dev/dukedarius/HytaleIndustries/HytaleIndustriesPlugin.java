@@ -25,7 +25,6 @@ import dev.dukedarius.HytaleIndustries.Components.Energy.ConsumesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.FuelInventory;
 import dev.dukedarius.HytaleIndustries.Components.Energy.ProducesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
-import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
@@ -93,7 +92,6 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     private ComponentType<ChunkStore, StoresHE> storesHeType;
     private ComponentType<ChunkStore, ConsumesHE> consumesHeType;
     private ComponentType<ChunkStore, ProducesHE> producesHeType;
-    private ComponentType<ChunkStore, HEProcessing> heProcessingType;
     private ComponentType<ChunkStore, CableEndpoint> cableEndpointType;
     private ComponentType<ChunkStore, FuelInventory> fuelInventoryType;
     private ComponentType<ChunkStore, PoweredFurnaceInventory> poweredFurnaceInventoryType;
@@ -132,7 +130,6 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public ComponentType<ChunkStore, StoresHE> getStoresHeType() { return storesHeType; }
     public ComponentType<ChunkStore, ConsumesHE> getConsumesHeType() { return consumesHeType; }
     public ComponentType<ChunkStore, ProducesHE> getProducesHeType() { return producesHeType; }
-    public ComponentType<ChunkStore, HEProcessing> getHeProcessingType() { return heProcessingType; }
     public ComponentType<ChunkStore, CableEndpoint> getCableEndpointType() { return cableEndpointType; }
     public ComponentType<ChunkStore, FuelInventory> getFuelInventoryType() { return fuelInventoryType; }
     public ComponentType<ChunkStore, PoweredFurnaceInventory> getPoweredFurnaceInventoryType() { return poweredFurnaceInventoryType; }
@@ -218,11 +215,6 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 "ProducesHE",
                 ProducesHE.CODEC
         );
-        this.heProcessingType = this.getChunkStoreRegistry().registerComponent(
-                HEProcessing.class,
-                "HEProcessing",
-                HEProcessing.CODEC
-        );
         this.cableEndpointType = this.getChunkStoreRegistry().registerComponent(
                 CableEndpoint.class,
                 "CableEndpoint",
@@ -287,12 +279,6 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 )
         );
         this.getChunkStoreRegistry().registerSystem(
-                new dev.dukedarius.HytaleIndustries.Systems.Energy.HEProcessingSystem(
-                        this.heProcessingType,
-                        this.consumesHeType
-                )
-        );
-        this.getChunkStoreRegistry().registerSystem(
                 new BasicPowerCableTransferSystem(
                         this.basicPowerCableComponentType,
                         this.cableEndpointType,
@@ -313,8 +299,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 new dev.dukedarius.HytaleIndustries.Systems.PoweredFurnaceProcessingSystem(
                         this.poweredFurnaceInventoryType,
                         this.storesHeType,
-                        this.consumesHeType,
-                        this.heProcessingType
+                        this.consumesHeType
                 )
         );
         this.getChunkStoreRegistry().registerSystem(
@@ -324,8 +309,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 new dev.dukedarius.HytaleIndustries.Systems.PoweredCrusherProcessingSystem(
                         this.poweredCrusherInventoryType,
                         this.storesHeType,
-                        this.consumesHeType,
-                        this.heProcessingType
+                        this.consumesHeType
                 )
         );
 

@@ -1,0 +1,17 @@
+{
+  "Id": "HytaleIndustries_Crush_Onyxium",
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Crusher"
+    }
+  ],
+  "TimeSeconds": 8.0,
+  "PrimaryOutput": {
+    "ItemId": "HytaleIndustries_CrushedOnyxium",
+    "Quantity": 2
+  },
+  "Input": [
+    { "ItemId": "Ore_Onyxium", "Quantity": 1 }
+  ]
+}

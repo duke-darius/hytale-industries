@@ -1,0 +1,17 @@
+{
+  "Input": [
+    {
+      "ItemId": "HytaleIndustries_CrushedPrisma"
+    }
+  ],
+  "PrimaryOutput": {
+    "ItemId": "Ingredient_Bar_Prisma"
+  },
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Furnace"
+    }
+  ],
+  "TimeSeconds": 7
+}

@@ -1,0 +1,17 @@
+{
+  "Input": [
+    {
+      "ItemId": "HytaleIndustries_CrushedCobalt"
+    }
+  ],
+  "PrimaryOutput": {
+    "ItemId": "Ingredient_Bar_Cobalt"
+  },
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Furnace"
+    }
+  ],
+  "TimeSeconds": 7
+}

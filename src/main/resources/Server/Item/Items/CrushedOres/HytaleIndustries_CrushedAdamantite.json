@@ -1,0 +1,9 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_CrushedIron.png",
+  "TranslationProperties": {
+    "Name": "Crushed Adamantite",
+    "Description": "Adamantite ore that has been crushed into a fine powder."
+  },
+  "ItemEntity": {},
+  "MaxStack": 64
+}

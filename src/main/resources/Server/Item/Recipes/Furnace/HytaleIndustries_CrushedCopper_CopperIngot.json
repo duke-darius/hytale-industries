@@ -1,0 +1,17 @@
+{
+  "Input": [
+    {
+      "ItemId": "HytaleIndustries_CrushedCopper"
+    }
+  ],
+  "PrimaryOutput": {
+    "ItemId": "Ingredient_Bar_Copper"
+  },
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Furnace"
+    }
+  ],
+  "TimeSeconds": 7
+}

@@ -1,8 +1,8 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_ItemPipe.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PowerCable.png",
   "TranslationProperties": {
     "Name": "Basic Power Cable",
-    "Description": "Simple power transfer cables using modern ECS architecture."
+    "Description": "Basic power transfer cables used to connect power sources to machines."
   },
   "ItemEntity": {},
   "Interactions": {
@@ -72,6 +72,13 @@
     "Support": {},
     "MaxSupportDistance": 0,
     "SupportsRequiredFor": "Any",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks",
+        "Quality": 0,
+        "Quantity": 1
+      }
+    },
     "State": {
       "Id": "basicPowerCable",
       "Definitions": {

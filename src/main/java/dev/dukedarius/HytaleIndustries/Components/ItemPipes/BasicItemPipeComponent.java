@@ -3,6 +3,7 @@ package dev.dukedarius.HytaleIndustries.Components.ItemPipes;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.codec.codecs.EnumCodec;
 import com.hypixel.hytale.codec.validation.Validators;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
@@ -46,6 +47,79 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
             )
             .addValidator(Validators.greaterThanOrEqual(0))
             .add()
+            // Per-side item filter configuration (applies to both extraction and insertion)
+            .append(
+                    new KeyedCodec<>("NorthFilterItems", Codec.STRING_ARRAY),
+                    (o, v) -> o.northFilterItems = v,
+                    o -> o.northFilterItems
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("NorthFilterMode", new EnumCodec<>(FilterMode.class)),
+                    (o, v) -> o.northFilterMode = v,
+                    o -> o.northFilterMode
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("SouthFilterItems", Codec.STRING_ARRAY),
+                    (o, v) -> o.southFilterItems = v,
+                    o -> o.southFilterItems
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("SouthFilterMode", new EnumCodec<>(FilterMode.class)),
+                    (o, v) -> o.southFilterMode = v,
+                    o -> o.southFilterMode
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("WestFilterItems", Codec.STRING_ARRAY),
+                    (o, v) -> o.westFilterItems = v,
+                    o -> o.westFilterItems
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("WestFilterMode", new EnumCodec<>(FilterMode.class)),
+                    (o, v) -> o.westFilterMode = v,
+                    o -> o.westFilterMode
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("EastFilterItems", Codec.STRING_ARRAY),
+                    (o, v) -> o.eastFilterItems = v,
+                    o -> o.eastFilterItems
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("EastFilterMode", new EnumCodec<>(FilterMode.class)),
+                    (o, v) -> o.eastFilterMode = v,
+                    o -> o.eastFilterMode
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("UpFilterItems", Codec.STRING_ARRAY),
+                    (o, v) -> o.upFilterItems = v,
+                    o -> o.upFilterItems
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("UpFilterMode", new EnumCodec<>(FilterMode.class)),
+                    (o, v) -> o.upFilterMode = v,
+                    o -> o.upFilterMode
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("DownFilterItems", Codec.STRING_ARRAY),
+                    (o, v) -> o.downFilterItems = v,
+                    o -> o.downFilterItems
+            )
+            .add()
+            .append(
+                    new KeyedCodec<>("DownFilterMode", new EnumCodec<>(FilterMode.class)),
+                    (o, v) -> o.downFilterMode = v,
+                    o -> o.downFilterMode
+            )
+            .add()
             .build();
 
     // Bitmask for pipe connections in 6 directions (like Adesi's)
@@ -60,6 +134,21 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
     
     // Bitmask for manually configured sides (prevents auto-restoration)
     private int manualConfigMask;
+
+    // Per-side item filters (applies to both extraction and insertion)
+    private String[] northFilterItems;
+    private String[] southFilterItems;
+    private String[] westFilterItems;
+    private String[] eastFilterItems;
+    private String[] upFilterItems;
+    private String[] downFilterItems;
+
+    private FilterMode northFilterMode;
+    private FilterMode southFilterMode;
+    private FilterMode westFilterMode;
+    private FilterMode eastFilterMode;
+    private FilterMode upFilterMode;
+    private FilterMode downFilterMode;
 
     public BasicItemPipeComponent() {
         this(0, 0);
@@ -77,6 +166,20 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
         this.sideConfig = other.sideConfig;
         this.secondsAccumulator = other.secondsAccumulator;
         this.manualConfigMask = other.manualConfigMask;
+
+        this.northFilterItems = cloneArray(other.northFilterItems);
+        this.southFilterItems = cloneArray(other.southFilterItems);
+        this.westFilterItems = cloneArray(other.westFilterItems);
+        this.eastFilterItems = cloneArray(other.eastFilterItems);
+        this.upFilterItems = cloneArray(other.upFilterItems);
+        this.downFilterItems = cloneArray(other.downFilterItems);
+
+        this.northFilterMode = other.northFilterMode;
+        this.southFilterMode = other.southFilterMode;
+        this.westFilterMode = other.westFilterMode;
+        this.eastFilterMode = other.eastFilterMode;
+        this.upFilterMode = other.upFilterMode;
+        this.downFilterMode = other.downFilterMode;
     }
 
     public int getPipeState() {
@@ -108,6 +211,20 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
         this.sideConfig = other.sideConfig;
         this.secondsAccumulator = other.secondsAccumulator;
         this.manualConfigMask = other.manualConfigMask;
+
+        this.northFilterItems = cloneArray(other.northFilterItems);
+        this.southFilterItems = cloneArray(other.southFilterItems);
+        this.westFilterItems = cloneArray(other.westFilterItems);
+        this.eastFilterItems = cloneArray(other.eastFilterItems);
+        this.upFilterItems = cloneArray(other.upFilterItems);
+        this.downFilterItems = cloneArray(other.downFilterItems);
+
+        this.northFilterMode = other.northFilterMode;
+        this.southFilterMode = other.southFilterMode;
+        this.westFilterMode = other.westFilterMode;
+        this.eastFilterMode = other.eastFilterMode;
+        this.upFilterMode = other.upFilterMode;
+        this.downFilterMode = other.downFilterMode;
     }
 
     private static final Vector3i[] DIRECTIONS = {
@@ -208,6 +325,118 @@ public class BasicItemPipeComponent implements Component<ChunkStore> {
             return false;
         }
         return ((getPipeState() >> bitIndex) & 1) == 1;
+    }
+
+    // ---- Filter helpers ----
+
+    private static String[] cloneArray(String[] src) {
+        return src != null ? src.clone() : null;
+    }
+
+    public enum FilterMode {
+        None,
+        Whitelist,
+        Blacklist
+    }
+
+    private FilterMode getFilterModeByIndex(int index) {
+        FilterMode mode;
+        switch (index) {
+            case 0 -> mode = northFilterMode;
+            case 1 -> mode = southFilterMode;
+            case 2 -> mode = westFilterMode;
+            case 3 -> mode = eastFilterMode;
+            case 4 -> mode = upFilterMode;
+            case 5 -> mode = downFilterMode;
+            default -> mode = FilterMode.None;
+        }
+        return mode != null ? mode : FilterMode.None;
+    }
+
+    private String[] getFilterItemsByIndex(int index) {
+        return switch (index) {
+            case 0 -> northFilterItems;
+            case 1 -> southFilterItems;
+            case 2 -> westFilterItems;
+            case 3 -> eastFilterItems;
+            case 4 -> upFilterItems;
+            case 5 -> downFilterItems;
+            default -> null;
+        };
+    }
+
+    public FilterMode getFilterMode(Vector3i direction) {
+        int idx = getBitIndex(direction);
+        if (idx == -1) return FilterMode.None;
+        return getFilterModeByIndex(idx);
+    }
+
+    public String[] getFilterItems(Vector3i direction) {
+        int idx = getBitIndex(direction);
+        if (idx == -1) return null;
+        String[] arr = getFilterItemsByIndex(idx);
+        return arr != null ? arr.clone() : null;
+    }
+
+    public void setFilter(Vector3i direction, FilterMode mode, String[] items) {
+        int idx = getBitIndex(direction);
+        if (idx == -1) return;
+
+        String[] copy = cloneArray(items);
+        switch (idx) {
+            case 0 -> {
+                northFilterMode = mode;
+                northFilterItems = copy;
+            }
+            case 1 -> {
+                southFilterMode = mode;
+                southFilterItems = copy;
+            }
+            case 2 -> {
+                westFilterMode = mode;
+                westFilterItems = copy;
+            }
+            case 3 -> {
+                eastFilterMode = mode;
+                eastFilterItems = copy;
+            }
+            case 4 -> {
+                upFilterMode = mode;
+                upFilterItems = copy;
+            }
+            case 5 -> {
+                downFilterMode = mode;
+                downFilterItems = copy;
+            }
+        }
+    }
+
+    public boolean allowsItemForDirection(Vector3i direction, String itemId) {
+        int idx = getBitIndex(direction);
+        if (idx == -1 || itemId == null) return true;
+
+        FilterMode mode = getFilterModeByIndex(idx);
+        String[] items = getFilterItemsByIndex(idx);
+
+        if (mode == null || mode == FilterMode.None) {
+            return true;
+        }
+
+        boolean listed = false;
+        if (items != null && items.length > 0) {
+            for (String id : items) {
+                if (itemId.equals(id)) {
+                    listed = true;
+                    break;
+                }
+            }
+        }
+
+        return switch (mode) {
+            case Whitelist -> listed;
+            case Blacklist -> !listed;
+            case None -> true;
+        };
     }
 
     @Override

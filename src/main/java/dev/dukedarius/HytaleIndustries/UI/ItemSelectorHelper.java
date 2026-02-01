@@ -44,7 +44,16 @@ public final class ItemSelectorHelper {
         void onSelection(@Nonnull PlayerRef playerRef, @Nonnull List<String> selectedItemIds);
     }
 
+    /**
+     * Callback invoked when the selector is closed (either via Confirm or Cancel).
+     * This is typically used by callers that want to restore or reopen their own UI.
+     */
+    public interface CloseCallback {
+        void onClosed(@Nonnull PlayerRef playerRef);
+    }
+
     private static final Map<UUID, SelectionCallback> CALLBACKS = new ConcurrentHashMap<>();
+    private static final Map<UUID, CloseCallback> CLOSE_CALLBACKS = new ConcurrentHashMap<>();
     private static final Map<UUID, List<String>> LAST_SELECTION = new ConcurrentHashMap<>();
 
     /**
@@ -61,6 +70,18 @@ public final class ItemSelectorHelper {
                             @Nonnull List<String> candidateItemIds,
                             @Nullable Collection<String> preselected,
                             @Nullable SelectionCallback callback) {
+        open(playerEntityRef, store, candidateItemIds, preselected, callback, null);
+    }
+
+    /**
+     * Open the item selector UI for a player with an additional close callback.
+     */
+    public static void open(@Nonnull Ref<EntityStore> playerEntityRef,
+                            @Nonnull Store<EntityStore> store,
+                            @Nonnull List<String> candidateItemIds,
+                            @Nullable Collection<String> preselected,
+                            @Nullable SelectionCallback callback,
+                            @Nullable CloseCallback closeCallback) {
         Player player = store.getComponent(playerEntityRef, Player.getComponentType());
         PlayerRef playerRef = store.getComponent(playerEntityRef, PlayerRef.getComponentType());
         if (player == null || playerRef == null) {
@@ -72,6 +93,12 @@ public final class ItemSelectorHelper {
             CALLBACKS.put(playerId, callback);
         } else {
             CALLBACKS.remove(playerId);
+        }
+
+        if (closeCallback != null) {
+            CLOSE_CALLBACKS.put(playerId, closeCallback);
+        } else {
+            CLOSE_CALLBACKS.remove(playerId);
         }
 
         ItemSelectorUIPage page = new ItemSelectorUIPage(playerRef, candidateItemIds, preselected);
@@ -111,5 +138,21 @@ public final class ItemSelectorHelper {
     public static void clearSelection(@Nonnull UUID playerId) {
         LAST_SELECTION.remove(playerId);
         CALLBACKS.remove(playerId);
+        CLOSE_CALLBACKS.remove(playerId);
+    }
+
+    /**
+     * Internal hook used by ItemSelectorUIPage when the selector is closed (confirm or cancel).
+     */
+    static void onClosed(@Nonnull PlayerRef playerRef) {
+        UUID playerId = playerRef.getUuid();
+        CloseCallback cb = CLOSE_CALLBACKS.remove(playerId);
+        if (cb != null) {
+            try {
+                cb.onClosed(playerRef);
+            } catch (Throwable t) {
+                HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t).log("ItemSelectorHelper: close callback threw");
+            }
+        }
     }
 }

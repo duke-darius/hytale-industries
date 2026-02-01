@@ -105,9 +105,13 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
                 var entity = chunkForBlock.getBlockComponentEntity(currentX, currentY, currentZ);
 
                 boolean hasCable = false;
-                if (holder != null) {
+                if (holder != null && entity != null) {
+                    BlockType neighborType = chunkForBlock.getBlockType(currentX & 31, currentY, currentZ & 31);
+                    String neighborId = neighborType != null ? neighborType.getId() : null;
+                    String baseId = normalizeBlockId(neighborId);
+
                     var neighborCable = store.getComponent(entity, cableComponentType);
-                    if (neighborCable != null) {
+                    if (neighborCable != null && "HytaleIndustries_BasicPowerCable".equals(baseId)) {
                         // Track raw neighbor existence for reconciliation
                         hasCableNeighbor[i] = true;
                         
@@ -240,12 +244,19 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
         int[] origin = resolveFillerOrigin(world, x, y, z);
         int ox = origin[0], oy = origin[1], oz = origin[2];
 
-        // Check if block has energy capability
+        // Check if block has energy capability, but never treat our own conduits (pipes or cables)
         WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(ox, oz));
         if (chunk == null) {
             chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(ox, oz));
         }
         if (chunk == null) {
+            return false;
+        }
+
+        BlockType blockType = chunk.getBlockType(ox & 31, oy, oz & 31);
+        String blockId = blockType != null ? blockType.getId() : null;
+        String baseId = normalizeBlockId(blockId);
+        if ("HytaleIndustries_BasicItemPipe".equals(baseId) || "HytaleIndustries_BasicPowerCable".equals(baseId)) {
             return false;
         }
 
@@ -284,5 +295,24 @@ public class BasicPowerCableUpdateSystem extends EntityTickingSystem<ChunkStore>
         int dy = FillerBlockUtil.unpackY(filler);
         int dz = FillerBlockUtil.unpackZ(filler);
         return new int[]{x - dx, y - dy, z - dz};
+    }
+
+    /**
+     * Normalize a runtime block id (which may include leading '*' and state suffix) into
+     * the base asset id.
+     */
+    private static String normalizeBlockId(String blockId) {
+        if (blockId == null) {
+            return null;
+        }
+        String base = blockId;
+        if (base.startsWith("*")) {
+            base = base.substring(1);
+        }
+        int stateIdx = base.indexOf("_State_");
+        if (stateIdx > 0) {
+            base = base.substring(0, stateIdx);
+        }
+        return base;
     }
 }

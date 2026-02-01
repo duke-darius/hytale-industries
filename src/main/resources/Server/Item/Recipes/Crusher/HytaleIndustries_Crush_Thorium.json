@@ -1,0 +1,17 @@
+{
+  "Id": "HytaleIndustries_Crush_Thorium",
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Crusher"
+    }
+  ],
+  "TimeSeconds": 8.0,
+  "PrimaryOutput": {
+    "ItemId": "HytaleIndustries_CrushedThorium",
+    "Quantity": 2
+  },
+  "Input": [
+    { "ItemId": "Ore_Thorium", "Quantity": 1 }
+  ]
+}

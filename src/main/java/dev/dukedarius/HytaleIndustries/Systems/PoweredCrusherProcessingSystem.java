@@ -17,7 +17,6 @@ import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction
 import com.hypixel.hytale.server.core.inventory.transaction.ListTransaction;
 import dev.dukedarius.HytaleIndustries.Components.Energy.ConsumesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
-import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -32,18 +31,15 @@ public class PoweredCrusherProcessingSystem extends EntityTickingSystem<com.hypi
     private final ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, PoweredCrusherInventory> invType;
     private final ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, StoresHE> storeType;
     private final ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, ConsumesHE> consumeType;
-    private final ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, HEProcessing> procType;
     private final Query<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore> query;
 
     public PoweredCrusherProcessingSystem(ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, PoweredCrusherInventory> invType,
                                           ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, StoresHE> storeType,
-                                          ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, ConsumesHE> consumeType,
-                                          ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, HEProcessing> procType) {
+                                          ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, ConsumesHE> consumeType) {
         this.invType = invType;
         this.storeType = storeType;
         this.consumeType = consumeType;
-        this.procType = procType;
-        this.query = Query.and(invType, storeType, consumeType, procType);
+        this.query = Query.and(invType, storeType, consumeType);
     }
 
     @Override
@@ -59,8 +55,7 @@ public class PoweredCrusherProcessingSystem extends EntityTickingSystem<com.hypi
         PoweredCrusherInventory inv = chunk.getComponent(index, invType);
         StoresHE energy = chunk.getComponent(index, storeType);
         ConsumesHE consume = chunk.getComponent(index, consumeType);
-        HEProcessing proc = chunk.getComponent(index, procType);
-        if (inv == null || energy == null || consume == null || proc == null) return;
+        if (inv == null || energy == null || consume == null) return;
 
         ensureContainers(inv);
 
@@ -69,10 +64,9 @@ public class PoweredCrusherProcessingSystem extends EntityTickingSystem<com.hypi
 
         CraftingRecipe recipe = findRecipe(input);
         if (recipe == null) {
-            proc.setEnabled(false);
             consume.enabled = false;
-            proc.setCurrentWork(0f);
-            buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+            inv.currentWork = 0f;
+            buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
             buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
             return;
         }
@@ -80,39 +74,36 @@ public class PoweredCrusherProcessingSystem extends EntityTickingSystem<com.hypi
         List<ItemStack> outputs = com.hypixel.hytale.builtin.crafting.component.CraftingManager.getOutputItemStacks(recipe);
 
         if (!canFitOutputs(output, outputs)) {
-            proc.setEnabled(false);
             consume.enabled = false;
-            buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
             buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
+            buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
             return;
         }
 
         float effectiveTime = Math.max(0.0001f, recipe.getTimeSeconds() / SPEED_MULTIPLIER);
-        proc.setWorkRequired(effectiveTime);
-        consume.heConsumption = 20;
+        inv.workRequired = effectiveTime;
 
-        long heCost = consume.heConsumption; // per tick
+        consume.heConsumption = 0;
+        consume.enabled = false;
+
+        final long heCost = 20L; // 20 HE per tick
         if (energy.current < heCost) {
             consume.enabled = false;
-            proc.setEnabled(false);
             buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
-            buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+            buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
+            buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
             return;
         }
 
-        // Begin/continue processing
-        consume.enabled = true;
-        proc.setEnabled(false); // keep HEProcessingSystem from also advancing work
+        energy.current -= heCost;
+        inv.currentWork += dt;
 
-        proc.setCurrentWork(proc.getCurrentWork() + dt);
-
-        if (proc.getCurrentWork() + 1e-6 >= proc.getWorkRequired()) {
+        if (inv.currentWork + 1e-6 >= inv.workRequired) {
             if (!hasAllInputs(input, inputs)) {
-                proc.setCurrentWork(0f);
-                proc.setEnabled(false);
+                inv.currentWork = 0f;
                 consume.enabled = false;
                 buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
-                buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+                buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
                 buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
                 return;
             }
@@ -120,27 +111,26 @@ public class PoweredCrusherProcessingSystem extends EntityTickingSystem<com.hypi
             ListTransaction<com.hypixel.hytale.server.core.inventory.transaction.MaterialTransaction> removeTx =
                     input.removeMaterials(inputs, true, true, true);
             if (!removeTx.succeeded()) {
-                proc.setCurrentWork(0f);
-                proc.setEnabled(false);
+                inv.currentWork = 0f;
                 consume.enabled = false;
                 buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
-                buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+                buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
                 buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
                 return;
             }
 
             ListTransaction<ItemStackTransaction> addTx = output.addItemStacks(outputs, false, false, false);
             if (addTx == null || !addTx.succeeded()) {
-                proc.setCurrentWork(0f);
-                buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+                inv.currentWork = 0f;
+                buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
                 buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
                 return;
             }
 
-            proc.setCurrentWork(0f);
+            inv.currentWork = 0f;
         }
 
-        buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+        buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
         buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
         buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
     }

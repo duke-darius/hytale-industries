@@ -25,6 +25,7 @@ import javax.annotation.Nonnull;
 public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
 
     private final ComponentType<ChunkStore, BasicItemPipeComponent> pipeComponentType;
+    private static final String ITEM_PIPE_BLOCK_ID = "HytaleIndustries_BasicItemPipe";
     private final ComponentType<ChunkStore, UpdatePipeComponent> updateComponentType;
     private final Query<ChunkStore> query;
 
@@ -112,11 +113,16 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
                 var holder = chunkForBlock.getBlockComponentHolder(currentX, currentY, currentZ);
                 var entity = chunkForBlock.getBlockComponentEntity(currentX, currentY, currentZ);
 
-                if (holder != null) {
-                    var neighborPipe = store.getComponent(entity, pipeComponentType);
-                    if (neighborPipe != null) {
-                        // A pipe neighbor exists - this direction should connect
-                        occupiedMask |= 1 << i;
+                if (holder != null && entity != null) {
+                    BlockType neighborType = chunkForBlock.getBlockType(currentX & 31, currentY, currentZ & 31);
+                    String neighborId = neighborType != null ? neighborType.getId() : null;
+                    String baseId = normalizeBlockId(neighborId);
+                    if (ITEM_PIPE_BLOCK_ID.equals(baseId)) {
+                        var neighborPipe = store.getComponent(entity, pipeComponentType);
+                        if (neighborPipe != null) {
+                            // A pipe neighbor exists - this direction should connect
+                            occupiedMask |= 1 << i;
+                        }
                     }
                 }
                 
@@ -166,8 +172,13 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
             if (chunkForBlock != null) {
                 var entity = chunkForBlock.getBlockComponentEntity(currentX, currentY, currentZ);
                 if (entity != null) {
-                    var neighborPipe = store.getComponent(entity, pipeComponentType);
-                    if (neighborPipe != null) hasPipe = true;
+                    BlockType neighborType = chunkForBlock.getBlockType(currentX & 31, currentY, currentZ & 31);
+                    String neighborId = neighborType != null ? neighborType.getId() : null;
+                    String baseId = normalizeBlockId(neighborId);
+                    if (ITEM_PIPE_BLOCK_ID.equals(baseId)) {
+                        var neighborPipe = store.getComponent(entity, pipeComponentType);
+                        if (neighborPipe != null) hasPipe = true;
+                    }
                 }
             }
             if ((hasPipe || hasInv) && pipe.isSideConnected(dir)) {
@@ -255,5 +266,25 @@ public class BasicItemPipeUpdateSystem extends EntityTickingSystem<ChunkStore> {
         int dy = FillerBlockUtil.unpackY(filler);
         int dz = FillerBlockUtil.unpackZ(filler);
         return new int[]{x - dx, y - dy, z - dz};
+    }
+
+    /**
+     * Normalize a runtime block id (which may include leading '*' and state suffix) into
+     * the base asset id, e.g. "*HytaleIndustries_BasicItemPipe_State_Definitions_State000"
+     * → "HytaleIndustries_BasicItemPipe".
+     */
+    private static String normalizeBlockId(String blockId) {
+        if (blockId == null) {
+            return null;
+        }
+        String base = blockId;
+        if (base.startsWith("*")) {
+            base = base.substring(1);
+        }
+        int stateIdx = base.indexOf("_State_");
+        if (stateIdx > 0) {
+            base = base.substring(0, stateIdx);
+        }
+        return base;
     }
 }

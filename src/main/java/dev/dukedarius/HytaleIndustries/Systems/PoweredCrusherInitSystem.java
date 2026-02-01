@@ -13,7 +13,6 @@ import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.dukedarius.HytaleIndustries.Components.Energy.ConsumesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
-import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
@@ -65,15 +64,6 @@ public class PoweredCrusherInitSystem extends RefSystem<ChunkStore> {
             consumes.heConsumption = 20; // 20 HE per tick
             consumes.enabled = false;
             buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getConsumesHeType(), consumes);
-        }
-
-        HEProcessing proc = store.getComponent(ref, HytaleIndustriesPlugin.INSTANCE.getHeProcessingType());
-        if (proc == null) {
-            proc = new HEProcessing();
-            proc.setWorkRequired(0f);
-            proc.setCurrentWork(0f);
-            proc.setEnabled(false);
-            buffer.addComponent(ref, HytaleIndustriesPlugin.INSTANCE.getHeProcessingType(), proc);
         }
 
         PoweredCrusherInventory inv = store.getComponent(ref, HytaleIndustriesPlugin.INSTANCE.getPoweredCrusherInventoryType());

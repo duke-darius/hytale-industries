@@ -1,0 +1,121 @@
+$C = "../Common.ui";
+
+Group {
+  Anchor: (Width: 440, Height: 530);
+
+  $C.@Container {
+    Anchor: (Full: 0);
+
+    #Title {
+      Group {
+        $C.@Title {
+          @Text = "Pipe Filter";
+        }
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Left: 10, Right: 10, Top: 10, Bottom: 10);
+
+      Label #SideLabel {
+        Text: "Side: ?, Mode: ?";
+        Style: (
+          FontSize: 12,
+          TextColor: #b7cedd
+        );
+      }
+
+      Group { Anchor: (Height: 6); }
+
+      // Mode buttons row
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 30);
+
+        $C.@SmallSecondaryTextButton #ModeNoneButton {
+          @Text = "No Filter";
+          Padding: (Full: 0);
+          FlexWeight: 1;
+          Anchor: (Height: 26);
+        }
+
+        Group { Anchor: (Width: 6); }
+
+        $C.@SmallSecondaryTextButton #ModeWhitelistButton {
+          @Text = "Whitelist";
+          Padding: (Full: 0);
+          FlexWeight: 1;
+          Anchor: (Height: 26);
+        }
+
+        Group { Anchor: (Width: 6); }
+
+        $C.@SmallSecondaryTextButton #ModeBlacklistButton {
+          @Text = "Blacklist";
+          Padding: (Full: 0);
+          FlexWeight: 1;
+          Anchor: (Height: 26);
+        }
+      }
+
+      Group { Anchor: (Height: 8); }
+
+      // Edit / Clear row
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 30);
+
+        $C.@SmallSecondaryTextButton #EditItemsButton {
+          @Text = "Edit Items";
+          @Anchor = Anchor(Width: 130, Height: 26);
+        }
+
+        Group { Anchor: (Width: 6); }
+
+        $C.@SmallSecondaryTextButton #ClearButton {
+          @Text = "Clear";
+          @Background = "#a83232";
+          @Anchor = Anchor(Width: 150, Height: 26);
+        }
+
+      }
+
+
+
+
+      Group { Anchor: (Height: 8); }
+
+      Label #ItemsSummary {
+        Text: "Items: 0";
+        Style: (
+          FontSize: 11,
+          TextColor: #7f93a9
+        );
+      }
+
+      Group #ItemsListContainerScrollbox {
+        LayoutMode: TopScrolling;
+        FlexWeight: 1;
+        Background: (Color: #1a2233);
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Anchor: (Top: 4, Bottom: 4, Left: 4, Right: 4);
+
+        Group #ItemsListContainer {
+          LayoutMode: LeftCenterWrap;
+        }
+      }
+
+      // Footer row inside content (Container has no #Footer slot)
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 40, Top: 4);
+
+        $C.@CancelTextButton #BackButton {
+          @Text = "Back";
+          @Anchor = Anchor(Width: 220, Height: 30, Right: 0);
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "Id": "HytaleIndustries_Crush_Mithril",
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Crusher"
+    }
+  ],
+  "TimeSeconds": 8.0,
+  "PrimaryOutput": {
+    "ItemId": "HytaleIndustries_CrushedMithril",
+    "Quantity": 2
+  },
+  "Input": [
+    { "ItemId": "Ore_Mithril", "Quantity": 1 }
+  ]
+}

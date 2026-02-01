@@ -2,7 +2,7 @@
   "Icon": "Icons/ItemsGenerated/HytaleIndustries_ItemPipe.png",
   "TranslationProperties": {
     "Name": "Basic Item Pipe",
-    "Description": "Simple item transfer pipes using modern ECS architecture."
+    "Description": "Basic item transfer pipes with advanced filtering capabilities."
   },
   "ItemEntity": {},
   "Interactions": {
@@ -72,6 +72,13 @@
     "Support": {},
     "MaxSupportDistance": 0,
     "SupportsRequiredFor": "Any",
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks",
+        "Quality": 0,
+        "Quantity": 1
+      }
+    },
     "State": {
       "Id": "basicItemPipe",
       "Definitions": {

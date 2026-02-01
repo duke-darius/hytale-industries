@@ -11,6 +11,7 @@ import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
@@ -101,6 +102,52 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         } catch (IllegalArgumentException ex) {
             return;
         }
+
+        // Decide whether we're toggling connection state or opening the filter UI for this side
+        String action = data.action;
+        if (action == null || action.isEmpty()) {
+            action = ConfigurePipeUIEventData.ACTION_TOGGLE_SIDE;
+        }
+
+        if (ConfigurePipeUIEventData.ACTION_OPEN_FILTER.equals(action)) {
+            // Only item pipes support per-side item filters; ignore right-click on power cables.
+            World world = store.getExternalData().getWorld();
+            int x = this.x;
+            int y = this.y;
+            int z = this.z;
+
+            WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+            if (chunk == null) {
+                chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
+            }
+            if (chunk == null) {
+                return;
+            }
+
+            Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+            if (stateRef == null) {
+                return;
+            }
+
+            ComponentType<ChunkStore, BasicItemPipeComponent> basicPipeType = HytaleIndustriesPlugin.INSTANCE.getBasicItemPipeComponentType();
+            BasicItemPipeComponent basicPipe = stateRef.getStore().getComponent(stateRef, basicPipeType);
+            if (basicPipe == null) {
+                // This is not a BasicItemPipe; do nothing on right-click.
+                return;
+            }
+
+            // Open per-side filter configuration page for item pipes.
+            PlayerRef playerRef = store.getComponent(ref, PlayerRef.getComponentType());
+            Player player = store.getComponent(ref, Player.getComponentType());
+            if (playerRef != null && player != null) {
+                Vector3i dirVec = directionToVector(dir);
+                PipeFilterUIPage page = new PipeFilterUIPage(playerRef, this.x, this.y, this.z, dirVec, dir.name());
+                player.getPageManager().openCustomPage(ref, store, page);
+            }
+            return;
+        }
+
+        // Default behaviour: toggle connection state for this side
 
         World world = store.getExternalData().getWorld();
 
@@ -309,7 +356,7 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         setSideBackground(cmd, pipe, Direction.Up, "#UpBlockBorder");
         setSideBackground(cmd, pipe, Direction.Down, "#DownBlockBorder");
 
-        // Make each button clickable: cycle Default -> Extract -> None.
+        // Make each button clickable: left-click cycles Default -> Extract -> None, right-click opens filter UI.
         bindSlot(events, "#NorthBlockButton", Direction.North);
         bindSlot(events, "#SouthBlockButton", Direction.South);
         bindSlot(events, "#WestBlockButton", Direction.West);
@@ -319,10 +366,23 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
     }
 
     private static void bindSlot(@NonNullDecl UIEventBuilder events, @NonNullDecl String selector, @NonNullDecl Direction dir) {
+        // Primary click: toggle connection state
         events.addEventBinding(
                 CustomUIEventBindingType.Activating,
                 selector,
-                new EventData().append(ConfigurePipeUIEventData.KEY_SIDE, dir.name()),
+                new EventData()
+                        .append(ConfigurePipeUIEventData.KEY_ACTION, ConfigurePipeUIEventData.ACTION_TOGGLE_SIDE)
+                        .append(ConfigurePipeUIEventData.KEY_SIDE, dir.name()),
+                false
+        );
+
+        // Right-click: open per-side filter configuration
+        events.addEventBinding(
+                CustomUIEventBindingType.RightClicking,
+                selector,
+                new EventData()
+                        .append(ConfigurePipeUIEventData.KEY_ACTION, ConfigurePipeUIEventData.ACTION_OPEN_FILTER)
+                        .append(ConfigurePipeUIEventData.KEY_SIDE, dir.name()),
                 false
         );
     }
@@ -527,12 +587,21 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
     }
 
     public static final class ConfigurePipeUIEventData {
+        static final String KEY_ACTION = "Action";
         static final String KEY_SIDE = "Side";
 
+        static final String ACTION_TOGGLE_SIDE = "ToggleSide";
+        static final String ACTION_OPEN_FILTER = "OpenFilter";
+
         public static final BuilderCodec<ConfigurePipeUIEventData> CODEC = BuilderCodec.builder(ConfigurePipeUIEventData.class, ConfigurePipeUIEventData::new)
+                .append(new KeyedCodec<>(KEY_ACTION, Codec.STRING), (d, v) -> d.action = v, d -> d.action)
+                .add()
                 .append(new KeyedCodec<>(KEY_SIDE, Codec.STRING), (d, v) -> d.side = v, d -> d.side)
                 .add()
                 .build();
+
+        @Nullable
+        private String action;
 
         @Nullable
         private String side;

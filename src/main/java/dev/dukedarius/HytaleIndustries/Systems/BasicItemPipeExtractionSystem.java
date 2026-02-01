@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
@@ -17,8 +18,10 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
+import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent.FilterMode;
 import dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters;
 import dev.dukedarius.HytaleIndustries.Inventory.MachineInventory;
+import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
@@ -41,6 +44,8 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
     };
 
     private final ComponentType<ChunkStore, BasicItemPipeComponent> pipeComponentType;
+    private static final String POWER_CABLE_BLOCK_ID = "HytaleIndustries_BasicPowerCable";
+    private static final String ITEM_PIPE_BLOCK_ID = "HytaleIndustries_BasicItemPipe";
     private final Query<ChunkStore> query;
 
     public BasicItemPipeExtractionSystem(ComponentType<ChunkStore, BasicItemPipeComponent> pipeComponentType) {
@@ -113,7 +118,9 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
 
                 SourceInventory sourceInv = getInventoryIfLoaded(world, store, sx, sy, sz);
                 if (sourceInv != null) {
-                    sources.add(sourceInv);
+                    FilterMode mode = pipe.getFilterMode(dir);
+                    String[] items = pipe.getFilterItems(dir);
+                    sources.add(new SourceInventory(sourceInv.inventory, sx, sy, sz, dir, mode, items));
                     excludedKeys.add(packBlockPos(sourceInv.x, sourceInv.y, sourceInv.z));
                 }
             }
@@ -138,7 +145,7 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
             if (source == null || source.getContainer() == null || source.getContainer().isEmpty()) continue;
 
             for (InventoryEndpoint ep : endpoints) {
-                int count = moveUpToNItems(source, ep.inventory, 4 - totalMoved);
+                int count = moveUpToNItems(sourceInv, ep, 4 - totalMoved);
                 if (count > 0) totalMoved += count;
                 if (totalMoved >= 4) break;
             }
@@ -169,21 +176,41 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
     }
 
     @Nonnull
-    private static int moveUpToNItems(@Nonnull MachineInventory source, @Nonnull MachineInventory destination, int maxToMove) {
+    private static int moveUpToNItems(@Nonnull SourceInventory sourceInv,
+                                      @Nonnull InventoryEndpoint dest,
+                                      int maxToMove) {
         if (maxToMove <= 0) {
             return 0;
         }
 
-        int totalMoved = 0;
+        MachineInventory source = sourceInv.inventory;
+        MachineInventory destination = dest.inventory;
+        if (source == null || destination == null) {
+            return 0;
+        }
+
         var sourceContainer = source.getContainer();
         var destContainer = destination.getContainer();
         if (sourceContainer == null || destContainer == null) return 0;
+
+        int totalMoved = 0;
 
         for (int i = 0; i < source.getSlotCount() && totalMoved < maxToMove; i++) {
             if (!source.getSlotIO(i).allowsOutput()) continue;
             short slot = (short) i;
             ItemStack stack = sourceContainer.getItemStack(slot);
             if (stack == null || ItemStack.isEmpty(stack)) {
+                continue;
+            }
+
+            String itemId = stack.getItemId();
+            // Extraction filter: only allow items matching this side's extract filter
+            if (!allowsFilter(sourceInv.extractMode, sourceInv.extractItems, itemId)) {
+                continue;
+            }
+
+            // Insertion filter: only allow items matching destination side's insert filter
+            if (!allowsFilter(dest.insertMode, dest.insertItems, itemId)) {
                 continue;
             }
 
@@ -198,6 +225,28 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
         }
 
         return totalMoved;
+    }
+
+    private static boolean allowsFilter(FilterMode mode, String[] items, String itemId) {
+        if (mode == null || mode == FilterMode.None || itemId == null) {
+            return true;
+        }
+
+        boolean listed = false;
+        if (items != null && items.length > 0) {
+            for (String id : items) {
+                if (itemId.equals(id)) {
+                    listed = true;
+                    break;
+                }
+            }
+        }
+
+        return switch (mode) {
+            case Whitelist -> listed;
+            case Blacklist -> !listed;
+            case None -> true;
+        };
     }
 
     private static int tryInsertRespectingIO(com.hypixel.hytale.server.core.inventory.container.ItemContainer sourceContainer,
@@ -301,6 +350,26 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
                     continue;
                 }
 
+                // If this block is a power cable, treat it as non-traversable for items.
+                BlockType blockType = chunk.getBlockType(ox & 31, oy, oz & 31);
+                String blockId = blockType != null ? blockType.getId() : null;
+                // Normalize id to base block id (strip '*' + state suffix) before comparison,
+                // since runtime ids often look like "*HytaleIndustries_BasicPowerCable_State_...".
+                String normalizedId = blockId;
+                if (normalizedId != null) {
+                    if (normalizedId.startsWith("*")) {
+                        normalizedId = normalizedId.substring(1);
+                    }
+                    int stateIdx = normalizedId.indexOf("_State_");
+                    if (stateIdx > 0) {
+                        normalizedId = normalizedId.substring(0, stateIdx);
+                    }
+                }
+                if (POWER_CABLE_BLOCK_ID.equals(normalizedId)) {
+                    // Do not traverse into power cables at all from the item-pipe graph.
+                    continue;
+                }
+
                 var entity = chunk.getBlockComponentEntity(ox & 31, oy, oz & 31);
                 BasicItemPipeComponent neighborPipe = null;
                 if (entity != null) {
@@ -327,13 +396,40 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
                 }
 
                 List<MachineInventory> inventories = InventoryAdapters.find(world, store, ox, oy, oz);
+                if (inventories.isEmpty()) {
+                    continue;
+                }
+
+                BlockType invBlockType = world.getBlockType(ox, oy, oz);
+                String invBlockId = invBlockType != null ? invBlockType.getId() : null;
+
+                String baseId = invBlockId;
+                if (baseId != null) {
+                    if (baseId.startsWith("*")) {
+                        baseId = baseId.substring(1);
+                    }
+                    int stateIdx = baseId.indexOf("_State_");
+                    if (stateIdx > 0) {
+                        baseId = baseId.substring(0, stateIdx);
+                    }
+                }
+
+                // Never treat our own conduits (item pipes or power cables) as item destinations,
+                // even if some adapter exposes an ItemContainer for them.
+                if (ITEM_PIPE_BLOCK_ID.equals(baseId) || POWER_CABLE_BLOCK_ID.equals(baseId)) {
+                    continue;
+                }
+
                 for (MachineInventory inv : inventories) {
                     long invKey = packBlockPos(ox, oy, oz);
                     if (!inv.hasInputSlots()) {
                         continue;
                     }
                     if (!excludedKeys.contains(invKey) && foundKeys.add(invKey)) {
-                        found.add(new InventoryEndpoint(inv, invKey));
+                        FilterMode insertMode = currentPipe != null ? currentPipe.getFilterMode(dir) : FilterMode.None;
+                        String[] insertItems = currentPipe != null ? currentPipe.getFilterItems(dir) : null;
+
+                        found.add(new InventoryEndpoint(inv, invKey, insertMode, insertItems));
                     }
                 }
             }
@@ -350,20 +446,42 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
         final int x;
         final int y;
         final int z;
-        SourceInventory(@Nonnull MachineInventory inventory, int x, int y, int z) {
+        final Vector3i dir;
+        final FilterMode extractMode;
+        final String[] extractItems;
+        SourceInventory(@Nonnull MachineInventory inventory,
+                        int x, int y, int z,
+                        @Nonnull Vector3i dir,
+                        @Nonnull FilterMode mode,
+                        @Nullable String[] items) {
             this.inventory = inventory;
             this.x = x;
             this.y = y;
             this.z = z;
+            this.dir = new Vector3i(dir.x, dir.y, dir.z);
+            this.extractMode = mode;
+            this.extractItems = items != null ? items.clone() : null;
+        }
+
+        // Convenience constructor used by getInventoryIfLoaded before filter data is attached
+        SourceInventory(@Nonnull MachineInventory inventory, int x, int y, int z) {
+            this(inventory, x, y, z, new Vector3i(0, 0, 0), FilterMode.None, null);
         }
     }
 
     private static final class InventoryEndpoint {
         final MachineInventory inventory;
         final long packedPos;
-        InventoryEndpoint(MachineInventory inventory, long packedPos) {
+        final FilterMode insertMode;
+        final String[] insertItems;
+        InventoryEndpoint(MachineInventory inventory,
+                          long packedPos,
+                          @Nonnull FilterMode mode,
+                          @Nullable String[] items) {
             this.inventory = inventory;
             this.packedPos = packedPos;
+            this.insertMode = mode;
+            this.insertItems = items != null ? items.clone() : null;
         }
     }
 

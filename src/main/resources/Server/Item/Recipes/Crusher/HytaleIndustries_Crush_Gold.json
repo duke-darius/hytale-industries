@@ -1,0 +1,17 @@
+{
+  "Id": "HytaleIndustries_Crush_Gold",
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Crusher"
+    }
+  ],
+  "TimeSeconds": 8.0,
+  "PrimaryOutput": {
+    "ItemId": "HytaleIndustries_CrushedGold",
+    "Quantity": 2
+  },
+  "Input": [
+    { "ItemId": "Ore_Gold", "Quantity": 1 }
+  ]
+}

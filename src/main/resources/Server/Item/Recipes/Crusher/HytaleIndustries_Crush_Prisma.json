@@ -1,0 +1,17 @@
+{
+  "Id": "HytaleIndustries_Crush_Prisma",
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "Crusher"
+    }
+  ],
+  "TimeSeconds": 8.0,
+  "PrimaryOutput": {
+    "ItemId": "HytaleIndustries_CrushedPrisma",
+    "Quantity": 2
+  },
+  "Input": [
+    { "ItemId": "Ore_Prisma", "Quantity": 1 }
+  ]
+}

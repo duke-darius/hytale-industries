@@ -27,6 +27,8 @@ import javax.annotation.Nonnull;
 public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
 
     public static final String CABLE_STATE_ID = "basicPowerCable";
+    private static final String POWER_CABLE_BLOCK_ID = "HytaleIndustries_BasicPowerCable";
+    private static final String ITEM_PIPE_BLOCK_ID = "HytaleIndustries_BasicItemPipe";
     
     private final ComponentType<ChunkStore, BasicPowerCableComponent> cableComponentType;
     private final ComponentType<ChunkStore, UpdatePowerCableComponent> updateComponentType;
@@ -117,19 +119,24 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
             var chunkIndex = ChunkUtil.indexChunkFromBlock(currentX, currentZ);
             var chunkForBlock = world.getChunk(chunkIndex);
 
-            if (chunkForBlock != null) {
-                var holder = chunkForBlock.getBlockComponentHolder(currentX, currentY, currentZ);
-                var entity = chunkForBlock.getBlockComponentEntity(currentX, currentY, currentZ);
+                if (chunkForBlock != null) {
+                    var holder = chunkForBlock.getBlockComponentHolder(currentX, currentY, currentZ);
+                    var entity = chunkForBlock.getBlockComponentEntity(currentX, currentY, currentZ);
 
-                boolean hasCable = false;
-                if (holder != null) {
-                    var neighborCable = storeChunkStore.getComponent(entity, cableComponentType);
-                    if (neighborCable != null) {
-                        // A cable neighbor exists - this direction should connect
-                        hasCable = true;
-                        HytaleIndustriesPlugin.LOGGER.atFine().log("  [%s] Found cable at (%d,%d,%d)", dirName, currentX, currentY, currentZ);
+                    boolean hasCable = false;
+                    if (holder != null && entity != null) {
+                        // Only treat actual power cables as cable neighbors, never item pipes or other blocks.
+                        BlockType neighborType = chunkForBlock.getBlockType(currentX & 31, currentY, currentZ & 31);
+                        String neighborId = neighborType != null ? neighborType.getId() : null;
+                        String baseId = normalizeBlockId(neighborId);
+
+                        var neighborCable = storeChunkStore.getComponent(entity, cableComponentType);
+                        if (neighborCable != null && POWER_CABLE_BLOCK_ID.equals(baseId)) {
+                            // A cable neighbor exists - this direction should connect
+                            hasCable = true;
+                            HytaleIndustriesPlugin.LOGGER.atFine().log("  [%s] Found cable at (%d,%d,%d)", dirName, currentX, currentY, currentZ);
+                        }
                     }
-                }
                 
                 // Check for energy blocks (TransfersHE or ReceivesHE)
                 boolean hasEnergyBlock = hasEnergyAt(world, storeChunkStore, currentX, currentY, currentZ);
@@ -308,6 +315,14 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
             return false;
         }
 
+        // Do not consider our own conduit blocks (pipes or cables) as energy endpoints for cable visuals.
+        BlockType blockType = chunk.getBlockType(ox & 31, oy, oz & 31);
+        String blockId = blockType != null ? blockType.getId() : null;
+        String baseId = normalizeBlockId(blockId);
+        if (ITEM_PIPE_BLOCK_ID.equals(baseId) || POWER_CABLE_BLOCK_ID.equals(baseId)) {
+            return false;
+        }
+
         var entity = chunk.getBlockComponentEntity(ox & 31, oy, oz & 31);
         if (entity == null) {
             return false;
@@ -338,5 +353,20 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
         int dy = FillerBlockUtil.unpackY(filler);
         int dz = FillerBlockUtil.unpackZ(filler);
         return new int[]{x - dx, y - dy, z - dz};
+    }
+
+    private static String normalizeBlockId(String blockId) {
+        if (blockId == null) {
+            return null;
+        }
+        String base = blockId;
+        if (base.startsWith("*")) {
+            base = base.substring(1);
+        }
+        int stateIdx = base.indexOf("_State_");
+        if (stateIdx > 0) {
+            base = base.substring(0, stateIdx);
+        }
+        return base;
     }
 }

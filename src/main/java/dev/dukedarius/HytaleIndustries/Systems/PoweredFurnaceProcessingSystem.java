@@ -17,8 +17,8 @@ import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction
 import com.hypixel.hytale.server.core.inventory.transaction.ListTransaction;
 import dev.dukedarius.HytaleIndustries.Components.Energy.ConsumesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
-import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
+import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.util.List;
@@ -35,18 +35,15 @@ public class PoweredFurnaceProcessingSystem extends EntityTickingSystem<com.hypi
     private final ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, PoweredFurnaceInventory> invType;
     private final ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, StoresHE> storeType;
     private final ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, ConsumesHE> consumeType;
-    private final ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, HEProcessing> procType;
     private final Query<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore> query;
 
     public PoweredFurnaceProcessingSystem(ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, PoweredFurnaceInventory> invType,
                                           ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, StoresHE> storeType,
-                                          ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, ConsumesHE> consumeType,
-                                          ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, HEProcessing> procType) {
+                                          ComponentType<com.hypixel.hytale.server.core.universe.world.storage.ChunkStore, ConsumesHE> consumeType) {
         this.invType = invType;
         this.storeType = storeType;
         this.consumeType = consumeType;
-        this.procType = procType;
-        this.query = Query.and(invType, storeType, consumeType, procType);
+        this.query = Query.and(invType, storeType, consumeType);
     }
 
     @Override
@@ -62,20 +59,42 @@ public class PoweredFurnaceProcessingSystem extends EntityTickingSystem<com.hypi
         PoweredFurnaceInventory inv = chunk.getComponent(index, invType);
         StoresHE energy = chunk.getComponent(index, storeType);
         ConsumesHE consume = chunk.getComponent(index, consumeType);
-        HEProcessing proc = chunk.getComponent(index, procType);
-        if (inv == null || energy == null || consume == null || proc == null) return;
-
+        if (inv == null || energy == null || consume == null) {
+            HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] Missing components: inv=%s energy=%s consume=%s",
+                    inv != null, energy != null, consume != null);
+            return;
+        }
         ensureContainers(inv);
 
         SimpleItemContainer input = inv.input;
         SimpleItemContainer output = inv.output;
 
+        // Fast-path: if there are no items in the input at all, do nothing quietly.
+        boolean hasAnyInput = false;
+        if (input != null) {
+            for (int i = 0; i < input.getCapacity(); i++) {
+                ItemStack s = input.getItemStack((short) i);
+                if (s != null && !ItemStack.isEmpty(s)) {
+                    hasAnyInput = true;
+                    break;
+                }
+            }
+        }
+        if (!hasAnyInput) {
+            consume.enabled = false;
+            inv.currentWork = 0f;
+            buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
+            buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
+            return;
+        }
+
+        // We have input and a valid HE store; proceed with recipe lookup and processing.
         CraftingRecipe recipe = findRecipe(input);
         if (recipe == null) {
-            proc.setEnabled(false);
+            HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] No recipe found; halting.");
             consume.enabled = false;
-            proc.setCurrentWork(0f);
-            buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+            inv.currentWork = 0f;
+            buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
             buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
             return;
         }
@@ -84,39 +103,43 @@ public class PoweredFurnaceProcessingSystem extends EntityTickingSystem<com.hypi
         List<ItemStack> outputs = com.hypixel.hytale.builtin.crafting.component.CraftingManager.getOutputItemStacks(recipe);
 
         if (!canFitOutputs(output, outputs)) {
-            proc.setEnabled(false);
+            HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] Output full or cannot fit outputs; halting.");
             consume.enabled = false;
-            buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
             buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
+            buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
             return;
         }
 
         float effectiveTime = Math.max(0.0001f, recipe.getTimeSeconds() / SPEED_MULTIPLIER);
-        proc.setWorkRequired(effectiveTime);
-        consume.heConsumption = 20;
+        inv.workRequired = effectiveTime;
 
-        long heCost = consume.heConsumption; // per tick
+        // For the powered furnace, we consume HE directly from StoresHE each tick,
+        // and keep ConsumesHE disabled so HEConsumptionSystem stays inert.
+        consume.heConsumption = 0;
+        consume.enabled = false;
+
+        final long heCost = 20L; // 20 HE per tick while processing
+
         if (energy.current < heCost) {
+            HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] Not enough HE: current=%d required=%d", energy.current, heCost);
             consume.enabled = false;
-            proc.setEnabled(false);
             buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
-            buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+            buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
+            buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
             return;
         }
 
-        // Begin/continue processing
-        consume.enabled = true;
-        proc.setEnabled(false); // keep HEProcessingSystem from also advancing work
+        // Begin/continue processing: draw HE directly and advance work using dt.
+        energy.current -= heCost;
+        inv.currentWork += dt;
 
-        proc.setCurrentWork(proc.getCurrentWork() + dt);
-
-        if (proc.getCurrentWork() + 1e-6 >= proc.getWorkRequired()) {
+        if (inv.currentWork + 1e-6 >= inv.workRequired) {
             if (!hasAllInputs(input, inputs)) {
-                proc.setCurrentWork(0f);
-                proc.setEnabled(false);
+                HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] Work complete but inputs missing when committing; resetting.");
+                inv.currentWork = 0f;
                 consume.enabled = false;
                 buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
-                buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+                buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
                 buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
                 return;
             }
@@ -124,11 +147,11 @@ public class PoweredFurnaceProcessingSystem extends EntityTickingSystem<com.hypi
             ListTransaction<com.hypixel.hytale.server.core.inventory.transaction.MaterialTransaction> removeTx =
                     input.removeMaterials(inputs, true, true, true);
             if (!removeTx.succeeded()) {
-                proc.setCurrentWork(0f);
-                proc.setEnabled(false);
+                HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] Failed to remove input materials; resetting.");
+                inv.currentWork = 0f;
                 consume.enabled = false;
                 buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
-                buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+                buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
                 buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
                 return;
             }
@@ -136,16 +159,18 @@ public class PoweredFurnaceProcessingSystem extends EntityTickingSystem<com.hypi
             ListTransaction<ItemStackTransaction> addTx = output.addItemStacks(outputs, false, false, false);
             if (addTx == null || !addTx.succeeded()) {
                 // rollback? inputs already removed; try to re-add outputs on next tick
-                proc.setCurrentWork(0f);
-                buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+                HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] Failed to insert output items; will retry next tick.");
+                inv.currentWork = 0f;
+                buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
                 buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
                 return;
             }
 
-            proc.setCurrentWork(0f);
+            HytaleIndustriesPlugin.LOGGER.atFine().log("[PoweredFurnace] cycle complete; resetting work to 0");
+            inv.currentWork = 0f;
         }
 
-        buffer.replaceComponent(chunk.getReferenceTo(index), procType, proc);
+        buffer.replaceComponent(chunk.getReferenceTo(index), invType, inv);
         buffer.replaceComponent(chunk.getReferenceTo(index), consumeType, consume);
         buffer.replaceComponent(chunk.getReferenceTo(index), storeType, energy);
     }
@@ -185,8 +210,25 @@ public class PoweredFurnaceProcessingSystem extends EntityTickingSystem<com.hypi
 
     private static CraftingRecipe findRecipe(SimpleItemContainer input) {
         if (input == null) return null;
+
+        // Try the vanilla furnace bench first.
         List<CraftingRecipe> recipes = CraftingPlugin.getBenchRecipes(BenchType.Processing, "Furnace");
-        if (recipes == null || recipes.isEmpty()) return null;
+        // Fallbacks in case the bench id differs in this environment (e.g. custom powered furnace bench).
+        if (recipes == null || recipes.isEmpty()) {
+            List<CraftingRecipe> alt = CraftingPlugin.getBenchRecipes(BenchType.Processing, "poweredFurnace");
+            if (alt != null && !alt.isEmpty()) {
+                recipes = alt;
+            } else {
+                alt = CraftingPlugin.getBenchRecipes(BenchType.Processing, "PoweredFurnace");
+                if (alt != null && !alt.isEmpty()) {
+                    recipes = alt;
+                }
+            }
+        }
+        if (recipes == null || recipes.isEmpty()) {
+            return null;
+        }
+
         for (CraftingRecipe recipe : recipes) {
             List<MaterialQuantity> mats = com.hypixel.hytale.builtin.crafting.component.CraftingManager.getInputMaterials(recipe);
             if (hasAllInputs(input, mats)) {

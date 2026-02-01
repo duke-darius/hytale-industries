@@ -21,7 +21,6 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
-import dev.dukedarius.HytaleIndustries.Components.Processing.HEProcessing;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 
@@ -113,8 +112,8 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
                 he = ctx.stores.current;
                 heCap = ctx.stores.max;
             }
-            if (ctx.proc != null && ctx.proc.getWorkRequired() > 0f) {
-                progress = Math.min(1.0, Math.max(0.0, ctx.proc.getCurrentWork() / ctx.proc.getWorkRequired()));
+            if (ctx.inv != null && ctx.inv.workRequired > 0f) {
+                progress = Math.min(1.0, Math.max(0.0, ctx.inv.currentWork / ctx.inv.workRequired));
             }
             var in = ctx.inv != null ? ctx.inv.input.getItemStack((short) 0) : null;
             if (in != null && !ItemStack.isEmpty(in)) {
@@ -216,7 +215,6 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
         if (entity == null) return null;
         var inv = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getPoweredFurnaceInventoryType());
         var stores = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getStoresHeType());
-        var proc = entity.getStore().getComponent(entity, HytaleIndustriesPlugin.INSTANCE.getHeProcessingType());
         if (inv != null) {
             if (inv.input == null || inv.input.getCapacity() <= 0) {
                 inv.input = new com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer((short) 1);
@@ -230,14 +228,12 @@ public class PoweredFurnaceUIPage extends InteractiveCustomUIPage<PoweredFurnace
         Context ctx = new Context();
         ctx.inv = inv;
         ctx.stores = stores;
-        ctx.proc = proc;
         return ctx;
     }
 
     private static final class Context {
         PoweredFurnaceInventory inv;
         StoresHE stores;
-        HEProcessing proc;
     }
 
     public static final class UIEventData {
