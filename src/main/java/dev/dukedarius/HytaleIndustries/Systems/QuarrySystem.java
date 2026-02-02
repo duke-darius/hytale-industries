@@ -2,10 +2,12 @@ package dev.dukedarius.HytaleIndustries.Systems;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
+import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
+import com.hypixel.hytale.component.spatial.SpatialResource;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.math.matrix.Matrix4d;
 import com.hypixel.hytale.math.util.ChunkUtil;
@@ -19,18 +21,27 @@ import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction
 import com.hypixel.hytale.server.core.inventory.transaction.ListTransaction;
 import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
 import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
+import com.hypixel.hytale.server.core.modules.entity.EntityModule;
+import com.hypixel.hytale.server.core.modules.projectile.ProjectileModule;
+import com.hypixel.hytale.server.core.modules.projectile.component.Projectile;
+import com.hypixel.hytale.server.core.modules.projectile.config.ProjectileConfig;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
+import com.hypixel.hytale.server.core.universe.world.ParticleUtil;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.ChunkFlag;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.Components.Energy.ConsumesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.Components.Quarry.QuarryComponent;
+import dev.dukedarius.HytaleIndustries.Components.Quarry.QuarryProjectileComponent;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters;
 import dev.dukedarius.HytaleIndustries.Inventory.MachineInventory;
+import it.unimi.dsi.fastutil.objects.ObjectList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,6 +53,18 @@ public class QuarrySystem extends EntityTickingSystem<ChunkStore> {
     private static final double HE_CONSUMPTION_PER_TICK = 200.0;  // 200 HE/t
     private static final double HE_PER_BLOCK = 600.0;  // 600 HE to mine solid
     private static final double HE_PER_AIR = 60.0;  // 60 HE to skip air
+
+    /**
+     * Particle system used when the quarry mines a solid block.
+     * This must be the id of a valid particle system asset that visually travels along its forward axis.
+     * Replace this with an appropriate system id from your particle assets.
+     */
+    // Uses vanilla Stone_Bounce particle system from Rubble projectile effects.
+    private static final String QUARRY_PARTICLE_SYSTEM_ID = "Stone_Bounce";
+
+    // Projectile config id used for the quarry suction effect.
+    // Uses a custom projectile that inherits rubble visuals but has no gravity or hitbox.
+    private static final String QUARRY_PROJECTILE_CONFIG_ID = "HytaleIndustries_QuarryProjectileConfig";
 
     private final ComponentType<ChunkStore, QuarryComponent> quarryType;
     private final ComponentType<ChunkStore, StoresHE> storesHeType;
@@ -71,6 +94,7 @@ public class QuarrySystem extends EntityTickingSystem<ChunkStore> {
 
 
         if (quarry.currentStatus != QuarryComponent.QuarryStatus.ACTIVE) {
+
 //
 //            if (quarry.showArea) {
 //                World world = store.getExternalData().getWorld();
@@ -307,6 +331,7 @@ public class QuarrySystem extends EntityTickingSystem<ChunkStore> {
                     int lz2 = fz & 31;
                     ch.breakBlock(lx2, fy, lz2);
                 });
+                spawnQuarryProjectile(world, fx, fy, fz, quarryX, quarryY, quarryZ);
             }
 
             // Advance to next block
@@ -328,6 +353,51 @@ public class QuarrySystem extends EntityTickingSystem<ChunkStore> {
     }
 
     @Nonnull
+    private void spawnQuarryProjectile(World world,
+                                       int blockX,
+                                       int blockY,
+                                       int blockZ,
+                                       int quarryX,
+                                       int quarryY,
+                                       int quarryZ) {
+        if (world == null) {
+            return;
+        }
+
+        // Look up the projectile config. For now we reuse a vanilla rubble projectile.
+        ProjectileConfig config = ProjectileConfig.getAssetMap().getAsset(QUARRY_PROJECTILE_CONFIG_ID);
+        if (config == null) {
+            return;
+        }
+
+        Vector3d startPos = new Vector3d(blockX + 0.5, blockY + 0.5, blockZ + 0.5);
+        Vector3d targetPos = new Vector3d(quarryX + 0.5, quarryY + 0.5, quarryZ + 0.5);
+        Vector3d direction = new Vector3d(
+                targetPos.x - startPos.x,
+                targetPos.y - startPos.y,
+                targetPos.z - startPos.z
+        );
+        if (direction.squaredLength() < 1.0e-4) {
+            return;
+        }
+        direction.normalize();
+
+        Store<EntityStore> entityStore = world.getEntityStore().getStore();
+
+        final boolean[] spawned = {false};
+        entityStore.forEachChunk((archetypeChunk, entityCmdBuffer) -> {
+            if (spawned[0]) {
+                return;
+            }
+            var ref = ProjectileModule.get().spawnProjectile(null, entityCmdBuffer, config, startPos.clone(), direction.clone());
+            spawned[0] = true;
+
+            if (ref != null) {
+                entityCmdBuffer.ensureComponent(ref, HytaleIndustriesPlugin.INSTANCE.getQuarryProjectileComponentType());
+            }
+        });
+    }
+
     private static List<ItemStack> getBlockDrops(@Nonnull BlockType blockType) {
         int quantity = 1;
         String itemId = null;

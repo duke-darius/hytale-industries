@@ -21,7 +21,15 @@ import java.util.List;
 public class BlockStateItemContainerAdapter implements InventoryAdapter {
     @Override
     public List<MachineInventory> adapt(World world, Store<ChunkStore> store, int x, int y, int z) {
-        var state = world.getState(x, y, z, true);
+        WorldChunk chunk = world.getChunkIfInMemory(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(x, z));
+        }
+        if (chunk == null) {
+            return Collections.emptyList();
+        }
+
+        var state = chunk.getState(x & 31, y, z & 31);
         if (!(state instanceof ItemContainerBlockState containerState)) {
             return Collections.emptyList();
         }
@@ -30,14 +38,7 @@ public class BlockStateItemContainerAdapter implements InventoryAdapter {
             return Collections.emptyList();
         }
 
-        WorldChunk chunk = world.getChunkIfInMemory(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(x, z));
-        if (chunk == null) {
-            chunk = world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(x, z));
-        }
-        BlockType blockType = null;
-        if (chunk != null) {
-            blockType = chunk.getBlockType(x & 31, y, z & 31);
-        }
+        BlockType blockType = chunk.getBlockType(x & 31, y, z & 31);
 
         // Normalize block id (strip leading '*' and state suffix) so we can special-case our own conduit blocks.
         String baseId = null;

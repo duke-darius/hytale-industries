@@ -4,10 +4,13 @@ import com.hypixel.hytale.builtin.crafting.CraftingPlugin;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
+import com.hypixel.hytale.server.core.modules.projectile.config.ProjectileConfig;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import dev.dukedarius.HytaleIndustries.Components.Quarry.QuarryProjectileComponent;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
 import dev.dukedarius.HytaleIndustries.Components.ChunkLoading.ChunkLoaderComponent;
@@ -101,6 +104,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     private ComponentType<ChunkStore, ChunkLoaderComponent> chunkLoaderComponentType;
     private ComponentType<ChunkStore, QuarryComponent> quarryComponentType;
     private ComponentType<ChunkStore, WindTurbineComponent> windTurbineComponentType;
+    private ComponentType<EntityStore, QuarryProjectileComponent> quarryProjectileComponentType;
 
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -144,6 +148,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public ComponentType<ChunkStore, ChunkLoaderComponent> getChunkLoaderComponentType() { return chunkLoaderComponentType; }
     public ComponentType<ChunkStore, QuarryComponent> getQuarryComponentType() { return quarryComponentType; }
     public ComponentType<ChunkStore, WindTurbineComponent> getWindTurbineComponentType() { return windTurbineComponentType; }
+    public ComponentType<EntityStore, QuarryProjectileComponent> getQuarryProjectileComponentType() { return quarryProjectileComponentType; }
 
 
     @Override
@@ -256,6 +261,13 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 "WindTurbine",
                 WindTurbineComponent.CODEC
         );
+
+        // EntityStore components
+        this.quarryProjectileComponentType = this.getEntityStoreRegistry().registerComponent(
+                QuarryProjectileComponent.class,
+                "QuarryProjectile",
+                QuarryProjectileComponent.CODEC
+        );
         
         // Register ECS systems for basic power cables
         this.getChunkStoreRegistry().registerSystem(
@@ -346,8 +358,13 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 this.storesHeType
         ));
 
-        // Ensure machine inventories drop when the block is broken.
+        // EntityStore systems
         this.getEntityStoreRegistry().registerSystem(new InventoryDropOnBreakSystem());
+        this.getEntityStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.QuarryProjectileSystem(
+                        this.quarryProjectileComponentType
+                )
+        );
 
     }
 
@@ -360,6 +377,13 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
     @Override
     protected void shutdown() {
+        // Debug: list available ProjectileConfig ids so we can choose a valid one for the quarry.
+        try {
+            var projectileAssetMap = ProjectileConfig.getAssetMap().getAssetMap();
+            LOGGER.atInfo().log("[Debug] Available ProjectileConfig ids: %s", projectileAssetMap.keySet());
+        } catch (Throwable t) {
+            LOGGER.atWarning().withCause(t).log("[Debug] Failed to list ProjectileConfig ids");
+        }
         if (chunkLoaderManager != null) {
             chunkLoaderManager.stop();
         }

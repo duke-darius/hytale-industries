@@ -88,6 +88,12 @@ public class QuarryComponent implements Component<com.hypixel.hytale.server.core
     public boolean gentle = false; // silk-touch style; 10x HE cost when true
     public boolean showArea = false;
 
+    public int particleStartX = UNSET;
+    public int particleStartY = UNSET;
+    public int particleStartZ = UNSET;
+    public float particleProgress = 0.0f;
+    public boolean particleActive = false;
+
     public boolean hasScanBounds() {
         return startX != UNSET && startZ != UNSET && endX != UNSET && endZ != UNSET;
     }
@@ -100,6 +106,14 @@ public class QuarryComponent implements Component<com.hypixel.hytale.server.core
         currentX = UNSET;
         currentY = UNSET;
         currentZ = UNSET;
+
+        // Also clear any in-flight particle animation.
+        particleActive = false;
+        particleProgress = 0.0f;
+        particleStartX = UNSET;
+        particleStartY = UNSET;
+        particleStartZ = UNSET;
+
         if (false) {
             startX = UNSET;
             startZ = UNSET;

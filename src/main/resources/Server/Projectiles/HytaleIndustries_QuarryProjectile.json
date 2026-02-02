@@ -1,0 +1,25 @@
+{
+  "Type": "projectile",
+  "Physics": {
+    "Type": "Standard",
+    "Gravity": 0.0,
+    "MaxBounces": 0,
+    "CollisionRadius": 0.0,
+    "Hitbox": "None"
+  },
+  "LaunchForce": 1.0,
+  "SpawnOffset": {
+    "X": 0.0,
+    "Y": 0.0,
+    "Z": 0.0
+  },
+  "SpawnRotationOffset": {
+    "Yaw": 0.0,
+    "Pitch": 0.0,
+    "Roll": 0.0
+  },
+  "Interactions": {},
+  "LaunchLocalSoundEventId": null,
+  "LaunchWorldSoundEventId": null,
+  "ProjectileSoundEventId": null
+}

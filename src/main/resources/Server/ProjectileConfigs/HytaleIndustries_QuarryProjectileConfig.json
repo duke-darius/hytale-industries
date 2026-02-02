@@ -1,0 +1,61 @@
+{
+  "Model": "HytaleIndustries_QuarryProjectileAsset",
+  "Physics": {
+    "Type": "Standard",
+    "Gravity": 0,
+    "TerminalVelocityAir": 50,
+    "TerminalVelocityWater": 15,
+    "RotationMode": "VelocityDamped",
+    "SticksVertically": true,
+    "BounceCount": 1
+  },
+  "LaunchForce": 45,
+  "SpawnOffset": {
+    "X": 0.2,
+    "Y": 0.2,
+    "Z": 0.0
+  },
+  "Interactions": {
+    "ProjectileHit": {
+      "Cooldown": {
+        "Cooldown": 0
+      },
+      "Interactions": [
+        {
+          "Type": "ApplyEffect",
+          "EffectId": "SFX_Rubble_Hit"
+        },
+        {
+          "Type": "RemoveEntity",
+          "Entity": "User"
+        }
+      ]
+    },
+    "ProjectileMiss": {
+      "Cooldown": {
+        "Cooldown": 0
+      },
+      "Interactions": [
+        {
+          "Type": "ApplyEffect",
+          "EffectId": "Rubble_Miss"
+        },
+        {
+          "Type": "RemoveEntity",
+          "Entity": "User"
+        }
+      ]
+    },
+    "ProjectileBounce": {
+      "Cooldown": {
+        "Cooldown": 0
+      },
+      "Interactions": [
+        {
+          "Type": "RemoveEntity",
+          "Entity": "User"
+        }
+      ]
+    }
+  }
+}
