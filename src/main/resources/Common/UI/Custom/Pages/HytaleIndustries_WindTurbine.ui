@@ -103,6 +103,23 @@ Group {
           }
         }
 
+        // Wind row
+        Group {
+          Anchor: (Height: 32);
+          LayoutMode: Left;
+
+          Label {
+            Anchor: (Width: 100);
+            Text: "WIND";
+            Style: (VerticalAlignment: Center, TextColor: #AAB3C2);
+          }
+
+          Label #WindLabel {
+            Text: "Wind: 1.00x";
+            Style: (VerticalAlignment: Center, TextColor: #EAF2FF);
+          }
+        }
+
         // Height row
         Group {
           Anchor: (Height: 32);

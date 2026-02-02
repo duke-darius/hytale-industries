@@ -340,6 +340,25 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         int y = this.y;
         int z = this.z;
 
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) {
+            dev.dukedarius.HytaleIndustries.Pipes.PipeSideConfigStore.clear(x, y, z);
+            return;
+        }
+
+        // Mutate the BlockState component safely and persist it.
+        int lx = x & 31;
+        int lz = z & 31;
+
+        Ref<ChunkStore> stateRef = chunk.getBlockComponentEntity(lx, y, lz);
+        if(stateRef == null) {
+            return;
+        }
+
+        ComponentType<ChunkStore, BasicPowerCableComponent> basicCableType = HytaleIndustriesPlugin.INSTANCE.getBasicPowerCableComponentType();
+        BasicPowerCableComponent basicCable = stateRef.getStore().getComponent(stateRef, basicCableType);
+        boolean isBasicPowerCable = basicCable != null;
+
         setNeighborSlot(cmd, world, x, y, z, Direction.North, "#NorthBlockButton", "#NorthBlock");
         setNeighborSlot(cmd, world, x, y, z, Direction.South, "#SouthBlockButton", "#SouthBlock");
         setNeighborSlot(cmd, world, x, y, z, Direction.West, "#WestBlockButton", "#WestBlock");
@@ -363,6 +382,11 @@ public class ConfigurePipeUIPage extends InteractiveCustomUIPage<ConfigurePipeUI
         bindSlot(events, "#EastBlockButton", Direction.East);
         bindSlot(events, "#UpBlockButton", Direction.Up);
         bindSlot(events, "#DownBlockButton", Direction.Down);
+
+        if(isBasicPowerCable){
+            cmd.set("#PageTitle.Text", "Basic Power Cable Configuration");
+            cmd.set("#FilterHelp.Visible", false);
+        }
     }
 
     private static void bindSlot(@NonNullDecl UIEventBuilder events, @NonNullDecl String selector, @NonNullDecl Direction dir) {

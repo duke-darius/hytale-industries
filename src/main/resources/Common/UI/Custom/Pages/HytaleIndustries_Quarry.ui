@@ -215,6 +215,18 @@ Group {
             }
           }
 
+          // Show Work Area
+          Group {
+            Visible: false;
+            Anchor: (Height: 36);
+            LayoutMode: Left;
+
+            $C.@TextButton #WorkAreaToggle {
+              @Text = "Show Work Area: OFF";
+              Anchor: (Width: 220, Height: 32);
+            }
+          }
+
           Group { Anchor: (Height: 10); }
 
 

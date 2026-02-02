@@ -12,8 +12,6 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
 import dev.dukedarius.HytaleIndustries.Components.ChunkLoading.ChunkLoaderComponent;
 import dev.dukedarius.HytaleIndustries.Components.Quarry.QuarryComponent;
-import dev.dukedarius.HytaleIndustries.BlockStates.QuarryBlockState;
-import dev.dukedarius.HytaleIndustries.BlockStates.WindTurbineBlockState;
 import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderManager;
 import dev.dukedarius.HytaleIndustries.ChunkLoading.ChunkLoaderRegistry;
 import dev.dukedarius.HytaleIndustries.Components.ItemPipes.BasicItemPipeComponent;
@@ -25,9 +23,12 @@ import dev.dukedarius.HytaleIndustries.Components.Energy.ConsumesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.FuelInventory;
 import dev.dukedarius.HytaleIndustries.Components.Energy.ProducesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
+import dev.dukedarius.HytaleIndustries.Components.Energy.WindTurbineComponent;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
+import dev.dukedarius.HytaleIndustries.Energy.WindManager;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
+import dev.dukedarius.HytaleIndustries.Systems.WindTurbineSystem;
 
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenChunkLoaderInteraction;
@@ -79,6 +80,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
     private final Config<ChunkLoaderRegistry> chunkLoaderConfig;
     private ChunkLoaderManager chunkLoaderManager;
+    private final WindManager windManager = new WindManager();
 
     // ECS Component types for basic item pipes
     private ComponentType<ChunkStore, BasicItemPipeComponent> basicItemPipeComponentType;
@@ -98,6 +100,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     private ComponentType<ChunkStore, PoweredCrusherInventory> poweredCrusherInventoryType;
     private ComponentType<ChunkStore, ChunkLoaderComponent> chunkLoaderComponentType;
     private ComponentType<ChunkStore, QuarryComponent> quarryComponentType;
+    private ComponentType<ChunkStore, WindTurbineComponent> windTurbineComponentType;
 
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -110,6 +113,10 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
     public ChunkLoaderManager getChunkLoaderManager() {
         return chunkLoaderManager;
+    }
+
+    public WindManager getWindManager() {
+        return windManager;
     }
 
     public ComponentType<ChunkStore, BasicItemPipeComponent> getBasicItemPipeComponentType() {
@@ -136,6 +143,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public ComponentType<ChunkStore, PoweredCrusherInventory> getPoweredCrusherInventoryType() { return poweredCrusherInventoryType; }
     public ComponentType<ChunkStore, ChunkLoaderComponent> getChunkLoaderComponentType() { return chunkLoaderComponentType; }
     public ComponentType<ChunkStore, QuarryComponent> getQuarryComponentType() { return quarryComponentType; }
+    public ComponentType<ChunkStore, WindTurbineComponent> getWindTurbineComponentType() { return windTurbineComponentType; }
 
 
     @Override
@@ -147,8 +155,6 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         this.getCommandRegistry().registerCommand(new dev.dukedarius.HytaleIndustries.Commands.DebugItemSelectorCommand());
 
         this.getCommandRegistry().registerCommand(new dev.dukedarius.HytaleIndustries.Commands.ShowChunksCommand());
-
-        this.getBlockStateRegistry().registerBlockState(WindTurbineBlockState.class, WindTurbineBlockState.STATE_ID, WindTurbineBlockState.CODEC);
 
         // Register inventory adapters for pipes
         InventoryAdapters.register(new BlockStateItemContainerAdapter());
@@ -245,6 +251,11 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 "Quarry",
                 QuarryComponent.CODEC
         );
+        this.windTurbineComponentType = this.getChunkStoreRegistry().registerComponent(
+                WindTurbineComponent.class,
+                "WindTurbine",
+                WindTurbineComponent.CODEC
+        );
         
         // Register ECS systems for basic power cables
         this.getChunkStoreRegistry().registerSystem(
@@ -329,6 +340,10 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 this.quarryComponentType,
                 this.storesHeType,
                 this.consumesHeType
+        ));
+        this.getChunkStoreRegistry().registerSystem(new WindTurbineSystem(
+                this.windTurbineComponentType,
+                this.storesHeType
         ));
 
         // Ensure machine inventories drop when the block is broken.

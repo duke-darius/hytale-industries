@@ -12,6 +12,29 @@ public final class PerPlayerDebug {
 
     private PerPlayerDebug() {}
 
+    public static void addBoxFor(PlayerRef playerRef,
+                                 Vector3d center,
+                                 Vector3d halfExtents,
+                                 Vector3f color,
+                                 float timeSeconds,
+                                 boolean fade) {
+        Matrix4d matrix = new Matrix4d();
+        matrix.identity();
+        matrix.translate(center);
+        matrix.scale(halfExtents.x, halfExtents.y, halfExtents.z);
+
+        DisplayDebug packet = new DisplayDebug(
+                DebugShape.Cube,
+                matrix.asFloatData(),
+                new com.hypixel.hytale.protocol.Vector3f(color.x, color.y, color.z),
+                timeSeconds,
+                fade,
+                null
+        );
+
+        playerRef.getPacketHandler().write(packet);
+    }
+
     public static void addCubeFor(PlayerRef playerRef,
                                   World world,
                                   Vector3d pos,

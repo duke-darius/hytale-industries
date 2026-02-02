@@ -1,5 +1,5 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_BurningGenerator.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_Quarry.png",
   "TranslationProperties": {
     "Name": "Powered Quarry",
     "Description": "Automatically quarries an area for resources."
@@ -12,10 +12,10 @@
   "BlockType": {
     "Parent": "Debug_Model",
     "DrawType": "Model",
-    "CustomModel": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.blockymodel",
+    "CustomModel": "Blocks/HytaleIndustries_Quarry/HytaleIndustries_Quarry.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.png",
+        "Texture": "Blocks/HytaleIndustries_Quarry/HytaleIndustries_Quarry.png",
         "Weight": 1
       }
     ],
@@ -44,8 +44,8 @@
           "Depth": 5,
           "YStart": 319,
           "Status": "IDLE",
-          "Speed": 30.0,
-          "Efficiency": 0.5
+          "Speed": 1.0,
+          "Efficiency": 1
         },
         "ConsumeHE": {
 

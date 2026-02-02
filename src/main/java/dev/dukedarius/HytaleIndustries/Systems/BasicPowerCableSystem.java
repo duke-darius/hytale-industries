@@ -19,7 +19,6 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import dev.dukedarius.HytaleIndustries.Components.PowerCables.BasicPowerCableComponent;
 import dev.dukedarius.HytaleIndustries.Components.PowerCables.UpdatePowerCableComponent;
-import dev.dukedarius.HytaleIndustries.Energy.HEComponents;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nonnull;

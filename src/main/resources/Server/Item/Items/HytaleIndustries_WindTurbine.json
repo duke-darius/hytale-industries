@@ -23,11 +23,27 @@
       "IsUsable": true,
       "IsStackable": true
     },
+    "BlockEntity": {
+      "IsBlockComponent": true,
+      "Components": {
+        "StoresHE": {
+          "Max": 5000,
+          "Current": 0
+        },
+        "CableEndpoint": {
+          "CapacityPerTick": 250,
+          "LossPerMeter": 0.0,
+          "Priority": 0
+        },
+        "WindTurbine": {
+          "Initialized": false,
+          "LastProduction": 0.0,
+          "EnergyRemainder": 0.0
+        }
+      }
+    },
     "Interactions": {
       "Use": "HytaleIndustries_OpenWindTurbine_Root"
-    },
-    "State": {
-      "Id": "windTurbine"
     },
     "Gathering": {
       "Breaking": {
@@ -63,17 +79,12 @@
     "Input": [
       {
         "ItemId": "Ingredient_Bar_Iron",
-        "Quantity": 8
+        "Quantity": 4
       },
       {
         "ItemId": "Ingredient_Life_Essence",
-        "Quantity": 2
+        "Quantity": 1
       }
     ]
-  },
-  "State": {
-    "windTurbine": {
-      "BlockType": "HytaleIndustries_WindTurbine"
-    }
   }
 }

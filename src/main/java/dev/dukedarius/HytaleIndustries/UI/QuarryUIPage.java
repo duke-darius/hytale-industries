@@ -24,6 +24,9 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.Components.Quarry.QuarryComponent;
 import dev.dukedarius.HytaleIndustries.Energy.PowerUtils;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
+import dev.dukedarius.HytaleIndustries.Utils.PerPlayerDebug;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.protocol.Vector3f;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ScheduledFuture;
@@ -134,6 +137,10 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
                     quarry.gentle = !quarry.gentle;
                     didSomething = true;
                 }
+                case UIEventData.ACTION_TOGGLE_SHOW_AREA -> {
+                    quarry.showArea = !quarry.showArea;
+                    didSomething = true;
+                }
                 case UIEventData.ACTION_CLOSE -> {
                     Player player = store.getComponent(ref, Player.getComponentType());
                     if (player != null) {
@@ -180,6 +187,31 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         
         QuarryComponent quarry = entity.getStore().getComponent(entity, quarryType);
         if (quarry != null) {
+            // When idle and scan bounds are valid, show a 1-second debug box of the intended quarry area.
+            if (quarry.currentStatus == QuarryComponent.QuarryStatus.IDLE && quarry.hasScanBounds()) {
+                try {
+                    PlayerRef pRef = getPlayerRef(store);
+                    if (pRef != null) {
+                        int minX = Math.min(quarry.startX, quarry.endX);
+                        int maxX = Math.max(quarry.startX, quarry.endX);
+                        int minZ = Math.min(quarry.startZ, quarry.endZ);
+                        int maxZ = Math.max(quarry.startZ, quarry.endZ);
+                        // Quarry scans from yStart downward; visualize as a shallow box at yStart.
+                        double centerX = (minX + maxX) / 2.0;
+                        double centerZ = (minZ + maxZ) / 2.0;
+                        double centerY = quarry.getYStart();
+                        double halfX = (maxX - minX) / 2.0;
+                        double halfZ = (maxZ - minZ) / 2.0;
+                        double halfY = 0.5; // thin slice
+                        Vector3d center = new Vector3d(centerX, centerY + 0.5, centerZ);
+                        Vector3d halfExtents = new Vector3d(halfX, halfY, halfZ);
+                        Vector3f color = new Vector3f(0.0f, 1.0f, 0.0f); // green
+                        PerPlayerDebug.addBoxFor(pRef, center, halfExtents, color, 1.0f, true);
+                    }
+                } catch (Throwable t) {
+                    HytaleIndustriesPlugin.LOGGER.atFiner().withCause(t).log("QuarryUI: debug box failed");
+                }
+            }
             // Get StoresHE for actual HE values
             var storesHeType = HytaleIndustriesPlugin.INSTANCE.getStoresHeType();
             double he = 0.0;
@@ -222,13 +254,15 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
             cmd.set("#GentleStatusRow.Visible", !isIdle);
             cmd.set("#GentleToggle.Visible", isIdle);
 
+            cmd.set("#WorkAreaToggle.Text", "Show Area: " + (quarry.showArea ? "ON" : "OFF"));
+
             // Check for issues and display warnings
             String errorMessage = "";
             boolean canStart = isIdle;
             
             if (isIdle) {
-                if (he < 50) { // Minimum energy to start
-                    errorMessage = "⚠ Insufficient energy to start (need 50 HE)";
+                if (he < 50) {
+                    errorMessage = "Insufficient energy";
                     canStart = false;
                 }
             }
@@ -308,6 +342,11 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         sendUpdate(cmd, events, false);
     }
 
+    private PlayerRef getPlayerRef(@Nonnull Store<EntityStore> store) {
+        if (lastRef == null) return null;
+        return store.getComponent(lastRef, PlayerRef.getComponentType());
+    }
+
     private static void bindEvents(@Nonnull UIEventBuilder events) {
         events.addEventBinding(CustomUIEventBindingType.Activating, "#StartButton",
                 new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_START), false);
@@ -326,6 +365,8 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
 
         events.addEventBinding(CustomUIEventBindingType.Activating, "#GentleToggle",
                 new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_TOGGLE_GENTLE), false);
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#WorkAreaToggle",
+                new EventData().append(UIEventData.KEY_ACTION, UIEventData.ACTION_TOGGLE_SHOW_AREA), false);
 
     }
 
@@ -339,10 +380,8 @@ public class QuarryUIPage extends InteractiveCustomUIPage<QuarryUIPage.UIEventDa
         static final String ACTION_RESET = "Reset";
         static final String ACTION_CLOSE = "Close";
         static final String ACTION_TOGGLE_GENTLE = "ToggleGentle";
-        static final String ACTION_WIDTH_INC = "WidthInc";
-        static final String ACTION_WIDTH_DEC = "WidthDec";
-        static final String ACTION_DEPTH_INC = "DepthInc";
-        static final String ACTION_DEPTH_DEC = "DepthDec";
+        static final String ACTION_TOGGLE_SHOW_AREA = "ToggleShowArea";
+
 
         public static final BuilderCodec<UIEventData> CODEC = BuilderCodec.builder(UIEventData.class, UIEventData::new)
                 .append(new KeyedCodec<>(KEY_ACTION, Codec.STRING), (d, v) -> d.action = v, d -> d.action)

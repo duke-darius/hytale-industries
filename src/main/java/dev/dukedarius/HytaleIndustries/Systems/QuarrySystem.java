@@ -7,13 +7,18 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.math.matrix.Matrix4d;
 import com.hypixel.hytale.math.util.ChunkUtil;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.protocol.DebugShape;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.*;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction;
 import com.hypixel.hytale.server.core.inventory.transaction.ListTransaction;
 import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
+import com.hypixel.hytale.server.core.modules.debug.DebugUtils;
 import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
@@ -40,7 +45,6 @@ public class QuarrySystem extends EntityTickingSystem<ChunkStore> {
 
     private final ComponentType<ChunkStore, QuarryComponent> quarryType;
     private final ComponentType<ChunkStore, StoresHE> storesHeType;
-    private final ComponentType<ChunkStore, ConsumesHE> consumesHeType;
     private final Query<ChunkStore> query;
 
     public QuarrySystem(ComponentType<ChunkStore, QuarryComponent> quarryType,
@@ -48,7 +52,6 @@ public class QuarrySystem extends EntityTickingSystem<ChunkStore> {
                         ComponentType<ChunkStore, ConsumesHE> consumesHeType) {
         this.quarryType = quarryType;
         this.storesHeType = storesHeType;
-        this.consumesHeType = consumesHeType;
         this.query = Query.and(quarryType, storesHeType);
     }
 
@@ -66,7 +69,56 @@ public class QuarrySystem extends EntityTickingSystem<ChunkStore> {
 
         if (quarry == null || energy == null) return;
 
+
         if (quarry.currentStatus != QuarryComponent.QuarryStatus.ACTIVE) {
+//
+//            if (quarry.showArea) {
+//                World world = store.getExternalData().getWorld();
+//                if (world != null) {
+//                    // Work area is [startX, endX) × [startZ, endZ) in world coords.
+//                    int minX = Math.min(quarry.startX, quarry.endX);
+//                    int maxX = Math.max(quarry.startX, quarry.endX);
+//                    int minZ = Math.min(quarry.startZ, quarry.endZ);
+//                    int maxZ = Math.max(quarry.startZ, quarry.endZ);
+//
+//                    // Vertical extent: from y=0 up to yStart (inclusive).
+//                    int yStart = quarry.getYStart();
+//                    int minY = 0;
+//                    int maxY = yStart + 1; // +1 so the top face is at yStart
+//
+//                    // Center of the box in world space.
+//                    double centerX = (minX + maxX) / 2.0;
+//                    double centerY = (minY + maxY) / 2.0;
+//                    double centerZ = (minZ + maxZ) / 2.0;
+//
+//                    // Half-extents (size / 2) along each axis.
+//                    double halfX = (maxX - minX) / 2.0;
+//                    double halfY = (maxY - minY) / 2.0;
+//                    double halfZ = (maxZ - minZ) / 2.0;
+//
+//                    HytaleIndustriesPlugin.LOGGER.atInfo().log(
+//                            "[Quarry] showArea bounds X=[%d,%d) Y=[%d,%d) Z=[%d,%d) center=(%.2f,%.2f,%.2f) half=(%.2f,%.2f,%.2f)",
+//                            minX, maxX, minY, maxY, minZ, maxZ,
+//                            centerX, centerY, centerZ,
+//                            halfX, halfY, halfZ
+//                    );
+//
+//                    Matrix4d matrix = new Matrix4d();
+//                    matrix.identity();
+//                    matrix.translate(new Vector3d(centerX, centerY, centerZ));
+//                    matrix.scale(halfX, halfY, halfZ);
+//
+//                    DebugUtils.add(
+//                            world,
+//                            DebugShape.Cube,
+//                            matrix,
+//                            new Vector3f(0f, 0f, 1f),
+//                            1f,
+//                            true
+//                    );
+//
+//                }
+//            }
             return;
         }
 

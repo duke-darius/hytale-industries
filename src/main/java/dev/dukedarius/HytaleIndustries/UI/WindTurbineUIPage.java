@@ -4,6 +4,7 @@ import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.server.core.HytaleServer;
@@ -13,9 +14,10 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
+import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import dev.dukedarius.HytaleIndustries.BlockStates.WindTurbineBlockState;
+import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
+import dev.dukedarius.HytaleIndustries.Components.Energy.WindTurbineComponent;
 import dev.dukedarius.HytaleIndustries.Energy.PowerUtils;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
@@ -75,21 +77,56 @@ public class WindTurbineUIPage extends InteractiveCustomUIPage<WindTurbineUIPage
                         @Nonnull UIEventBuilder events,
                         @Nonnull Store<EntityStore> store) {
         World world = store.getExternalData().getWorld();
-        BlockState st = world.getState(x, y, z, true);
 
-        if (st instanceof WindTurbineBlockState turbine) {
-            // Power bar
-            double he = turbine.getHeStored();
-            double heCap = turbine.getHeCapacity();
-            cmd.set("#PowerBar.Value", Math.max(0.0, Math.min(1.0, he / heCap)));
-            cmd.set("#PowerBar.TooltipText", String.format("%d/%d HE Stored", (int) he, (int) heCap));
-            cmd.set("#PowerText.Text", PowerUtils.formatHe(he) + "/" + PowerUtils.formatHe(heCap) + " HE");
+        double he = 0.0;
+        double heCap = 0.0;
+        double production = 0.0;
+        double windSpeed = 1.0;
 
-            // Production info
-            double production = turbine.getCurrentProduction();
-            cmd.set("#ProductionLabel.Text", String.format("%.1f HE/s", production));
-            cmd.set("#HeightLabel.Text", "Y=" + y);
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
+        if (chunk == null) {
+            chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
         }
+        if (chunk != null && HytaleIndustriesPlugin.INSTANCE != null) {
+            var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+            var storesType = HytaleIndustriesPlugin.INSTANCE.getStoresHeType();
+            var turbineType = HytaleIndustriesPlugin.INSTANCE.getWindTurbineComponentType();
+            if (entity != null) {
+                if (storesType != null) {
+                    StoresHE stores = entity.getStore().getComponent(entity, storesType);
+                    if (stores != null) {
+                        he = stores.current;
+                        heCap = stores.max;
+                    }
+                }
+                if (turbineType != null) {
+                    WindTurbineComponent turbine = entity.getStore().getComponent(entity, turbineType);
+                    if (turbine != null) {
+                        production = turbine.lastProductionPerSecond;
+                    }
+                }
+                if (HytaleIndustriesPlugin.INSTANCE != null && HytaleIndustriesPlugin.INSTANCE.getWindManager() != null) {
+                    try {
+                        windSpeed = HytaleIndustriesPlugin.INSTANCE.getWindManager().getSpeed(world);
+                    } catch (Throwable ignored) {
+                        windSpeed = 1.0;
+                    }
+                }
+            }
+        }
+
+        if (heCap <= 0.0) {
+            heCap = 1.0;
+        }
+
+        cmd.set("#PowerBar.Value", Math.max(0.0, Math.min(1.0, he / heCap)));
+        cmd.set("#PowerBar.TooltipText", String.format("%d/%d HE Stored", (int) he, (int) heCap));
+        cmd.set("#PowerText.Text", PowerUtils.formatHe(he) + "/" + PowerUtils.formatHe(heCap) + " HE");
+
+        // Production info
+        cmd.set("#ProductionLabel.Text", String.format("%.1f HE/s", production));
+        cmd.set("#HeightLabel.Text", "Y=" + y);
+        cmd.set("#WindLabel.Text", String.format("Wind: %.2fx", windSpeed));
     }
 
     private void ensureTimerStarted() {

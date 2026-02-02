@@ -2,15 +2,15 @@
 
 Group {
   // Tight sizing: title + padded 3x3 grid with gaps.
-  Anchor: (Width: 248, Height: 286);
+  Anchor: (Width: 348, Height: 486);
 
   $C.@Container {
     Anchor: (Full: 0);
 
     #Title {
       Group {
-        $C.@Title {
-          @Text = "Item Pipe Config";
+        $C.@Title #PageTitle {
+          @Text = "Basic Item Pipe Configuration";
         }
       }
     }
@@ -19,151 +19,175 @@ Group {
       LayoutMode: Top;
       Padding: (Left: 10, Right: 10, Top: 10, Bottom: 10);
 
-      // Row 1: * U *
+
       Group {
-        LayoutMode: Left;
-        Anchor: (Width: 228, Height: 72, Left: 0, Top: 0);
-
-        Group { Anchor: (Width: 72, Height: 72, Left: 0, Top: 0); }
-        Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
-
-        Group {
-          Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
-          ItemSlotButton #UpBlockButton {
-            TooltipText: "Up";
-            Anchor: (Full: 0);
-            LayoutMode: Full;
-            Group #UpBlockBorder {
-              Anchor: (Full: 0);
-              Background: #007BFF;
-              Padding: 2;
-              ItemSlot #UpBlock {
-                Anchor: (Full: 0);
-                ShowQualityBackground: false;
-              }
-            }
-          }
-        }
-
-        Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
-        Group { Anchor: (Width: 72, Height: 72, Left: 0, Top: 0); }
-      }
-
-      // Row gap
-      Group { Anchor: (Height: 6, Left: 0, Top: 0); }
-
-      // Row 2: W N E
-      Group {
-        LayoutMode: Left;
-        Anchor: (Width: 228, Height: 72, Left: 0, Top: 0);
-
-        Group {
-          Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
-          ItemSlotButton #WestBlockButton {
-            TooltipText: "West";
-            Anchor: (Full: 0);
-            LayoutMode: Full;
-            Group #WestBlockBorder {
-              Anchor: (Full: 0);
-              Background: #007BFF;
-              Padding: 2;
-              ItemSlot #WestBlock {
-                Anchor: (Full: 0);
-                ShowQualityBackground: false;
-              }
-            }
-          }
-        }
-
-        Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
-
-        Group {
-          Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
-          ItemSlotButton #NorthBlockButton {
-            TooltipText: "North";
-            Anchor: (Full: 0);
-            LayoutMode: Full;
-            Group #NorthBlockBorder {
-              Anchor: (Full: 0);
-              Background: #007BFF;
-              Padding: 2;
-              ItemSlot #NorthBlock {
-                Anchor: (Full: 0);
-                ShowQualityBackground: false;
-              }
-            }
-          }
-        }
-
-        Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
-
-        Group {
-          Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
-          ItemSlotButton #EastBlockButton {
-            TooltipText: "East";
-            Anchor: (Full: 0);
-            LayoutMode: Full;
-            Group #EastBlockBorder {
-              Anchor: (Full: 0);
-              Background: #007BFF;
-              Padding: 2;
-              ItemSlot #EastBlock {
-                Anchor: (Full: 0);
-                ShowQualityBackground: false;
-              }
-            }
-          }
+        Label {
+          Text: "Welcome to the connection config screen!";
         }
       }
 
-      // Row gap
-      Group { Anchor: (Height: 6, Left: 0, Top: 0); }
-
-      // Row 3: D S *
       Group {
-        LayoutMode: Left;
-        Anchor: (Width: 228, Height: 72, Left: 0, Top: 0);
+        LayoutMode: Top;
+        Anchor: (Width: 228, Height: 234);
 
+        // Row 1: * U *
         Group {
-          Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
-          ItemSlotButton #DownBlockButton {
-            TooltipText: "Down";
-            Anchor: (Full: 0);
-            LayoutMode: Full;
-            Group #DownBlockBorder {
+          LayoutMode: Left;
+          Anchor: (Width: 228, Height: 72, Left: 0, Top: 0);
+
+          Group { Anchor: (Width: 72, Height: 72, Left: 0, Top: 0); }
+          Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
+
+          Group {
+            Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
+            ItemSlotButton #UpBlockButton {
+              TooltipText: "Up";
               Anchor: (Full: 0);
-              Background: #007BFF;
-              Padding: 2;
-              ItemSlot #DownBlock {
+              LayoutMode: Full;
+              Group #UpBlockBorder {
                 Anchor: (Full: 0);
-                ShowQualityBackground: false;
+                Background: #007BFF;
+                Padding: 2;
+                ItemSlot #UpBlock {
+                  Anchor: (Full: 0);
+                  ShowQualityBackground: false;
+                }
+              }
+            }
+          }
+
+          Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
+          Group { Anchor: (Width: 72, Height: 72, Left: 0, Top: 0); }
+        }
+
+        // Row gap
+        Group { Anchor: (Height: 6, Left: 0, Top: 0); }
+
+        // Row 2: W N E
+        Group {
+          LayoutMode: Left;
+          Anchor: (Width: 228, Height: 72, Left: 0, Top: 0);
+
+          Group {
+            Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
+            ItemSlotButton #WestBlockButton {
+              TooltipText: "West";
+              Anchor: (Full: 0);
+              LayoutMode: Full;
+              Group #WestBlockBorder {
+                Anchor: (Full: 0);
+                Background: #007BFF;
+                Padding: 2;
+                ItemSlot #WestBlock {
+                  Anchor: (Full: 0);
+                  ShowQualityBackground: false;
+                }
+              }
+            }
+          }
+
+          Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
+
+          Group {
+            Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
+            ItemSlotButton #NorthBlockButton {
+              TooltipText: "North";
+              Anchor: (Full: 0);
+              LayoutMode: Full;
+              Group #NorthBlockBorder {
+                Anchor: (Full: 0);
+                Background: #007BFF;
+                Padding: 2;
+                ItemSlot #NorthBlock {
+                  Anchor: (Full: 0);
+                  ShowQualityBackground: false;
+                }
+              }
+            }
+          }
+
+          Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
+
+          Group {
+            Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
+            ItemSlotButton #EastBlockButton {
+              TooltipText: "East";
+              Anchor: (Full: 0);
+              LayoutMode: Full;
+              Group #EastBlockBorder {
+                Anchor: (Full: 0);
+                Background: #007BFF;
+                Padding: 2;
+                ItemSlot #EastBlock {
+                  Anchor: (Full: 0);
+                  ShowQualityBackground: false;
+                }
               }
             }
           }
         }
 
-        Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
+        // Row gap
+        Group { Anchor: (Height: 6, Left: 0, Top: 0); }
 
+        // Row 3: D S *
         Group {
-          Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
-          ItemSlotButton #SouthBlockButton {
-            TooltipText: "South";
-            Anchor: (Full: 0);
-            LayoutMode: Full;
-            Group #SouthBlockBorder {
+          LayoutMode: Left;
+          Anchor: (Width: 228, Height: 72, Left: 0, Top: 0);
+
+          Group {
+            Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
+            ItemSlotButton #DownBlockButton {
+              TooltipText: "Down";
               Anchor: (Full: 0);
-              Background: #007BFF;
-              Padding: 2;
-              ItemSlot #SouthBlock {
+              LayoutMode: Full;
+              Group #DownBlockBorder {
                 Anchor: (Full: 0);
-                ShowQualityBackground: false;
+                Background: #007BFF;
+                Padding: 2;
+                ItemSlot #DownBlock {
+                  Anchor: (Full: 0);
+                  ShowQualityBackground: false;
+                }
               }
             }
           }
-        }
 
-        Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
-        Group { Anchor: (Width: 72, Height: 72, Left: 0, Top: 0); }
+          Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
+
+          Group {
+            Anchor: (Width: 72, Height: 72, Left: 0, Top: 0);
+            ItemSlotButton #SouthBlockButton {
+              TooltipText: "South";
+              Anchor: (Full: 0);
+              LayoutMode: Full;
+              Group #SouthBlockBorder {
+                Anchor: (Full: 0);
+                Background: #007BFF;
+                Padding: 2;
+                ItemSlot #SouthBlock {
+                  Anchor: (Full: 0);
+                  ShowQualityBackground: false;
+                }
+              }
+            }
+          }
+
+          Group { Anchor: (Width: 6, Height: 72, Left: 0, Top: 0); }
+          Group { Anchor: (Width: 72, Height: 72, Left: 0, Top: 0); }
+        }
+      }
+
+      Group {
+        Label {
+          Text: "Left Click to set cycle connection modes.";
+        }
+      }
+
+      Group #FilterHelp {
+        Label {
+          Text: "Right Click to set item filters.";
+        }
       }
     }
   }

@@ -64,6 +64,8 @@ public class QuarryComponent implements Component<com.hypixel.hytale.server.core
             .add()
             .append(new KeyedCodec<>("Gentle", Codec.BOOLEAN), (c, v) -> c.gentle = v, c -> c.gentle)
             .add()
+            .append(new KeyedCodec<>("ShowArea", Codec.BOOLEAN), (c, v) -> c.showArea = v, c -> c.showArea)
+            .add()
             .build();
 
     public SimpleItemContainer inventory = new SimpleItemContainer((short) 20);
@@ -84,6 +86,7 @@ public class QuarryComponent implements Component<com.hypixel.hytale.server.core
     public float speed = 1f;       // 1x by default; 2.0 halves time per block
     public float efficiency = 1f;  // 1x by default; 2.0 halves HE usage
     public boolean gentle = false; // silk-touch style; 10x HE cost when true
+    public boolean showArea = false;
 
     public boolean hasScanBounds() {
         return startX != UNSET && startZ != UNSET && endX != UNSET && endZ != UNSET;
@@ -97,7 +100,7 @@ public class QuarryComponent implements Component<com.hypixel.hytale.server.core
         currentX = UNSET;
         currentY = UNSET;
         currentZ = UNSET;
-        if (clearBounds) {
+        if (false) {
             startX = UNSET;
             startZ = UNSET;
             endX = UNSET;
