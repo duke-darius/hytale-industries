@@ -28,9 +28,10 @@ import dev.dukedarius.HytaleIndustries.Components.Energy.ProducesHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.WindTurbineComponent;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
+import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
+import dev.dukedarius.HytaleIndustries.Components.Processing.AlloySmelterInventory;
 import dev.dukedarius.HytaleIndustries.Energy.WindManager;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
-import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
 import dev.dukedarius.HytaleIndustries.Systems.WindTurbineSystem;
 
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBurningGeneratorInteraction;
@@ -39,8 +40,9 @@ import dev.dukedarius.HytaleIndustries.Interactions.OpenSmallBatteryInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenPoweredCrusherInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenPoweredFurnaceInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenQuarryInteraction;
-
 import dev.dukedarius.HytaleIndustries.Interactions.OpenWindTurbineInteraction;
+import dev.dukedarius.HytaleIndustries.Interactions.OpenAlloySmelterInteraction;
+
 import dev.dukedarius.HytaleIndustries.Systems.BlockBreakSystem;
 import dev.dukedarius.HytaleIndustries.Systems.BlockPlaceSystem;
 import dev.dukedarius.HytaleIndustries.Systems.InventoryDropOnBreakSystem;
@@ -50,6 +52,7 @@ import dev.dukedarius.HytaleIndustries.Systems.BasicPowerCableTransferSystem;
 import dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapters;
 import dev.dukedarius.HytaleIndustries.Inventory.adapters.BlockStateItemContainerAdapter;
 import dev.dukedarius.HytaleIndustries.Inventory.adapters.FuelInventoryAdapter;
+import dev.dukedarius.HytaleIndustries.Inventory.adapters.AlloySmelterInventoryAdapter;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -72,6 +75,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         Interaction.CODEC.register("HytaleIndustries_OpenPoweredFurnace", OpenPoweredFurnaceInteraction.class, OpenPoweredFurnaceInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenPoweredCrusher", OpenPoweredCrusherInteraction.class, OpenPoweredCrusherInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenChunkLoader", OpenChunkLoaderInteraction.class, OpenChunkLoaderInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenAlloySmelter", OpenAlloySmelterInteraction.class, OpenAlloySmelterInteraction.CODEC);
 
         Interaction.CODEC.register("HytaleIndustries_OpenQuarry", OpenQuarryInteraction.class, OpenQuarryInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenWindTurbine", OpenWindTurbineInteraction.class, OpenWindTurbineInteraction.CODEC);
@@ -101,6 +105,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     private ComponentType<ChunkStore, FuelInventory> fuelInventoryType;
     private ComponentType<ChunkStore, PoweredFurnaceInventory> poweredFurnaceInventoryType;
     private ComponentType<ChunkStore, PoweredCrusherInventory> poweredCrusherInventoryType;
+    private ComponentType<ChunkStore, AlloySmelterInventory> alloySmelterInventoryType;
     private ComponentType<ChunkStore, ChunkLoaderComponent> chunkLoaderComponentType;
     private ComponentType<ChunkStore, QuarryComponent> quarryComponentType;
     private ComponentType<ChunkStore, WindTurbineComponent> windTurbineComponentType;
@@ -145,6 +150,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public ComponentType<ChunkStore, FuelInventory> getFuelInventoryType() { return fuelInventoryType; }
     public ComponentType<ChunkStore, PoweredFurnaceInventory> getPoweredFurnaceInventoryType() { return poweredFurnaceInventoryType; }
     public ComponentType<ChunkStore, PoweredCrusherInventory> getPoweredCrusherInventoryType() { return poweredCrusherInventoryType; }
+    public ComponentType<ChunkStore, AlloySmelterInventory> getAlloySmelterInventoryType() { return alloySmelterInventoryType; }
     public ComponentType<ChunkStore, ChunkLoaderComponent> getChunkLoaderComponentType() { return chunkLoaderComponentType; }
     public ComponentType<ChunkStore, QuarryComponent> getQuarryComponentType() { return quarryComponentType; }
     public ComponentType<ChunkStore, WindTurbineComponent> getWindTurbineComponentType() { return windTurbineComponentType; }
@@ -166,6 +172,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         InventoryAdapters.register(new FuelInventoryAdapter());
         InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.PoweredFurnaceInventoryAdapter());
         InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.PoweredCrusherInventoryAdapter());
+        InventoryAdapters.register(new AlloySmelterInventoryAdapter());
 
         // Register ECS components for basic item pipes
         this.basicItemPipeComponentType = this.getChunkStoreRegistry().registerComponent(
@@ -251,6 +258,11 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 "PoweredCrusherInventory",
                 PoweredCrusherInventory.CODEC
         );
+        this.alloySmelterInventoryType = this.getChunkStoreRegistry().registerComponent(
+                AlloySmelterInventory.class,
+                "AlloySmelterInventory",
+                AlloySmelterInventory.CODEC
+        );
         this.quarryComponentType = this.getChunkStoreRegistry().registerComponent(
                 QuarryComponent.class,
                 "Quarry",
@@ -331,6 +343,16 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         this.getChunkStoreRegistry().registerSystem(
                 new dev.dukedarius.HytaleIndustries.Systems.PoweredCrusherProcessingSystem(
                         this.poweredCrusherInventoryType,
+                        this.storesHeType,
+                        this.consumesHeType
+                )
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.AlloySmelterInitSystem()
+        );
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.AlloySmelterProcessingSystem(
+                        this.alloySmelterInventoryType,
                         this.storesHeType,
                         this.consumesHeType
                 )

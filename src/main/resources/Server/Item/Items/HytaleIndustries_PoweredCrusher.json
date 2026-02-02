@@ -116,10 +116,10 @@
     },
     "BenchRequirement": [
       {
-        "Id": "Furniture_Bench",
+        "Id": "Machinists_Bench",
         "Type": "Crafting",
         "Categories": [
-          "Furniture_Misc"
+          "Machinists_Processing"
         ]
       }
     ],

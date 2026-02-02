@@ -1,0 +1,9 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_Ingredient_Bar_BlastSteel.png",
+  "TranslationProperties": {
+    "Name": "Blast Steel Bar",
+    "Description": "A refined bar of steel, used in advanced alloys."
+  },
+  "ItemEntity": {},
+  "MaxStack": 99
+}

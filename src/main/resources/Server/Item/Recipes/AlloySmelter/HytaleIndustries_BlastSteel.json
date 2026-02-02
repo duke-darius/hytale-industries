@@ -1,0 +1,24 @@
+{
+  "Id": "HytaleIndustries_BlastSteel",
+  "Input": [
+    {
+      "ItemId": "Ingredient_Bar_Iron",
+      "Quantity": 1
+    },
+    {
+      "ItemId": "Ingredient_Charcoal",
+      "Quantity": 1
+    }
+  ],
+  "PrimaryOutput": {
+    "ItemId": "Ingredient_Bar_BlastSteel",
+    "Quantity": 1
+  },
+  "BenchRequirement": [
+    {
+      "Type": "Processing",
+      "Id": "AlloySmelter"
+    }
+  ],
+  "TimeSeconds": 14.0
+}

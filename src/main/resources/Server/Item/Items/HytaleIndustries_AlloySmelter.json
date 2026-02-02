@@ -1,21 +1,21 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_SmallBattery.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_AlloySmelter.png",
   "TranslationProperties": {
-    "Name": "Small Battery",
-    "Description": "Stores up to 1,000,000 HE."
+    "Name": "Alloy Smelter",
+    "Description": "Combines metals and fuels into advanced alloys using HE."
   },
   "ItemEntity": {},
   "Interactions": {
-    "Secondary": "HytaleIndustries_PlaceSmallBattery_Root"
+    "Secondary": "HytaleIndustries_PlaceAlloySmelter_Root"
   },
   "InteractionConfig": {},
   "BlockType": {
     "Parent": "Debug_Model",
     "DrawType": "Model",
-    "CustomModel": "Blocks/HytaleIndustries_SmallBattery/HytaleIndustries_SmallBattery.blockymodel",
+    "CustomModel": "Blocks/HytaleIndustries_AlloySmelter/HytaleIndustries_AlloySmelter.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HytaleIndustries_SmallBattery/HytaleIndustries_SmallBattery.png",
+        "Texture": "Blocks/HytaleIndustries_AlloySmelter/HytaleIndustries_AlloySmelter.png",
         "Weight": 1
       }
     ],
@@ -23,13 +23,31 @@
       "IsBlockComponent": true,
       "Components": {
         "StoresHE": {
-          "Max": 1000000,
+          "Max": 10000,
           "Current": 0
         },
+        "ConsumesHE": {
+          "HEConsumption": 20,
+          "Enabled": false
+        },
+        "AlloySmelterInventory": {
+          "InputA": {
+            "Slots": 1,
+            "ItemStacks": []
+          },
+          "InputB": {
+            "Slots": 1,
+            "ItemStacks": []
+          },
+          "Output": {
+            "Slots": 1,
+            "ItemStacks": []
+          }
+        },
         "CableEndpoint": {
-          "CapacityPerTick": 500,
+          "CapacityPerTick": 250,
           "LossPerMeter": 0.0,
-          "Priority": 1
+          "Priority": 0
         }
       }
     },
@@ -38,10 +56,16 @@
       "IsStackable": true
     },
     "Interactions": {
-      "Use": "HytaleIndustries_OpenSmallBattery_Root"
+      "Use": "HytaleIndustries_OpenAlloySmelter_Root"
+    },
+    "State": {
+      "Id": "alloySmelter",
+      "Definitions": {
+        "default": {}
+      }
     },
     "Gathering": {
-      "Breaking": { 
+      "Breaking": {
         "GatherType": "Rocks",
         "Quality": 0,
         "Quantity": 1
@@ -93,10 +117,11 @@
     "MaxSupportDistance": 0,
     "SupportsRequiredFor": "Any"
   },
+  "MaxStack": 64,
   "Recipe": {
     "OutputQuantity": 1,
     "PrimaryOutput": {
-      "ItemId": "HytaleIndustries_SmallBattery",
+      "ItemId": "HytaleIndustries_AlloySmelter",
       "Quantity": 1
     },
     "BenchRequirement": [
@@ -104,7 +129,7 @@
         "Id": "Machinists_Bench",
         "Type": "Crafting",
         "Categories": [
-          "Machinists_Energy"
+          "Machinists_Processing"
         ]
       }
     ],
@@ -115,9 +140,8 @@
       },
       {
         "ItemId": "Ingredient_Life_Essence",
-        "Quantity": 1
+        "Quantity": 2
       }
     ]
-  },
-  "MaxStack": 64
+  }
 }

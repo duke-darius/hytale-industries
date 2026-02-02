@@ -1,0 +1,133 @@
+{
+  "TranslationProperties": {
+    "Name": "Machinist's Bench",
+    "Description": "A sturdy workbench used by machinists to craft mechanical components and devices."
+  },
+  "Recipe": {
+    "TimeSeconds": 3,
+    "Input": [
+      {
+        "Quantity": 6,
+        "ResourceTypeId": "Wood_Trunk"
+      },
+      {
+        "Quantity": 4,
+        "ResourceTypeId": "Rock"
+      },
+      {
+        "Quantity": 1,
+        "ItemId": "Ingredient_Bar_Iron"
+      }
+    ],
+    "BenchRequirement": [
+      {
+        "Type": "Crafting",
+        "Categories": [
+          "Workbench_Crafting"
+        ],
+        "Id": "Workbench"
+      }
+    ]
+  },
+  "Icon": "Icons/ItemsGenerated/Bench_Furniture.png",
+  "Categories": [
+    "Machinist.Benches"
+  ],
+  "BlockType": {
+    "Material": "Solid",
+    "DrawType": "Model",
+    "Opacity": "Semitransparent",
+    "CustomModel": "Blocks/Benches/Furniture.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/Benches/Furniture_Texture.png",
+        "Weight": 1
+      }
+    ],
+    "HitboxType": "Bench_Loom",
+    "VariantRotation": "NESW",
+    "Bench": {
+      "Type": "Crafting",
+      "Categories": [
+        {
+          "Id": "Machinists_Conduits",
+          "Icon": "Icons/CraftingCategories/HytaleIndustries_PowerCable.png",
+          "Name": "Conduits"
+        },
+        {
+          "Id": "Machinists_Generation",
+          "Icon": "Icons/CraftingCategories/HytaleIndustries_BurningGenerator.png",
+          "Name": "Generation"
+        },
+        {
+          "Id": "Machinists_Energy",
+          "Icon": "Icons/CraftingCategories/HytaleIndustries_SmallBattery.png",
+          "Name": "Energy"
+        },
+        {
+          "Id": "Machinists_Processing",
+          "Icon": "Icons/CraftingCategories/HytaleIndustries_PoweredFurnace.png",
+          "Name": "Powered Processing"
+        },
+        {
+          "Id": "Machinists_Tools",
+          "Icon": "Icons/CraftingCategories/HytaleIndustries_Quarry.png",
+          "Name": "Tools"
+        }
+      ],
+      "LocalOpenSoundEventId": "SFX_Workbench_Open",
+      "LocalCloseSoundEventId": "SFX_Workbench_Close",
+      "CompletedSoundEventId": "SFX_Workbench_Craft",
+      "FailedSoundEventId": "SFX_Generic_Crafting_Failed",
+      "Id": "Machinists_Bench"
+    },
+    "State": {
+      "Id": "crafting",
+      "Definitions": {
+        "CraftCompleted": {
+          "CustomModelAnimation": "Blocks/Benches/Carpenter_Crafting.blockyanim",
+          "Looping": true
+        },
+        "CraftCompletedInstant": {
+          "CustomModelAnimation": "Blocks/Benches/Carpenter_Crafting.blockyanim"
+        }
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Benches"
+      }
+    },
+    "BlockParticleSetId": "Wood",
+    "ParticleColor": "#6b472f",
+    "Support": {
+      "Down": [
+        {
+          "FaceType": "Full"
+        }
+      ]
+    },
+    "BlockSoundSetId": "Wood"
+  },
+  "PlayerAnimationsId": "Block",
+  "IconProperties": {
+    "Scale": 0.42,
+    "Rotation": [
+      22.5,
+      45.0,
+      22.5
+    ],
+    "Translation": [
+      13.0,
+      -13.2
+    ]
+  },
+  "Tags": {
+    "Type": [
+      "Bench"
+    ]
+  },
+  "MaxStack": 1,
+  "ItemLevel": 7,
+  "ItemSoundSetId": "ISS_Blocks_Wood"
+}

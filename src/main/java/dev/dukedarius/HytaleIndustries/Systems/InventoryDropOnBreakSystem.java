@@ -22,6 +22,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.component.AddReason;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
+import dev.dukedarius.HytaleIndustries.Components.Processing.AlloySmelterInventory;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import javax.annotation.Nonnull;
 
@@ -61,12 +62,16 @@ public class InventoryDropOnBreakSystem extends EntityEventSystem<EntityStore, B
         // Prefer ECS inventory if present
         PoweredFurnaceInventory pfInv = stateRef.getStore().getComponent(stateRef, HytaleIndustriesPlugin.INSTANCE.getPoweredFurnaceInventoryType());
         PoweredCrusherInventory pcInv = stateRef.getStore().getComponent(stateRef, HytaleIndustriesPlugin.INSTANCE.getPoweredCrusherInventoryType());
+        AlloySmelterInventory asInv = stateRef.getStore().getComponent(stateRef, HytaleIndustriesPlugin.INSTANCE.getAlloySmelterInventoryType());
         ItemContainer container = null;
         if (pfInv != null) {
             container = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(pfInv.input, pfInv.output);
         } else if (pcInv != null) {
             container = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(pcInv.input, pcInv.output);
-        }else {
+        } else if (asInv != null) {
+            var inputs = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(asInv.inputA, asInv.inputB);
+            container = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(inputs, asInv.output);
+        } else {
             // todo: handle InventoryBlockState
         }
         if(container == null) return;
