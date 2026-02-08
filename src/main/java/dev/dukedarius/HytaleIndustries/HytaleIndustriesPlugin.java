@@ -30,6 +30,7 @@ import dev.dukedarius.HytaleIndustries.Components.Energy.WindTurbineComponent;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
 import dev.dukedarius.HytaleIndustries.Components.Processing.AlloySmelterInventory;
+import dev.dukedarius.HytaleIndustries.Components.Storage.BasicItemCacheComponent;
 import dev.dukedarius.HytaleIndustries.Energy.WindManager;
 import dev.dukedarius.HytaleIndustries.Interactions.ConfigurePipeInteraction;
 import dev.dukedarius.HytaleIndustries.Systems.WindTurbineSystem;
@@ -42,6 +43,7 @@ import dev.dukedarius.HytaleIndustries.Interactions.OpenPoweredFurnaceInteractio
 import dev.dukedarius.HytaleIndustries.Interactions.OpenQuarryInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenWindTurbineInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenAlloySmelterInteraction;
+import dev.dukedarius.HytaleIndustries.Interactions.OpenBasicItemCacheInteraction;
 
 import dev.dukedarius.HytaleIndustries.Systems.BlockBreakSystem;
 import dev.dukedarius.HytaleIndustries.Systems.BlockPlaceSystem;
@@ -79,6 +81,8 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
         Interaction.CODEC.register("HytaleIndustries_OpenQuarry", OpenQuarryInteraction.class, OpenQuarryInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenWindTurbine", OpenWindTurbineInteraction.class, OpenWindTurbineInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_OpenBasicItemCache", OpenBasicItemCacheInteraction.class, OpenBasicItemCacheInteraction.CODEC);
+
     }
 
 
@@ -110,6 +114,9 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     private ComponentType<ChunkStore, QuarryComponent> quarryComponentType;
     private ComponentType<ChunkStore, WindTurbineComponent> windTurbineComponentType;
     private ComponentType<EntityStore, QuarryProjectileComponent> quarryProjectileComponentType;
+
+    // Storage
+    private ComponentType<ChunkStore, BasicItemCacheComponent> basicItemCacheComponentType;
 
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -155,6 +162,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public ComponentType<ChunkStore, QuarryComponent> getQuarryComponentType() { return quarryComponentType; }
     public ComponentType<ChunkStore, WindTurbineComponent> getWindTurbineComponentType() { return windTurbineComponentType; }
     public ComponentType<EntityStore, QuarryProjectileComponent> getQuarryProjectileComponentType() { return quarryProjectileComponentType; }
+    public ComponentType<ChunkStore, BasicItemCacheComponent> getBasicItemCacheComponentType() { return basicItemCacheComponentType; }
 
 
     @Override
@@ -173,6 +181,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.PoweredFurnaceInventoryAdapter());
         InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.PoweredCrusherInventoryAdapter());
         InventoryAdapters.register(new AlloySmelterInventoryAdapter());
+        InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.BasicItemCacheInventoryAdapter());
 
         // Register ECS components for basic item pipes
         this.basicItemPipeComponentType = this.getChunkStoreRegistry().registerComponent(
@@ -248,6 +257,12 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 "ChunkLoader",
                 ChunkLoaderComponent.CODEC
         );
+        // Quarry machine component for chunk blocks
+        this.quarryComponentType = this.getChunkStoreRegistry().registerComponent(
+                QuarryComponent.class,
+                "QuarryComponent",
+                QuarryComponent.CODEC
+        );
         this.poweredFurnaceInventoryType = this.getChunkStoreRegistry().registerComponent(
                 PoweredFurnaceInventory.class,
                 "PoweredFurnaceInventory",
@@ -263,10 +278,10 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 "AlloySmelterInventory",
                 AlloySmelterInventory.CODEC
         );
-        this.quarryComponentType = this.getChunkStoreRegistry().registerComponent(
-                QuarryComponent.class,
-                "Quarry",
-                QuarryComponent.CODEC
+        this.basicItemCacheComponentType = this.getChunkStoreRegistry().registerComponent(
+                BasicItemCacheComponent.class,
+                "BasicItemCache",
+                BasicItemCacheComponent.CODEC
         );
         this.windTurbineComponentType = this.getChunkStoreRegistry().registerComponent(
                 WindTurbineComponent.class,
@@ -379,6 +394,12 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 this.windTurbineComponentType,
                 this.storesHeType
         ));
+        // Basic Item Cache logical counter system
+        this.getChunkStoreRegistry().registerSystem(
+                new dev.dukedarius.HytaleIndustries.Systems.BasicItemCacheSystem(
+                        this.basicItemCacheComponentType
+                )
+        );
 
         // EntityStore systems
         this.getEntityStoreRegistry().registerSystem(new InventoryDropOnBreakSystem());

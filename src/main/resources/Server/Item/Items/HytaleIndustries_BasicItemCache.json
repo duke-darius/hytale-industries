@@ -1,0 +1,95 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "TranslationProperties": {
+    "Name": "Basic Item Cache",
+    "Description": "Stores a large quantity of a single item and displays it on the front."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlaceBasicItemCache_Root"
+  },
+  "InteractionConfig": {},
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_ChunkLoader/HytaleIndustries_ChunkLoader.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_ChunkLoader/HytaleIndustries_ChunkLoader.png",
+        "Weight": 1
+      }
+    ],
+    "BlockEntity": {
+      "IsBlockComponent": true,
+      "Components": {
+        "BasicItemCache": {
+          "Inventory": {
+            "Slots": 1,
+            "ItemStacks": []
+          }
+        }
+      }
+    },
+    "Flags": {
+      "IsUsable": true,
+      "IsStackable": true
+    },
+    "Interactions": {
+      "Use": "HytaleIndustries_OpenBasicItemCache_Root"
+    },
+    "State": {
+      "Definitions": {
+        "default": {}
+      }
+    },
+    "Gathering": {
+      "Breaking": {
+        "GatherType": "Rocks",
+        "Quality": 0,
+        "Quantity": 1
+      }
+    },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Supporting": {
+      "Up": [ { "FaceType": "Full", "Filler": null } ],
+      "Down": [ { "FaceType": "Full", "Filler": null } ],
+      "North": [ { "FaceType": "Full", "Filler": null } ],
+      "South": [ { "FaceType": "Full", "Filler": null } ],
+      "East": [ { "FaceType": "Full", "Filler": null } ],
+      "West": [ { "FaceType": "Full", "Filler": null } ]
+    },
+    "IgnoreSupportWhenPlaced": true,
+    "Group": "@Tech",
+    "Support": {},
+    "MaxSupportDistance": 0,
+    "SupportsRequiredFor": "Any"
+  },
+  "MaxStack": 64,
+  "Recipe": {
+    "OutputQuantity": 1,
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_BasicItemCache",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Machinists_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Machinists_Storage"
+        ]
+      }
+    ],
+    "Input": [
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 4
+      },
+      {
+        "ItemId": "Ingredient_Wood_Plank",
+        "Quantity": 8
+      }
+    ]
+  }
+}
