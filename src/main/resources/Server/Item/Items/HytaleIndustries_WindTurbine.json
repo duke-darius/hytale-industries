@@ -12,13 +12,14 @@
   "BlockType": {
     "Parent": "Debug_Model",
     "DrawType": "Model",
-    "CustomModel": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.blockymodel",
+    "CustomModel": "Blocks/HytaleIndustries_WindTurbine/HytaleIndustries_WindTurbine.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator.png",
+        "Texture": "Blocks/HytaleIndustries_WindTurbine/HytaleIndustries_WindTurbine.png",
         "Weight": 1
       }
     ],
+    "CustomModelAnimation": "Blocks/Animations/HytaleIndustries_WindTurbine_Rotate.blockyanim",
     "Flags": {
       "IsUsable": true,
       "IsStackable": true
@@ -58,7 +59,18 @@
     "Support": {},
     "MaxSupportDistance": 0,
     "SupportsRequiredFor": "Any",
-    "HitboxType": "HytaleIndustries_WindTurbine"
+    "HitboxType": "HytaleIndustries_WindTurbine",
+    "Looping": true,
+    "State": {
+      "Definitions": {
+        "spinning": {
+          "default": {},
+          "on": {
+            "CustomModelAnimation": "Blocks/Animations/HytaleIndustries_WindTurbine_Rotate.blockyanim"
+          }
+        }
+      }
+    }
   },
   "MaxStack": 64,
   "Recipe": {

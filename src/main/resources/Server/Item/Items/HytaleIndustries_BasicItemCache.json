@@ -23,10 +23,18 @@
       "IsBlockComponent": true,
       "Components": {
         "BasicItemCache": {
-          "Inventory": {
-            "Slots": 1,
-            "ItemStacks": []
-          }
+            "Inventory": {
+              "Slots": 1,
+              "ItemStacks": []
+            },
+            "Input": {
+              "Slots": 1,
+              "ItemStacks": []
+            },
+            "Output": {
+              "Slots": 1,
+              "ItemStacks": []
+            }
         }
       }
     },

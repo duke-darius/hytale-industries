@@ -14,18 +14,13 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import dev.dukedarius.HytaleIndustries.Components.Energy.StoresHE;
 import dev.dukedarius.HytaleIndustries.Components.Energy.WindTurbineComponent;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
 import javax.annotation.Nonnull;
 
-/**
- * ECS replacement for {@link dev.dukedarius.HytaleIndustries.BlockStates.WindTurbineBlockState}.
- *
- * - On first tick it builds the 4-block-tall filler column.
- * - Every tick it generates HE based on Y-level and stores it in a StoresHE component.
- */
 public class WindTurbineSystem extends EntityTickingSystem<ChunkStore> {
 
     private static final int WORLD_MIN_Y = 0;
@@ -74,6 +69,7 @@ public class WindTurbineSystem extends EntityTickingSystem<ChunkStore> {
             return;
         }
 
+
         double windSpeed = 1.0;
         if (HytaleIndustriesPlugin.INSTANCE != null && HytaleIndustriesPlugin.INSTANCE.getWindManager() != null) {
             try {
@@ -88,6 +84,17 @@ public class WindTurbineSystem extends EntityTickingSystem<ChunkStore> {
         final int x = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getX(), ChunkUtil.xFromBlockInColumn(info.getIndex()));
         final int y = ChunkUtil.yFromBlockInColumn(info.getIndex());
         final int z = ChunkUtil.worldCoordFromLocalCoord(blockChunk.getZ(), ChunkUtil.zFromBlockInColumn(info.getIndex()));
+        BlockType blockType = BlockType.getAssetMap().getAsset(
+                blockChunk.getBlock(
+                        ChunkUtil.xFromBlockInColumn(info.getIndex()),
+                        y,
+                        ChunkUtil.zFromBlockInColumn(info.getIndex())
+                )
+        );
+        if (blockType == null) {
+            HytaleIndustriesPlugin.LOGGER.atFine().log("BlockType is null");
+            return;
+        }
 
         if (y < WORLD_MIN_Y || y >= WORLD_MAX_Y_EXCLUSIVE) {
             return;
@@ -101,6 +108,18 @@ public class WindTurbineSystem extends EntityTickingSystem<ChunkStore> {
                     setupFillers(w, x, y, z);
                 }
             });
+            Ref<ChunkStore> chunkRef = info.getChunkRef();
+            if (chunkRef != null && chunkRef.isValid()) {
+                final int lx = x;
+                final int ly = y;
+                final int lz = z;
+                buffer.run(s -> {
+                    WorldChunk wc = s.getComponent(chunkRef, WorldChunk.getComponentType());
+                    if (wc != null) {
+                        wc.setBlockInteractionState(lx, ly, lz, blockType, "spinning", true);
+                    }
+                });
+            }
             turbine.initialized = true;
             buffer.replaceComponent(ref, turbineType, turbine);
             return;
