@@ -32,39 +32,24 @@ public class BasicItemCacheInventoryAdapter implements InventoryAdapter {
         var entity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
         if (entity == null) return Collections.emptyList();
 
+        var blockType = chunk.getBlockType(x & 31, y, z & 31);
+        String blockId = blockType != null ? blockType.getId() : "null";
+        HytaleIndustriesPlugin.LOGGER.atInfo().log("[CacheAdapter] adapting (%d,%d,%d) block=%s", x, y, z, blockId);
+
         BasicItemCacheComponent cache = store.getComponent(entity,
                 HytaleIndustriesPlugin.INSTANCE.getBasicItemCacheComponentType());
         if (cache == null) return Collections.emptyList();
+        ensureContainer(cache);
 
-        ensureContainers(cache);
-
-        short inputSlots = cache.input.getCapacity();
-        short outputSlots = cache.output.getCapacity();
-
-        var combined = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(cache.input, cache.output);
         MachineInventory inv = new BasicItemCacheMachineInventory(
-                combined,
-                slot -> {
-                    if (slot < inputSlots) return SlotIO.INPUT;
-                    if (slot < inputSlots + outputSlots) return SlotIO.OUTPUT;
-                    return SlotIO.NONE;
-                }
+                cache.slot,
+                slot -> SlotIO.BOTH
         );
         return Collections.singletonList(inv);
     }
-
-    private static void ensureContainers(BasicItemCacheComponent cache) {
-        // If the new input container is missing but we still have the legacy
-        // single "inventory" container, treat that as the input.
-        if ((cache.input == null || cache.input.getCapacity() <= 0) &&
-                cache.inventory != null && cache.inventory.getCapacity() > 0) {
-            cache.input = cache.inventory;
-        }
-        if (cache.input == null || cache.input.getCapacity() <= 0) {
-            cache.input = new com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer((short) 1);
-        }
-        if (cache.output == null || cache.output.getCapacity() <= 0) {
-            cache.output = new com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer((short) 1);
+    private static void ensureContainer(BasicItemCacheComponent cache) {
+        if (cache.slot == null || cache.slot.getCapacity() <= 0) {
+            cache.slot = new dev.dukedarius.HytaleIndustries.Inventory.containers.CacheItemContainer((short) 1, 1024);
         }
     }
 }

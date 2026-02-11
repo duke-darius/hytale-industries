@@ -29,7 +29,7 @@
       }
     ]
   },
-  "Icon": "Icons/ItemsGenerated/Bench_Furniture.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_MachinistsBench.png",
   "Categories": [
     "Machinist.Benches"
   ],
@@ -37,10 +37,10 @@
     "Material": "Solid",
     "DrawType": "Model",
     "Opacity": "Semitransparent",
-    "CustomModel": "Blocks/Benches/Furniture.blockymodel",
+    "CustomModel": "Blocks/HytaleIndustries_MachinistsBench/HytaleIndustries_MachinistsBench.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/Benches/Furniture_Texture.png",
+        "Texture": "Blocks/HytaleIndustries_MachinistsBench/HytaleIndustries_MachinistsBench.png",
         "Weight": 1
       }
     ],

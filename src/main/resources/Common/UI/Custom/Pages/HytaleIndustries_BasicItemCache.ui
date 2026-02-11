@@ -24,7 +24,7 @@ Group {
         @Text = "Empty";
       }
 
-      // Row with input and output item slots
+      // Single overstack slot
       Group {
         LayoutMode: Left;
         Anchor: (Top: 12, Height: 80);
@@ -44,27 +44,6 @@ Group {
             Anchor: (Width: 72, Left: 0, Top: 54);
 
             Label #InputQty {
-              Style: (HorizontalAlignment: End);
-              Text: "";
-            }
-          }
-        }
-
-        // Output slot
-        ItemSlotButton #OutputButton {
-          Anchor: (Width: 72, Height: 72, Left: 20);
-          LayoutMode: Full;
-
-          ItemSlot #OutputSlot {
-            Anchor: (Full: 0);
-            ShowQualityBackground: false;
-          }
-
-          Group {
-            LayoutMode: Right;
-            Anchor: (Width: 72, Left: 0, Top: 54);
-
-            Label #OutputQty {
               Style: (HorizontalAlignment: End);
               Text: "";
             }

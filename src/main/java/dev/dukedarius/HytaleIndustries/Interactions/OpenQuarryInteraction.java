@@ -18,6 +18,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import dev.dukedarius.HytaleIndustries.Components.Quarry.QuarryComponent;
+import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 import dev.dukedarius.HytaleIndustries.UI.QuarryUIPage;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
@@ -43,11 +44,13 @@ public class OpenQuarryInteraction extends SimpleBlockInteraction {
         Player player = commandBuffer.getComponent(ref, Player.getComponentType());
         if (player == null) {
             interactionContext.getState().state = InteractionState.Failed;
+            HytaleIndustriesPlugin.LOGGER.atInfo().log("Failed interaction");
             return;
         }
 
         if (player.getPageManager().getCustomPage() != null) {
             interactionContext.getState().state = InteractionState.Skip;
+            HytaleIndustriesPlugin.LOGGER.atInfo().log("Failed interaction, skip");
             return;
         }
 
@@ -55,19 +58,21 @@ public class OpenQuarryInteraction extends SimpleBlockInteraction {
         if (chunk == null) chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
         if (chunk == null) {
             interactionContext.getState().state = InteractionState.Skip;
+            HytaleIndustriesPlugin.LOGGER.atInfo().log("Failed interaction, chunk");
             return;
         }
         var entity = chunk.getBlockComponentEntity(pos.x & 31, pos.y, pos.z & 31);
         var quarryType = dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin.INSTANCE.getQuarryComponentType();
         if (entity == null || quarryType == null || entity.getStore().getComponent(entity, quarryType) == null) {
             interactionContext.getState().state = InteractionState.Skip;
+            HytaleIndustriesPlugin.LOGGER.atInfo().log("Failed interaction, player, entityNull=%s, quarryTypeNull=%s, compNull=%s", entity == null, quarryType == null, entity.getStore().getComponent(entity, quarryType) == null);
             return;
         }
 
         PlayerRef playerRef = commandBuffer.getComponent(ref, PlayerRef.getComponentType());
         if (playerRef == null) {
             interactionContext.getState().state = InteractionState.Failed;
-            interactionContext.getState().state = InteractionState.Failed;
+
             return;
         }
 

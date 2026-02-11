@@ -1,8 +1,8 @@
 {
   "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
   "TranslationProperties": {
-    "Name": "Basic Item Cache",
-    "Description": "Stores a large quantity of a single item and displays it on the front."
+    "Name": "[BROKEN] Basic Item Cache",
+    "Description": "[Will Eventually] Stores a large quantity of a single item and displays it on the front."
   },
   "ItemEntity": {},
   "Interactions": {
@@ -23,18 +23,10 @@
       "IsBlockComponent": true,
       "Components": {
         "BasicItemCache": {
-            "Inventory": {
-              "Slots": 1,
-              "ItemStacks": []
-            },
-            "Input": {
-              "Slots": 1,
-              "ItemStacks": []
-            },
-            "Output": {
-              "Slots": 1,
-              "ItemStacks": []
-            }
+          "Slot": {
+            "Slots": 1,
+            "ItemStacks": []
+          }
         }
       }
     },

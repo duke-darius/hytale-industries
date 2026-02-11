@@ -39,25 +39,30 @@ public class BlockStateItemContainerAdapter implements InventoryAdapter {
         }
 
         BlockType blockType = chunk.getBlockType(x & 31, y, z & 31);
+        if (blockType == null) {
+            return Collections.emptyList();
+        }
 
         // Normalize block id (strip leading '*' and state suffix) so we can special-case our own conduit blocks.
         String baseId = null;
-        if (blockType != null) {
-            baseId = blockType.getId();
-            if (baseId != null) {
-                if (baseId.startsWith("*")) {
-                    baseId = baseId.substring(1);
-                }
-                int stateIdx = baseId.indexOf("_State_");
-                if (stateIdx > 0) {
-                    baseId = baseId.substring(0, stateIdx);
-                }
+        baseId = blockType.getId();
+        if (baseId != null) {
+            if (baseId.startsWith("*")) {
+                baseId = baseId.substring(1);
             }
+            int stateIdx = baseId.indexOf("_State_");
+            if (stateIdx > 0) {
+                baseId = baseId.substring(0, stateIdx);
+            }
+        } else {
+            return Collections.emptyList();
         }
 
         // Pipes and power cables use ItemContainerBlockState internally for visuals, but they do NOT have real inventories.
         // Never expose them as MachineInventory, otherwise item pipes will think cables are destinations.
-        if ("HytaleIndustries_BasicItemPipe".equals(baseId) || "HytaleIndustries_BasicPowerCable".equals(baseId)) {
+        if ("HytaleIndustries_BasicItemPipe".equals(baseId)
+                || "HytaleIndustries_BasicPowerCable".equals(baseId)
+                || "HytaleIndustries_BasicItemCache".equals(baseId)) {
             HytaleIndustriesPlugin.LOGGER.atFine().log(
                     "[BlockStateItemContainerAdapter] Skipping conduit block at (%d,%d,%d) id=%s as inventory",
                     x, y, z, baseId);

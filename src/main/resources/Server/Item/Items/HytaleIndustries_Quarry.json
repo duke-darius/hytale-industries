@@ -33,7 +33,7 @@
           "Max": 100000,
           "Current": 0
         },
-        "Quarry": {
+        "QuarryComponent": {
           "HeStored": 0.0,
           "Progress": 0.0,
           "Inventory": {
@@ -45,7 +45,9 @@
           "YStart": 319,
           "Status": "IDLE",
           "Speed": 1.0,
-          "Efficiency": 1
+          "Efficiency": 1,
+          "Gentle": false,
+          "ShowArea": false
         },
         "ConsumeHE": {
 

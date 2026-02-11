@@ -136,18 +136,18 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
             return;
         }
 
-        // Move up to 4 items per second from sources to destinations
+        // Move up to 256 items per tick from sources to destinations
         int totalMoved = 0;
         for (SourceInventory sourceInv : sources) {
-            if (totalMoved >= 4) break;
+            if (totalMoved >= 256) break;
 
             MachineInventory source = sourceInv.inventory;
             if (source == null || source.getContainer() == null || source.getContainer().isEmpty()) continue;
 
             for (InventoryEndpoint ep : endpoints) {
-                int count = moveUpToNItems(sourceInv, ep, 4 - totalMoved);
+                int count = moveUpToNItems(sourceInv, ep, 256 - totalMoved);
                 if (count > 0) totalMoved += count;
-                if (totalMoved >= 4) break;
+                if (totalMoved >= 256) break;
             }
         }
     }
@@ -167,6 +167,11 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
         int ox = origin[0], oy = origin[1], oz = origin[2];
 
         List<MachineInventory> inventories = InventoryAdapters.find(world, store, ox, oy, oz);
+        if (inventories.isEmpty()) {
+            HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                    "[PipeExtraction] no inventory at (%d,%d,%d) from pipe (%d,%d,%d)",
+                    ox, oy, oz, x, y, z);
+        }
         for (MachineInventory inv : inventories) {
             if (inv != null && inv.hasOutputSlots()) {
                 return new SourceInventory(inv, ox, oy, oz);
@@ -287,6 +292,10 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
         if (moved > 0) {
             int newQty = stack.getQuantity() - moved;
             sourceContainer.setItemStackForSlot(sourceSlot, newQty <= 0 ? ItemStack.EMPTY : stack.withQuantity(newQty));
+            HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                    "[PipeExtraction] inserted=%d item=%s srcSlot=%d dstSlots=%d maxStackUsed=%d",
+                    moved, stack.getItemId(), sourceSlot, destInv.getSlotCount(),
+                    stack.getItem().getMaxStack());
         }
 
         return moved;
