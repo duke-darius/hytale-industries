@@ -7,7 +7,8 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
+import com.hypixel.hytale.math.vector.Vector3iUtil;
 import com.hypixel.hytale.server.core.event.events.ecs.PlaceBlockEvent;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -36,10 +37,10 @@ public class BlockPlaceSystem extends EntityEventSystem<EntityStore, PlaceBlockE
         var pipeComponentType = HytaleIndustriesPlugin.INSTANCE.getBasicItemPipeComponentType();
         var updatePipeType = HytaleIndustriesPlugin.INSTANCE.getUpdatePipeComponentType();
 
-        for (var dir : Vector3i.BLOCK_SIDES) {
-            int nx = pos.x + dir.getX();
-            int ny = pos.y + dir.getY();
-            int nz = pos.z + dir.getZ();
+        for (var dir : Vector3iUtil.BLOCK_SIDES) {
+            int nx = pos.x + dir.x();
+            int ny = pos.y + dir.y();
+            int nz = pos.z + dir.z();
 
             if (ny < 0 || ny >= 320) continue;
 

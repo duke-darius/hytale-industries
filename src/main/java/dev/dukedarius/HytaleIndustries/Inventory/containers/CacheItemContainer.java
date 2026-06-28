@@ -219,4 +219,16 @@ public class CacheItemContainer extends ItemContainer {
     protected boolean cantMoveToSlot(ItemContainer itemContainer, short i) {
         return false;
     }
+
+    @Override
+    protected void lockForRead() {}
+
+    @Override
+    protected void unlockForRead() {}
+
+    @Override
+    protected void lockForWrite() {}
+
+    @Override
+    protected void unlockForWrite() {}
 }

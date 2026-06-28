@@ -2,11 +2,12 @@ package dev.dukedarius.HytaleIndustries.Commands;
 
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
-import com.hypixel.hytale.math.matrix.Matrix4d;
+import com.hypixel.hytale.math.matrix.Matrix4dUtil;
+import org.joml.Matrix4d;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3d;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
-import com.hypixel.hytale.protocol.Vector3f;
 import com.hypixel.hytale.protocol.packets.player.DisplayDebug;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
@@ -97,11 +98,12 @@ public class ShowChunksCommand extends AbstractPlayerCommand {
 
             DisplayDebug packet = new DisplayDebug(
                     DebugShape.Cube,
-                    matrix.asFloatData(),
-                    new Vector3f(color.x, color.y, color.z),
+                    Matrix4dUtil.asFloatData(matrix),
+                    color,
                     DURATION_SECONDS,
-                    fade,
-                    null
+                    (byte) (fade ? 1 : 0),
+                    null,
+                    1.0f
             );
 
             playerRef.getPacketHandler().write(packet);

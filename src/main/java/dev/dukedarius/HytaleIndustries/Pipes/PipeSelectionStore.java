@@ -1,6 +1,6 @@
 package dev.dukedarius.HytaleIndustries.Pipes;
 
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

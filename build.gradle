@@ -19,7 +19,7 @@ def useHytaleMaven = providers.gradleProperty("useHytaleMaven")
 def hytaleServerVersion = providers.gradleProperty("hytaleServerVersion")
         .orElse(providers.environmentVariable("HYTALE_SERVER_VERSION"))
         // Fallback to latest known release if CI doesn't inject a version.
-        .orElse("2026.01.24-6e2d4fc36")
+        .orElse("0.5.6")
 def resolveLatestHytaleVersion = {
     def metadataUrl = 'https://maven.hytale.com/release/com/hypixel/hytale/Server/maven-metadata.xml'
     def xml = new XmlSlurper().parse(metadataUrl)

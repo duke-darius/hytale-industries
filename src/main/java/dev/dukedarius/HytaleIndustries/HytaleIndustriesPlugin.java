@@ -435,7 +435,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
             var packetHandler = playerRef.getPacketHandler();
 
             if (packetHandler.stillActive()) {
-                packetHandler.disconnect("Server is shutting down");
+                packetHandler.disconnect(com.hypixel.hytale.server.core.Message.raw("Server is shutting down"));
             }
         }
     }

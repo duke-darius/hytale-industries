@@ -6,7 +6,9 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.codec.validation.Validators;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
+import org.joml.Vector3ic;
+import com.hypixel.hytale.math.vector.Vector3iUtil;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
 
@@ -114,7 +116,7 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
         new Vector3i(0, -1, 0)   // Down = index 5
     };
 
-    public static int getBitIndex(Vector3i direction) {
+    public static int getBitIndex(Vector3ic direction) {
         for (int i = 0; i < DIRECTIONS.length; i++) {
             if (DIRECTIONS[i].equals(direction)) {
                 return i;
@@ -123,7 +125,7 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
         return -1;
     }
 
-    public ConnectionState getConnectionState(Vector3i direction) {
+    public ConnectionState getConnectionState(Vector3ic direction) {
         int bitIndex = getBitIndex(direction);
         if (bitIndex == -1) return ConnectionState.Default;
         
@@ -135,7 +137,7 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
         };
     }
 
-    public void setConnectionState(Vector3i direction, ConnectionState state, boolean manual) {
+    public void setConnectionState(Vector3ic direction, ConnectionState state, boolean manual) {
         int bitIndex = getBitIndex(direction);
         if (bitIndex == -1) return;
         
@@ -157,28 +159,28 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
         }
     }
 
-    public void setConnectionState(Vector3i direction, ConnectionState state) {
+    public void setConnectionState(Vector3ic direction, ConnectionState state) {
         setConnectionState(direction, state, false);
     }
 
-    public boolean isManuallyConfigured(Vector3i direction) {
+    public boolean isManuallyConfigured(Vector3ic direction) {
         int bitIndex = getBitIndex(direction);
         if (bitIndex == -1) return false;
         return (manualConfigMask & (1 << bitIndex)) != 0;
     }
 
-    public boolean isSideConnected(Vector3i direction) {
+    public boolean isSideConnected(Vector3ic direction) {
         return getConnectionState(direction) != ConnectionState.None;
     }
 
-    public boolean canConnectTo(Vector3i direction) {
+    public boolean canConnectTo(Vector3ic direction) {
         // The neighbor is checking if WE allow connection from THEIR direction
         // So we need to check our opposite face
-        Vector3i opposite = new Vector3i(-direction.x, -direction.y, -direction.z);
+        Vector3i opposite = new Vector3i(-direction.x(), -direction.y(), -direction.z());
         return isSideConnected(opposite);
     }
 
-    public void setDirectionalConnection(Vector3i direction, boolean connected) {
+    public void setDirectionalConnection(Vector3ic direction, boolean connected) {
         int bitIndex = getBitIndex(direction);
         if (bitIndex == -1) return;
         
@@ -197,7 +199,7 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
         return getPipeState() == occupancyMask;
     }
 
-    public boolean hasDirectionalConnection(Vector3i direction) {
+    public boolean hasDirectionalConnection(Vector3ic direction) {
         int bitIndex = getBitIndex(direction);
         if (bitIndex == -1) {
             return false;
@@ -223,7 +225,7 @@ public class BasicPowerCableComponent implements Component<ChunkStore> {
         sb.append(", connections=[");
         
         boolean first = true;
-        for (var direction : Vector3i.BLOCK_SIDES) {
+        for (var direction : Vector3iUtil.BLOCK_SIDES) {
             if (hasDirectionalConnection(direction)) {
                 if (!first) sb.append(", ");
                 sb.append(direction);

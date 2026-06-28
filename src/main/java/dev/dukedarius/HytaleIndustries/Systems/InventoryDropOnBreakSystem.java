@@ -10,14 +10,12 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.server.core.event.events.ecs.BreakBlockEvent;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import org.joml.Vector3d;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.meta.BlockState;
-import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
+import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.component.AddReason;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
@@ -89,7 +87,7 @@ public class InventoryDropOnBreakSystem extends EntityEventSystem<EntityStore, B
                         accessor,
                         stack,
                         dropPos,
-                        Vector3f.ZERO,
+                        Rotation3f.ZERO,
                         0f, 0f, 0f
                 );
                 if (holder != null) {

@@ -1,9 +1,10 @@
 package dev.dukedarius.HytaleIndustries.Utils;
 
-import com.hypixel.hytale.math.matrix.Matrix4d;
-import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.math.matrix.Matrix4dUtil;
+import org.joml.Matrix4d;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 import com.hypixel.hytale.protocol.DebugShape;
-import com.hypixel.hytale.protocol.Vector3f;
 import com.hypixel.hytale.protocol.packets.player.DisplayDebug;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -25,11 +26,12 @@ public final class PerPlayerDebug {
 
         DisplayDebug packet = new DisplayDebug(
                 DebugShape.Cube,
-                matrix.asFloatData(),
-                new com.hypixel.hytale.protocol.Vector3f(color.x, color.y, color.z),
+                Matrix4dUtil.asFloatData(matrix),
+                color,
                 timeSeconds,
-                fade,
-                null
+                (byte) (fade ? 1 : 0),
+                null,
+                1.0f
         );
 
         playerRef.getPacketHandler().write(packet);
@@ -49,11 +51,12 @@ public final class PerPlayerDebug {
 
         DisplayDebug packet = new DisplayDebug(
                 DebugShape.Cube,
-                matrix.asFloatData(),
-                new com.hypixel.hytale.protocol.Vector3f(color.x, color.y, color.z),
+                Matrix4dUtil.asFloatData(matrix),
+                color,
                 timeSeconds,
-                fade,
-                null // extra matrix for e.g. frustum; not needed for cubes
+                (byte) (fade ? 1 : 0),
+                null,
+                1.0f
         );
 
         playerRef.getPacketHandler().write(packet);

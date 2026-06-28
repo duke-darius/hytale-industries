@@ -9,7 +9,8 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
+import com.hypixel.hytale.math.vector.Vector3iUtil;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
 import com.hypixel.hytale.server.core.universe.world.World;
@@ -101,9 +102,9 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
         boolean[] hasEnergy = new boolean[6];
         for (int i = 0; i < directions.length; i++) {
             Vector3i dir = directions[i];
-            var currentX = x + dir.x;
-            var currentY = y + dir.y;
-            var currentZ = z + dir.z;
+            var currentX = x + dir.x();
+            var currentY = y + dir.y();
+            var currentZ = z + dir.z();
             
             String dirName = switch(i) {
                 case 0 -> "North";
@@ -215,9 +216,9 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
                     HytaleIndustriesPlugin.LOGGER.atFine().log("[BasicPowerCable] Marking neighbors for update at (%d,%d,%d)", finalX, finalY, finalZ);
                     for (int i = 0; i < directions.length; i++) {
                         Vector3i dir = directions[i];
-                        int nx = finalX + dir.x;
-                        int ny = finalY + dir.y;
-                        int nz = finalZ + dir.z;
+                        int nx = finalX + dir.x();
+                        int ny = finalY + dir.y();
+                        int nz = finalZ + dir.z();
 
                         long nChunkIndex = ChunkUtil.indexChunkFromBlock(nx, nz);
                         WorldChunk nChunk = wc.getWorld().getChunk(nChunkIndex);
@@ -275,10 +276,10 @@ public class BasicPowerCableSystem extends RefSystem<ChunkStore> {
         var world = commandBufferChunkStore.getExternalData().getWorld();
 
         // Notify neighbors to update
-        for (var dir : Vector3i.BLOCK_SIDES) {
-            var currentX = x + dir.x;
-            var currentY = y + dir.y;
-            var currentZ = z + dir.z;
+        for (var dir : Vector3iUtil.BLOCK_SIDES) {
+            var currentX = x + dir.x();
+            var currentY = y + dir.y();
+            var currentZ = z + dir.z();
 
             var chunkIndex = ChunkUtil.indexChunkFromBlock(currentX, currentZ);
             var neighborChunk = world.getChunk(chunkIndex);

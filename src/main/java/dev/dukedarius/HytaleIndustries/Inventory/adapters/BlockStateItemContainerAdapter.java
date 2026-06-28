@@ -5,9 +5,9 @@ import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.bench.Bench;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.bench.ProcessingBench;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
+import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import dev.dukedarius.HytaleIndustries.Inventory.InventoryAdapter;
 import dev.dukedarius.HytaleIndustries.Inventory.MachineInventory;
@@ -29,11 +29,16 @@ public class BlockStateItemContainerAdapter implements InventoryAdapter {
             return Collections.emptyList();
         }
 
-        var state = chunk.getState(x & 31, y, z & 31);
-        if (!(state instanceof ItemContainerBlockState containerState)) {
+        var blockEntity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+        if (blockEntity == null) {
             return Collections.emptyList();
         }
-        ItemContainer container = containerState.getItemContainer();
+
+        var containerBlock = blockEntity.getStore().getComponent(blockEntity, ItemContainerBlock.getComponentType());
+        if (containerBlock == null) {
+            return Collections.emptyList();
+        }
+        ItemContainer container = containerBlock.getItemContainer();
         if (container == null) {
             return Collections.emptyList();
         }
@@ -43,23 +48,18 @@ public class BlockStateItemContainerAdapter implements InventoryAdapter {
             return Collections.emptyList();
         }
 
-        // Normalize block id (strip leading '*' and state suffix) so we can special-case our own conduit blocks.
-        String baseId = null;
-        baseId = blockType.getId();
-        if (baseId != null) {
-            if (baseId.startsWith("*")) {
-                baseId = baseId.substring(1);
-            }
-            int stateIdx = baseId.indexOf("_State_");
-            if (stateIdx > 0) {
-                baseId = baseId.substring(0, stateIdx);
-            }
-        } else {
+        String baseId = blockType.getId();
+        if (baseId == null) {
             return Collections.emptyList();
         }
+        if (baseId.startsWith("*")) {
+            baseId = baseId.substring(1);
+        }
+        int stateIdx = baseId.indexOf("_State_");
+        if (stateIdx > 0) {
+            baseId = baseId.substring(0, stateIdx);
+        }
 
-        // Pipes and power cables use ItemContainerBlockState internally for visuals, but they do NOT have real inventories.
-        // Never expose them as MachineInventory, otherwise item pipes will think cables are destinations.
         if ("HytaleIndustries_BasicItemPipe".equals(baseId)
                 || "HytaleIndustries_BasicPowerCable".equals(baseId)
                 || "HytaleIndustries_BasicItemCache".equals(baseId)) {
@@ -77,13 +77,11 @@ public class BlockStateItemContainerAdapter implements InventoryAdapter {
         int cap = container.getCapacity();
         if (slot < 0 || slot >= cap) return SlotIO.NONE;
 
-        // Powered furnace (mod asset)
         if (blockType != null && blockType.getState() != null && "poweredFurnace".equals(blockType.getState().getId())) {
             if (slot == 0) return SlotIO.INPUT;
             if (slot == 1) return SlotIO.OUTPUT;
         }
 
-        // Vanilla processing benches: [inputs][fuel][outputs]
         if (blockType != null) {
             Bench bench = blockType.getBench();
             if (bench instanceof ProcessingBench processing) {
@@ -105,7 +103,6 @@ public class BlockStateItemContainerAdapter implements InventoryAdapter {
             }
         }
 
-        // Default: treat as both directions allowed.
         return SlotIO.BOTH;
     }
 }

@@ -8,7 +8,8 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
+import com.hypixel.hytale.math.vector.Vector3iUtil;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
@@ -65,10 +66,10 @@ public class EnergyNeighborUpdateOnPlaceSystem extends RefSystem<ChunkStore> {
         var cableComponentType = HytaleIndustriesPlugin.INSTANCE.getBasicPowerCableComponentType();
         var updateComponentType = HytaleIndustriesPlugin.INSTANCE.getUpdatePowerCableComponentType();
 
-        for (var dir : Vector3i.BLOCK_SIDES) {
-            int nx = x + dir.getX();
-            int ny = y + dir.getY();
-            int nz = z + dir.getZ();
+        for (var dir : Vector3iUtil.BLOCK_SIDES) {
+            int nx = x + dir.x();
+            int ny = y + dir.y();
+            int nz = z + dir.z();
             if (ny < 0 || ny >= 320) continue;
 
             WorldChunk nChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));

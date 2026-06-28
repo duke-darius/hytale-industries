@@ -8,10 +8,11 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefSystem;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3i;
+import com.hypixel.hytale.math.vector.Vector3iUtil;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
-import com.hypixel.hytale.server.core.universe.world.meta.state.ItemContainerBlockState;
+import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.modules.block.BlockModule.BlockStateInfo;
 import dev.dukedarius.HytaleIndustries.HytaleIndustriesPlugin;
@@ -60,10 +61,10 @@ public class InventoryNeighborUpdateOnPlaceSystem extends RefSystem<ChunkStore> 
         var pipeType = HytaleIndustriesPlugin.INSTANCE.getBasicItemPipeComponentType();
         var updatePipeType = HytaleIndustriesPlugin.INSTANCE.getUpdatePipeComponentType();
 
-        for (var dir : Vector3i.BLOCK_SIDES) {
-            int nx = x + dir.getX();
-            int ny = y + dir.getY();
-            int nz = z + dir.getZ();
+        for (var dir : Vector3iUtil.BLOCK_SIDES) {
+            int nx = x + dir.x();
+            int ny = y + dir.y();
+            int nz = z + dir.z();
             if (ny < 0 || ny >= 320) continue;
 
             WorldChunk nChunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(nx, nz));
@@ -83,8 +84,9 @@ public class InventoryNeighborUpdateOnPlaceSystem extends RefSystem<ChunkStore> 
         WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(x, z));
         if (chunk == null) chunk = world.getChunkIfLoaded(ChunkUtil.indexChunkFromBlock(x, z));
         if (chunk == null) return false;
-        var state = chunk.getState(x & 31, y, z & 31);
-        return state instanceof ItemContainerBlockState;
+        var blockEntity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
+        if (blockEntity == null) return false;
+        return blockEntity.getStore().getComponent(blockEntity, ItemContainerBlock.getComponentType()) != null;
     }
 
     @Override
