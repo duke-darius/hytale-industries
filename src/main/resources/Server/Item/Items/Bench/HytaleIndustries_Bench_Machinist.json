@@ -86,6 +86,11 @@
       "FailedSoundEventId": "SFX_Generic_Crafting_Failed",
       "Id": "Machinists_Bench"
     },
+    "BlockEntity": {
+      "Components": {
+        "BenchBlock": {}
+      }
+    },
     "State": {
       "Definitions": {
         "CraftCompleted": {
