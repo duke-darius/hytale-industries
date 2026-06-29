@@ -44,7 +44,7 @@ public class DebugItemSelectorCommand extends AbstractPlayerCommand {
         HytaleIndustriesPlugin.LOGGER.atInfo().log("ItemSelector candidates: " + candidates.size());
 
         ItemSelectorHelper.open(ref, store, candidates, null, (pRef, selected) -> {
-            player.sendMessage(Message.raw("asdasd: " + selected.size() + " item(s): " + String.join(", ", selected)));
+            pRef.sendMessage(Message.raw("Selected " + selected.size() + " item(s): " + String.join(", ", selected)));
         });
     }
 }

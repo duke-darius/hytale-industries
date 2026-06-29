@@ -87,7 +87,6 @@
       "Id": "Machinists_Bench"
     },
     "State": {
-      "Id": "crafting",
       "Definitions": {
         "CraftCompleted": {
           "CustomModelAnimation": "Blocks/Benches/Carpenter_Crafting.blockyanim",

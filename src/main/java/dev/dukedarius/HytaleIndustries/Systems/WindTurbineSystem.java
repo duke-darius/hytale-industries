@@ -116,7 +116,7 @@ public class WindTurbineSystem extends EntityTickingSystem<ChunkStore> {
                 buffer.run(s -> {
                     WorldChunk wc = s.getComponent(chunkRef, WorldChunk.getComponentType());
                     if (wc != null) {
-                        wc.setBlockInteractionState(lx, ly, lz, blockType, "spinning", true);
+                        wc.setBlockInteractionState(lx, ly, lz, blockType, "Spinning", true);
                     }
                 });
             }

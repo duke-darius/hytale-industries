@@ -27,7 +27,6 @@
       "Use": "HytaleIndustries_OpenQuarry_Root"
     },
     "BlockEntity": {
-      "IsBlockComponent": true,
       "Components": {
         "StoresHE": {
           "Max": 100000,
@@ -36,10 +35,6 @@
         "QuarryComponent": {
           "HeStored": 0.0,
           "Progress": 0.0,
-          "Inventory": {
-            "Slots": 20,
-            "ItemStacks": []
-          },
           "Width": 5,
           "Depth": 5,
           "YStart": 319,
@@ -56,7 +51,7 @@
     },
     "State": {
       "Definitions": {
-        "default": {}
+        "Default": {}
       }
     },
     "Gathering": {
@@ -138,10 +133,5 @@
         "Quantity": 8
       }
     ]
-  },
-  "State": {
-    "quarry": {
-      "BlockType": "HytaleIndustries_Quarry"
-    }
   }
 }

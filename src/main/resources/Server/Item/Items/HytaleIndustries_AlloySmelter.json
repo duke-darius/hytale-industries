@@ -20,7 +20,6 @@
       }
     ],
     "BlockEntity": {
-      "IsBlockComponent": true,
       "Components": {
         "StoresHE": {
           "Max": 10000,
@@ -30,20 +29,7 @@
           "HEConsumption": 20,
           "Enabled": false
         },
-        "AlloySmelterInventory": {
-          "InputA": {
-            "Slots": 1,
-            "ItemStacks": []
-          },
-          "InputB": {
-            "Slots": 1,
-            "ItemStacks": []
-          },
-          "Output": {
-            "Slots": 1,
-            "ItemStacks": []
-          }
-        },
+        "AlloySmelterInventory": {},
         "CableEndpoint": {
           "CapacityPerTick": 250,
           "LossPerMeter": 0.0,
@@ -59,9 +45,8 @@
       "Use": "HytaleIndustries_OpenAlloySmelter_Root"
     },
     "State": {
-      "Id": "alloySmelter",
       "Definitions": {
-        "default": {}
+        "Default": {}
       }
     },
     "Gathering": {

@@ -77,7 +77,7 @@ public class BlockStateItemContainerAdapter implements InventoryAdapter {
         int cap = container.getCapacity();
         if (slot < 0 || slot >= cap) return SlotIO.NONE;
 
-        if (blockType != null && blockType.getState() != null && "poweredFurnace".equals(blockType.getState().getId())) {
+        if (blockType != null && blockType.getBench() != null && "poweredFurnace".equals(blockType.getBench().getId())) {
             if (slot == 0) return SlotIO.INPUT;
             if (slot == 1) return SlotIO.OUTPUT;
         }

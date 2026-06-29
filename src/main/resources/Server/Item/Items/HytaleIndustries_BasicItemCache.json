@@ -20,14 +20,8 @@
       }
     ],
     "BlockEntity": {
-      "IsBlockComponent": true,
       "Components": {
-        "BasicItemCache": {
-          "Slot": {
-            "Slots": 1,
-            "ItemStacks": []
-          }
-        }
+        "BasicItemCache": {}
       }
     },
     "Flags": {
@@ -39,7 +33,7 @@
     },
     "State": {
       "Definitions": {
-        "default": {}
+        "Default": {}
       }
     },
     "Gathering": {

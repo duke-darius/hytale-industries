@@ -106,7 +106,6 @@
       }
     },
     "State": {
-      "Id": "basicPowerCable",
       "Definitions": {
         "State000": {
           "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_000.blockyanim"
@@ -2298,7 +2297,6 @@
       }
     },
     "BlockEntity": {
-      "IsBlockComponent": true,
       "Components": {
         "BasicPowerCable": {
           "PipeState": 0,

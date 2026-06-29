@@ -24,7 +24,6 @@
       "IsStackable": true
     },
     "BlockEntity": {
-      "IsBlockComponent": true,
       "Components": {
         "ChunkLoader": {
           "LoadingMode": "Background"

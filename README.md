@@ -1,125 +1,95 @@
-# H Industries – Item Pipes & Logistics
+# OrbTek – Automating Orbis (Because Efficiency is Mandatory) ✨
 
-<img width="2409" height="1211" alt="image" src="https://github.com/user-attachments/assets/970e6973-a568-4c00-b247-48820a8d5608" />
+Welcome, test subject—I mean, **valued OrbTek Personal Worker**.
 
+Congratulations on being selected for the OrbTek Orientation Program. Please note that this document is optimized for cognitive enhancement. If you find the words moving on the page or feel a sudden urge to eat dirt, please consult your nearest OrbTek physician for immediate termination—of your contract, obviously.
 
-## Overview
+---
 
-Hytale Industries adds configurable item pipes that move items between chests, furnaces, and other containers—supporting multiblock structures (e.g., furnaces with filler blocks). Pipes are direction-aware, configurable per face, and update visuals instantly.
-Craftable in a Furniture Workbench in the Misc tab
+## 🔬 Overview
 
-![image](https://media.forgecdn.net/attachments/description/1435489/description_db73a7b4-4bef-4145-9d71-9be9a81ac175.png)
+OrbTek (formerly known by the primitive name "Hytale Industries") provides advanced configurable item pipes and energy systems. We move things from Point A to Point B so you can focus on more important tasks, like standing around. Our pipes are direction-aware, multi-block compatible, and significantly more logical than the average Orbis inhabitant.
 
-## Key Features
-- **Power System**
-  - Burning generator burns items with fuel value (logs/charcoal) into HE (HyEnergy)
-  - Energy can be stored in batteries
-  - Energy can be transferred into machines
-    - Powered Furnace
-    - Quarry 
+## 🚀 Your Journey with OrbTek (Initial Onboarding)
 
-- **Item Pipes**  
-  - Connect containers in any direction; supports multiblock inventories via filler-origin resolution.
-  - Per-face modes: **Default**, **Extract**, **None** (disable).
-  - Moves up to 4 items per second per pipe (shared across extract faces).
-    
-- **Side Configuration UI**  
-    - Right-click to open the pipe UI and set each face’s mode.
-    - Visual model updates immediately to reflect connections.!
+To begin your mandatory contribution to Orbis-wide efficiency, you must first construct the **Machinist's Workbench**. 
 
-### Item Pipes
+Think of it as the parent that actually loves you—it provides everything you need to succeed, as long as you provide the raw materials. Every advanced OrbTek component is birthed from this single, magnificent table. 
 
-Item pipes are a powerful tool for moving items between containers.
-You can place them where ever you want and open up their UI by interacting with them to configure their behavior.
-![image](https://media.forgecdn.net/attachments/description/1435489/description_e083f186-5726-4808-9dad-3a33484cfa22.png)
+1. **Craft a Machinist's Workbench:** Available in your standard crafting menu. If you can't find it, don't worry—searching is a complex skill.
+2. **Interact with the Workbench:** Behold a list of technologies far superior to anything you could have devised on your own.
+3. **Profit (for OrbTek):** Start automating. The silence of a working factory is much more pleasant than the sound of human exertion.
 
-In the UI you can see the blocks to the 6 directions of the pipe.
-Clicking on a face will cycle through the 3 modes:
-*   **Default**: Items will be moved to this face (Use this for other pipes or item containers you want items to flow into).
-*   **Extract**: Items will be extracted from this face (at a rate of 4/s, higher tiers coming soon).
-*   **None**: This face will not be used for item transfer (Can also be used to disable a connection between two pipes).
+We provide the infrastructure and the intellectual superiority; your function is merely to ensure they are placed in the correct spatial coordinates. Do try not to drop them.
 
-### Power Cables
-Power cables are a new block that can be used to power machines.
-They operate very similar to pipes, but they can only be used to power machines.
-The UI is very similar to the item pipes UI.
+---
 
-Clicking on a face will cycle through the 3 modes:
-*   **Default**: Power will be transferred to this face (Use this for other power cables or machines you want power to flow into).
-*   **Extract**: Power will be extracted from this face (at a rate of 250/s, higher tiers coming soon).
-*   **None**: This face will not be used for power transfer (Can also be used to disable a connection between two power cables).
-
+## ⚡ The Power System (Keep the Lights On, Subject)
 
 ### Burning Generator
-The burning generator is a new block that can be used to generate HE from logs and charcoal (Or anything with a fuel value).
-It can be placed anywhere and will burn items into HE.
-It has an internal buffer of 10k HE and can be extracted with Power Cables.
-You can open the internal storage slot from within the UI to add fuel, or pipe into it using item pipes.
+A simple but effective way to turn trees into progress.
+- Converts logs, charcoal, or anything with "fuel value" into HE (HyEnergy).
+- Internal buffer: **10,000 HE**.
+- Can be automated with pipes, because we know you have a busy schedule of doing nothing.
 <img width="505" height="301" alt="image" src="https://github.com/user-attachments/assets/74ba4928-ea18-4361-9856-fecb618fd7ac" />
 
-
 ### Small Battery
-The small battery is a new block that can be used to store large amounts of HE.
-HE can be extracted with Power Cables.
-You can interact with it to open the UI to view the HE stored in it.
+A box that holds energy. It's like a battery, but with the OrbTek seal of quality.
+- Stores large amounts of HE.
+- Interface allows you to observe the numbers increasing. Truly a peak human experience.
 <img width="717" height="594" alt="image" src="https://github.com/user-attachments/assets/4939b65e-45ee-4372-a664-ec333ec75f07" />
 
-
 ### Powered Furnace
-The powered furnace is a new block that can be used to power a furnace.
-It will consume HE from it's internal buffer to smelt items. Any default Furnace recipes will work with this.
-It has an internal buffer of 10k HE and can be inserted to with Power Cables.
-In the UI you can see the internal buffer and the HE stored in it.
-The input item slot can be clicked to open the Item Container to insert items into the furnace.
-The output item slot can be clicked to open the Item Container to extract items from the furnace.
-(Annoyingly, I haven't found a way to have the player inventory open with custom UI yet)
+Smelts things using HE, saving you from the drudgery of manual labor.
+- Uses standard furnace recipes.
+- 10k HE buffer.
+- *Note:* The developer is currently optimizing the UI to show your inventory and the furnace simultaneously. We call this a "work in progress" to keep you on your toes.
 <img width="891" height="659" alt="image" src="https://github.com/user-attachments/assets/2d1aa9c0-2e21-43a9-848a-bd45dbd48876" />
 
+---
 
+## 🛠 Logistics
 
-### Chunk Loader
-The chunk loader is a powerful new block that can be used to keep chunks loaded.
-When the plugin is loaded, the internal chunk loader registry will locate and spawn all chunks with loaders present.
-Chunk loaders have two modes:
-*   **Background**: Hytale _will_ keep the chunk loaded but at a MUCH lower priority, tick rate may drop significantly (some performance impact)
-*   **Active**: Hytale will actively keep this chunk loaded and tick at the same rate as normal. (Potentially large performance impact)
-<img width="1001" height="978" alt="image" src="https://github.com/user-attachments/assets/a7a24577-34bb-4393-a9b5-1c1e3244789f" />
-
-
-### Quarry (WIP)
-The Quarry is a new machine that can be used to mine blocks in a given area.
-It has an internal buffer of 10k HE and can be inserted to with Power Cables.
-The quarry will auto-output the result of mining blocks into the Item Container directly above it.
-In the UI you can see the internal buffer and the HE stored in it.
-You can set the Width, Depth, and Y level start for the quarry.
-When you press start it will start consuming HE from the internal buffer and mining blocks.
-Air blocks are counted as 1/10th of a block, so if you leave y=WORLD_MAX_HEIGHT (319) it will move through the y levels relatively quickly.
-The quarry will load the chunk it's working on when it's running, but I'd recommend placing a chunk loader above the quarry to keep it loaded.
-<img width="731" height="613" alt="image" src="https://github.com/user-attachments/assets/8f8df17d-0a9e-4420-82bc-dc9d674cbd3b" />
-<img width="887" height="623" alt="image" src="https://github.com/user-attachments/assets/c1a4aec3-e205-4bf3-af3c-aa2d98d943fe" />
-
-
-This is still pretty WIP so expect bugs and missing features.
-
-
-![image](https://media.forgecdn.net/attachments/description/1435489/description_f791048f-d4d2-4fb0-bac0-95d39fe90104.png)
+### Item Pipes & Power Cables
+The veins of your factory. Right-click to open the configuration UI. If it doesn't open, ensure you are interacting with it correctly.
 
 ![image](https://media.forgecdn.net/attachments/description/1435489/description_e083f186-5726-4808-9dad-3a33484cfa22.png)
-*   **Multiblock Support**  
-    *   Pipes detect filler blocks and route to the true origin block, so furnaces/chests built from multiple blocks work for both extraction and insertion.
-*   **Smart Extraction for Furnaces/Processing Benches**  
-    *   Only pulls from output slots; leaves inputs and fuel untouched.
-*   **Persistence & Robustness**  
-    *   Side configs persist across chunk reloads but clear when a pipe is broken/replaced.
-    *   Connection masks and visuals stay in sync even when neighbors change.
 
-## Roadmap
-*   Automated machines
-*   Solar panels
-*   Automated farming
+**Face Modes:**
+1.  **Default (Blueish):** Flow into this face. It’s the path of least resistance.
+2.  **Extract (Orangeish):** Sucks items/energy out. (Pipes: 4 items/s | Cables: 250 HE/s).
+3.  **None (Grey):** Disables the face. Use this to prevent your machines from unnecessary gossip.
 
+*   **Multiblock Support:** Our pipes are advanced enough to find the "true" center of a multiblock furnace. You just have to place it nearby.
+*   **Smart Extraction:** We only pull from output slots. We wouldn't want to accidentally steal your fuel and leave you in the dark, would we?
 
-## Troubleshooting
+---
 
-*   If a face won’t connect, ensure that face isn’t set to **None**. (Otherwise pls add an issue)
-*   For multiblocks, place the pipe on any filler or origin block—both extraction and insertion are supported.
+## 🏗 High-Level Automation Tools
+
+### Chunk Loader
+Keeps the world existing even when you aren't looking at it.
+- **Background Mode:** Low priority. The world ticks at a relaxed pace.
+- **Active Mode:** Full speed. May cause your computer to exert itself.
+<img width="1001" height="978" alt="image" src="https://github.com/user-attachments/assets/a7a24577-34bb-4393-a9b5-1c1e3244789f" />
+
+### The Quarry (Work In Progress)
+A giant hole-maker.
+- Set Width, Depth, and Y-level.
+- Automatically outputs to whatever container you've placed directly above it.
+- Air blocks are mined 10x faster because, well, they're air. 
+- *Recommendation:* Place a Chunk Loader nearby so it doesn't stop working the moment you get distracted.
+<img width="731" height="613" alt="image" src="https://github.com/user-attachments/assets/8f8df17d-0a9e-4420-82bc-dc9d674cbd3b" />
+
+---
+
+## 📝 Roadmap (The Future is Coming)
+*   Automated machines (To increase efficiency)
+*   Solar panels (Energy from the sky!)
+*   Automated farming (Because manual harvesting is so last century)
+
+## 🔧 Troubleshooting
+- **It won't connect:** Check if you set the face to **None**. That would be a simple oversight.
+- **It's broken:** This is a Work In Progress. If you find a bug, report it. We value your feedback—mostly.
+
+**OrbTek: Science. Progress. Efficiency. Mostly Science.**

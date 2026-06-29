@@ -106,7 +106,6 @@
       }
     },
     "State": {
-      "Id": "basicItemPipe",
       "Definitions": {
         "State000": {
           "CustomModelAnimation": "Blocks/Animations/ItemPipes/HytaleIndustries_ItemPipe_State_000.blockyanim"
@@ -2300,8 +2299,8 @@
     "BlockEntity": {
       "Components": {
         "BasicItemPipe": {
-          "pipeState": 0,
-          "sideConfig": 0
+          "PipeState": 0,
+          "SideConfig": 0
         }
       }
     }

@@ -377,7 +377,7 @@ public class QuarrySystem extends EntityTickingSystem<ChunkStore> {
                 targetPos.y - startPos.y,
                 targetPos.z - startPos.z
         );
-        if (direction.squaredLength() < 1.0e-4) {
+        if (direction.lengthSquared() < 1.0e-4) {
             return;
         }
         direction.normalize();
@@ -389,7 +389,7 @@ public class QuarrySystem extends EntityTickingSystem<ChunkStore> {
             if (spawned[0]) {
                 return;
             }
-            var ref = ProjectileModule.get().spawnProjectile(null, entityCmdBuffer, config, startPos.clone(), direction.clone());
+            var ref = ProjectileModule.get().spawnProjectile(null, entityCmdBuffer, config, new Vector3d(startPos), new Vector3d(direction));
             spawned[0] = true;
 
             if (ref != null) {

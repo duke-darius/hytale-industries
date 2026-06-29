@@ -20,7 +20,6 @@
       }
     ],
     "BlockEntity": {
-      "IsBlockComponent": true,
       "Components": {
         "StoresHE": {
           "Max": 10000,
@@ -30,16 +29,7 @@
           "HEConsumption": 20,
           "Enabled": false
         },
-        "PoweredCrusherInventory": {
-          "Input": {
-            "Slots": 1,
-            "ItemStacks": []
-          },
-          "Output": {
-            "Slots": 1,
-            "ItemStacks": []
-          }
-        },
+        "PoweredCrusherInventory": {},
         "CableEndpoint": {
           "CapacityPerTick": 250,
           "LossPerMeter": 0.0,
@@ -133,10 +123,5 @@
         "Quantity": 1
       }
     ]
-  },
-  "State": {
-    "poweredCrusher": {
-      "BlockType": "HytaleIndustries_PoweredCrusher"
-    }
   }
 }

@@ -20,7 +20,6 @@
       }
     ],
     "BlockEntity": {
-      "IsBlockComponent": true,
       "Components": {
         "StoresHE": {
           "Max": 10000,
@@ -31,12 +30,7 @@
           "Enabled": true,
           "Efficiency": 2.0
         },
-        "FuelInventory": {
-          "FuelContainer": {
-            "Slots": 1,
-            "ItemStacks": []
-          }
-        },
+        "FuelInventory": {},
         "CableEndpoint": {
           "CapacityPerTick": 250,
           "LossPerMeter": 0.0,
@@ -53,8 +47,8 @@
     },
     "State": {
       "Definitions": {
-        "default": {},
-        "on": {
+        "Default": {},
+        "On": {
           "CustomModelAnimation": "Blocks/Animations/HytaleIndustries_BurningGenerator/HytaleIndustries_BurningGenerator_On.blockyanim"
         }
       }

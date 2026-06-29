@@ -54,9 +54,6 @@ public class ConfigurePipeInteraction extends SimpleBlockInteraction {
             return;
         }
 
-        // Check if it's a BlockState-based pipe (ItemPipe, PowerCable)
-        var state = world.getState(pos.x, pos.y, pos.z, true);
-        
         // Check if it's an ECS-based pipe (BasicItemPipe or BasicPowerCable)
         boolean isBasicPipe = false;
         var chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(pos.x, pos.z));

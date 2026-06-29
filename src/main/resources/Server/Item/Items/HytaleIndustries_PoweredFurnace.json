@@ -20,7 +20,6 @@
       }
     ],
     "BlockEntity": {
-      "IsBlockComponent": true,
       "Components": {
         "StoresHE": {
           "Max": 10000,
@@ -30,16 +29,7 @@
           "HEConsumption": 20,
           "Enabled": false
         },
-        "PoweredFurnaceInventory": {
-          "Input": {
-            "Slots": 1,
-            "ItemStacks": []
-          },
-          "Output": {
-            "Slots": 1,
-            "ItemStacks": []
-          }
-        },
+        "PoweredFurnaceInventory": {},
         "CableEndpoint": {
           "CapacityPerTick": 250,
           "LossPerMeter": 0.0,
@@ -55,9 +45,8 @@
       "Use": "HytaleIndustries_OpenPoweredFurnace_Root"
     },
     "State": {
-      "Id": "poweredFurnace",
       "Definitions": {
-        "default": {}
+        "Default": {}
       }
     },
     "Gathering": {

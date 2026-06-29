@@ -20,7 +20,6 @@
       }
     ],
     "BlockEntity": {
-      "IsBlockComponent": true,
       "Components": {
         "StoresHE": {
           "Max": 9223372036854775807,

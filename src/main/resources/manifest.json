@@ -1,7 +1,7 @@
 {
     "Group": "DukeDarius",
     "Name": "HytaleIndustries",
-    "Version": "0.1.13",
+    "Version": "0.2.0",
     "Description": "Automated Industries for Hytale",
     "Authors": [
         {
@@ -11,7 +11,7 @@
     "Website": "dukedarius.dev",
     "ServerVersion": "*",
     "Dependencies": {
-        "Hytale:BlockStateModule": "*"
+        
     },
     "OptionalDependencies": {
         
