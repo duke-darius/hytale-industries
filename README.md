@@ -1,36 +1,36 @@
 # OrbTek – Automating Orbis (Because Efficiency is Mandatory) ✨
 
-Welcome, test subject—I mean, **valued OrbTek Personal Worker**.
+Welcome, test subject-I mean, **valued OrbTek Personal Worker**.
 
-Congratulations on being selected for the OrbTek Orientation Program. Please note that this document is optimized for cognitive enhancement. If you find the words moving on the page or feel a sudden urge to eat dirt, please consult your nearest OrbTek physician for immediate termination—of your contract, obviously.
+Congratulations on being selected for the OrbTek Orientation Program. Please note that this document is optimized for cognitive enhancement. If you find the words moving on the page or feel a sudden urge to eat dirt, please consult your nearest OrbTek physician for immediate termination-of your contract, obviously.
 
 ---
 
 ## 🔬 Overview
 
-OrbTek (formerly known by the primitive name "Hytale Industries") provides advanced configurable item pipes and energy systems. We move things from Point A to Point B so you can focus on more important tasks, like standing around. Our pipes are direction-aware, multi-block compatible, and significantly more logical than the average Orbis inhabitant.
+OrbTek (formerly known by the primitive name "Hytale Industries") provides advanced configurable item pipes and energy systems. We move things from Point A to Point B so you can focus on more important tasks, like standing around or picking your nose. Our pipes are direction-aware, multi-block compatible, and significantly more logical than the average Orbis inhabitant.
 
 ## 🚀 Your Journey with OrbTek (Initial Onboarding)
 
 To begin your mandatory contribution to Orbis-wide efficiency, you must first construct the **Machinist's Workbench**. 
 
-Think of it as the parent that actually loves you—it provides everything you need to succeed, as long as you provide the raw materials. Every advanced OrbTek component is birthed from this single, magnificent table. 
+It provides everything you need to succeed, as long as you provide the raw materials. Every advanced OrbTek component is birthed from this single, magnificent table. 
 
-1. **Craft a Machinist's Workbench:** Available in your standard crafting menu. If you can't find it, don't worry—searching is a complex skill.
+1. **Craft a Machinist's Workbench:** Available in your standard crafting menu. If you can't find it, don't worry, searching is a complex skill.
 2. **Interact with the Workbench:** Behold a list of technologies far superior to anything you could have devised on your own.
-3. **Profit (for OrbTek):** Start automating. The silence of a working factory is much more pleasant than the sound of human exertion.
+3. **Profit (for OrbTek):** Start automating. The rumble of a working factory is much more pleasant than the sound of human exertion.
 
 We provide the infrastructure and the intellectual superiority; your function is merely to ensure they are placed in the correct spatial coordinates. Do try not to drop them.
 
 ---
 
-## ⚡ The Power System (Keep the Lights On, Subject)
+## ⚡ The Power System 
 
 ### Burning Generator
 A simple but effective way to turn trees into progress.
 - Converts logs, charcoal, or anything with "fuel value" into HE (HyEnergy).
 - Internal buffer: **10,000 HE**.
-- Can be automated with pipes, because we know you have a busy schedule of doing nothing.
+- Can be automated with cables, because we know you have a busy schedule of doing nothing.
 <img width="505" height="301" alt="image" src="https://github.com/user-attachments/assets/74ba4928-ea18-4361-9856-fecb618fd7ac" />
 
 ### Small Battery
@@ -51,7 +51,7 @@ Smelts things using HE, saving you from the drudgery of manual labor.
 ## 🛠 Logistics
 
 ### Item Pipes & Power Cables
-The veins of your factory. Right-click to open the configuration UI. If it doesn't open, ensure you are interacting with it correctly.
+The veins of your factory. Press F to open the configuration UI. 
 
 ![image](https://media.forgecdn.net/attachments/description/1435489/description_e083f186-5726-4808-9dad-3a33484cfa22.png)
 
@@ -69,8 +69,8 @@ The veins of your factory. Right-click to open the configuration UI. If it doesn
 
 ### Chunk Loader
 Keeps the world existing even when you aren't looking at it.
-- **Background Mode:** Low priority. The world ticks at a relaxed pace.
-- **Active Mode:** Full speed. May cause your computer to exert itself.
+- **Background Mode:** Low priority. The world ticks at a relaxed pace (keeps chunk loosely loaded but not a full speed).
+- **Active Mode:** Full speed. May cause your server to exert itself.
 <img width="1001" height="978" alt="image" src="https://github.com/user-attachments/assets/a7a24577-34bb-4393-a9b5-1c1e3244789f" />
 
 ### The Quarry (Work In Progress)
@@ -89,7 +89,7 @@ A giant hole-maker.
 *   Automated farming (Because manual harvesting is so last century)
 
 ## 🔧 Troubleshooting
-- **It won't connect:** Check if you set the face to **None**. That would be a simple oversight.
-- **It's broken:** This is a Work In Progress. If you find a bug, report it. We value your feedback—mostly.
+- **It won't connect:** Check if you set the face to **None**. That would be a simple oversight (or very possibly a bug).
+- **It's broken:** This is a Work In Progress. If you find a bug, report it. We value your feedback... mostly.
 
 **OrbTek: Science. Progress. Efficiency. Mostly Science.**
