@@ -45,6 +45,7 @@ import dev.dukedarius.HytaleIndustries.Interactions.OpenWindTurbineInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenAlloySmelterInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBasicItemCacheInteraction;
 
+import dev.dukedarius.HytaleIndustries.Systems.BasicItemCacheDisplaySystem;
 import dev.dukedarius.HytaleIndustries.Systems.BlockBreakSystem;
 import dev.dukedarius.HytaleIndustries.Systems.BlockPlaceSystem;
 import dev.dukedarius.HytaleIndustries.Systems.InventoryDropOnBreakSystem;
@@ -175,13 +176,15 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
         this.getCommandRegistry().registerCommand(new dev.dukedarius.HytaleIndustries.Commands.ShowChunksCommand());
 
-        // Register inventory adapters for pipes
+        // Register inventory adapters for pipes — cache adapter first so it wins over
+        // BlockStateItemContainerAdapter (Debug_Model parent gives cache an ItemContainerBlock
+        // with a CombinedItemContainer that shadows the real CacheItemContainer)
+        InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.BasicItemCacheInventoryAdapter());
         InventoryAdapters.register(new BlockStateItemContainerAdapter());
         InventoryAdapters.register(new FuelInventoryAdapter());
         InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.PoweredFurnaceInventoryAdapter());
         InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.PoweredCrusherInventoryAdapter());
         InventoryAdapters.register(new AlloySmelterInventoryAdapter());
-        InventoryAdapters.register(new dev.dukedarius.HytaleIndustries.Inventory.adapters.BasicItemCacheInventoryAdapter());
 
         // Register ECS components for basic item pipes
         this.basicItemPipeComponentType = this.getChunkStoreRegistry().registerComponent(
@@ -402,6 +405,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         );
 
         // EntityStore systems
+        this.getEntityStoreRegistry().registerSystem(new BasicItemCacheDisplaySystem());
         this.getEntityStoreRegistry().registerSystem(new InventoryDropOnBreakSystem());
         this.getEntityStoreRegistry().registerSystem(
                 new dev.dukedarius.HytaleIndustries.Systems.QuarryProjectileSystem(

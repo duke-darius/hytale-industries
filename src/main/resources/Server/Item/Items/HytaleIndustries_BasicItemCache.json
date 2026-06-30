@@ -29,6 +29,8 @@
       "IsStackable": true
     },
     "Interactions": {
+      "Primary": "HytaleIndustries_OpenBasicItemCache_Root",
+      "Secondary": "HytaleIndustries_OpenBasicItemCache_Root",
       "Use": "HytaleIndustries_OpenBasicItemCache_Root"
     },
     "State": {

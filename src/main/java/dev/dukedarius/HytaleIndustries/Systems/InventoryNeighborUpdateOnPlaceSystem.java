@@ -86,7 +86,9 @@ public class InventoryNeighborUpdateOnPlaceSystem extends RefSystem<ChunkStore> 
         if (chunk == null) return false;
         var blockEntity = chunk.getBlockComponentEntity(x & 31, y, z & 31);
         if (blockEntity == null) return false;
-        return blockEntity.getStore().getComponent(blockEntity, ItemContainerBlock.getComponentType()) != null;
+        if (blockEntity.getStore().getComponent(blockEntity, ItemContainerBlock.getComponentType()) != null) return true;
+        return blockEntity.getStore().getComponent(blockEntity,
+                HytaleIndustriesPlugin.INSTANCE.getBasicItemCacheComponentType()) != null;
     }
 
     @Override

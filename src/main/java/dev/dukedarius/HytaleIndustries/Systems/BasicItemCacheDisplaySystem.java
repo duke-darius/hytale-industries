@@ -2,43 +2,30 @@ package dev.dukedarius.HytaleIndustries.Systems;
 
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
-import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
-import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
-import dev.dukedarius.HytaleIndustries.Components.Storage.BasicItemCacheComponent;
+import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import dev.dukedarius.HytaleIndustries.Utils.CacheDisplayManager;
 
 import javax.annotation.Nonnull;
 
-/**
- * Placeholder system for Basic Item Cache blocks.
- *
- * For now this does nothing (logic is driven from the UI page).
- * Once we want always-on displays, we can implement it here
- * using patterns from BasicItemPipeUpdateSystem.
- */
-public class BasicItemCacheDisplaySystem extends EntityTickingSystem<ChunkStore> {
+public class BasicItemCacheDisplaySystem extends EntityTickingSystem<EntityStore> {
 
-    private final ComponentType<ChunkStore, BasicItemCacheComponent> cacheType;
-    private final Query<ChunkStore> query;
-
-    public BasicItemCacheDisplaySystem(ComponentType<ChunkStore, BasicItemCacheComponent> cacheType) {
-        this.cacheType = cacheType;
-        this.query = cacheType;
-    }
+    private final Query<EntityStore> query = Player.getComponentType();
 
     @Override
-    public Query<ChunkStore> getQuery() {
+    public Query<EntityStore> getQuery() {
         return query;
     }
 
     @Override
     public void tick(float dt,
                      int index,
-                     @Nonnull ArchetypeChunk<ChunkStore> chunk,
-                     @Nonnull Store<ChunkStore> store,
-                     @Nonnull CommandBuffer<ChunkStore> buffer) {
-        // no-op for now
+                     @Nonnull ArchetypeChunk<EntityStore> chunk,
+                     @Nonnull Store<EntityStore> store,
+                     @Nonnull CommandBuffer<EntityStore> buffer) {
+        CacheDisplayManager.processDirtyQueue(buffer, store);
     }
 }

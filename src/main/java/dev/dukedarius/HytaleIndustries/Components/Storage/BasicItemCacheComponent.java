@@ -26,14 +26,14 @@ import org.checkerframework.checker.nullness.compatqual.NullableDecl;
  * compatibility but is no longer used directly by systems.
  */
 public class BasicItemCacheComponent implements Component<ChunkStore> {
-    /** Single overstack slot: holds up to 16x base stack of one item. */
+    /** Single overstack slot: holds up to 64x base stack of one item. */
     public CacheItemContainer slot = new CacheItemContainer((short) 1, CacheItemContainer.DEFAULT_MAX_STACK);
 
     /** Cached item id; null when empty. */
     public String cachedItemId;
     /** Logical total quantity stored. */
     public long cachedCount;
-    /** Maximum logical quantity (16x base stack). */
+    /** Maximum logical quantity (64x base stack). */
     public long maxCount;
     /** Last exposed stack size we showed in the slot (to detect delta). */
     public int lastExposedCount;

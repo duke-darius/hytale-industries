@@ -107,10 +107,11 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
         // Find all Extract-configured source inventories
         List<SourceInventory> sources = new ArrayList<>();
         LongOpenHashSet excludedKeys = new LongOpenHashSet();
-        
+
         for (int i = 0; i < DIRECTIONS.length; i++) {
             Vector3i dir = DIRECTIONS[i];
-            if (pipe.getConnectionState(dir) == BasicItemPipeComponent.ConnectionState.Extract) {
+            var connState = pipe.getConnectionState(dir);
+            if (connState == BasicItemPipeComponent.ConnectionState.Extract) {
                 int sx = pipeX + dir.x;
                 int sy = pipeY + dir.y;
                 int sz = pipeZ + dir.z;
@@ -118,36 +119,68 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
 
                 SourceInventory sourceInv = getInventoryIfLoaded(world, store, sx, sy, sz);
                 if (sourceInv != null) {
+                    HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                            "[PipeExtraction] found source at (%d,%d,%d) container=%s empty=%s",
+                            sx, sy, sz,
+                            sourceInv.inventory.getContainer().getClass().getSimpleName(),
+                            sourceInv.inventory.getContainer().isEmpty());
                     FilterMode mode = pipe.getFilterMode(dir);
                     String[] items = pipe.getFilterItems(dir);
                     sources.add(new SourceInventory(sourceInv.inventory, sx, sy, sz, dir, mode, items));
                     excludedKeys.add(packBlockPos(sourceInv.x, sourceInv.y, sourceInv.z));
+                } else {
+                    HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                            "[PipeExtraction] Extract side at (%d,%d,%d) but NO source inventory found", sx, sy, sz);
                 }
             }
         }
 
         if (sources.isEmpty()) {
+            HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                    "[PipeExtraction] pipe at (%d,%d,%d) has Extract sides but found 0 sources, sideConfig=%d",
+                    pipeX, pipeY, pipeZ, pipe.getSideConfig());
             return;
         }
 
         // Find all reachable destination inventories through the pipe network
         List<InventoryEndpoint> endpoints = findAllReachableInventories(world, store, pipeX, pipeY, pipeZ, excludedKeys);
         if (endpoints.isEmpty()) {
+            HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                    "[PipeExtraction] pipe at (%d,%d,%d) found %d sources but 0 destinations",
+                    pipeX, pipeY, pipeZ, sources.size());
             return;
         }
 
-        // Move up to 256 items per tick from sources to destinations
+        HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                "[PipeExtraction] pipe at (%d,%d,%d) moving: %d sources -> %d destinations",
+                pipeX, pipeY, pipeZ, sources.size(), endpoints.size());
+
+        // Move up to 4 items per tick from sources to destinations
         int totalMoved = 0;
         for (SourceInventory sourceInv : sources) {
-            if (totalMoved >= 256) break;
+            if (totalMoved >= 4) break;
 
             MachineInventory source = sourceInv.inventory;
-            if (source == null || source.getContainer() == null || source.getContainer().isEmpty()) continue;
+            if (source == null || source.getContainer() == null || source.getContainer().isEmpty()) {
+                HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                        "[PipeExtraction] skipping source at (%d,%d,%d): null=%s emptyContainer=%s",
+                        sourceInv.x, sourceInv.y, sourceInv.z,
+                        source == null, source != null && source.getContainer() != null ? source.getContainer().isEmpty() : "n/a");
+                continue;
+            }
 
             for (InventoryEndpoint ep : endpoints) {
-                int count = moveUpToNItems(sourceInv, ep, 256 - totalMoved);
+                HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                        "[PipeExtraction] attempting move from (%d,%d,%d) [%s] to dest [%s] maxToMove=%d",
+                        sourceInv.x, sourceInv.y, sourceInv.z,
+                        source.getContainer().getClass().getSimpleName(),
+                        ep.inventory.getContainer().getClass().getSimpleName(),
+                        256 - totalMoved);
+                int count = moveUpToNItems(sourceInv, ep, 4 - totalMoved);
                 if (count > 0) totalMoved += count;
-                if (totalMoved >= 256) break;
+                HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                        "[PipeExtraction] moved %d items this pass, total=%d", count, totalMoved);
+                if (totalMoved >= 4) break;
             }
         }
     }
@@ -277,7 +310,13 @@ public class BasicItemPipeExtractionSystem extends EntityTickingSystem<ChunkStor
                 remaining -= move;
                 moved += move;
             } else if (stack.getItemId().equals(dst.getItemId())) {
-                int maxStack = stack.getItem().getMaxStack();
+                // ponytail: use container's own max stack for CacheItemContainer, item's max otherwise
+                int maxStack;
+                if (destContainer instanceof dev.dukedarius.HytaleIndustries.Inventory.containers.CacheItemContainer cic) {
+                    maxStack = cic.getMaxStackForSlot(dstSlot);
+                } else {
+                    maxStack = stack.getItem().getMaxStack();
+                }
 
                 int space = maxStack - dst.getQuantity();
                 if (space > 0) {

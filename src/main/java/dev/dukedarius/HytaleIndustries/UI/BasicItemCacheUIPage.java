@@ -155,16 +155,22 @@ public class BasicItemCacheUIPage extends InteractiveCustomUIPage<BasicItemCache
             cache.cachedCount = 0L;
             cache.maxCount = 0L;
             cache.lastExposedCount = 0;
-            cache.slot.setItemStackForSlot((short) 0, ItemStack.EMPTY);
+            cache.slot.setItemStackForSlot((short) 0, ItemStack.EMPTY, false);
             return;
         }
-        long desired = Math.min(cache.cachedCount, cache.maxCount);
+        int baseMax = (int) (cache.maxCount > 0 ? Math.min(cache.maxCount / 64L, 64) : 64);
+        try {
+            var item = com.hypixel.hytale.server.core.asset.type.item.config.Item.getAssetMap().getAsset(cache.cachedItemId);
+            if (item != null && item.getMaxStack() > 0) baseMax = item.getMaxStack();
+        } catch (Throwable ignored) {}
+        int desired = (int) Math.min(cache.cachedCount, baseMax);
+        cache.slot.setMaxStack(1024);
         if (desired <= 0) {
-            cache.slot.setItemStackForSlot((short) 0, ItemStack.EMPTY);
+            cache.slot.setItemStackForSlot((short) 0, ItemStack.EMPTY, false);
             cache.lastExposedCount = 0;
         } else {
-            cache.slot.setItemStackForSlot((short) 0, new ItemStack(cache.cachedItemId, (int) desired));
-            cache.lastExposedCount = (int) desired;
+            cache.slot.setItemStackForSlot((short) 0, new ItemStack(cache.cachedItemId, desired), false);
+            cache.lastExposedCount = desired;
         }
     }
 
@@ -174,13 +180,13 @@ public class BasicItemCacheUIPage extends InteractiveCustomUIPage<BasicItemCache
             if (item != null) {
                 int base = item.getMaxStack();
                 if (base <= 0) base = 64;
-                return 16L * (long) base;
+                return 64L * (long) base;
             }
         } catch (Throwable t) {
             HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t)
                     .log("[BasicItemCacheUI] Failed to compute maxCount; defaulting.");
         }
-        return 16L * 64L;
+        return 64L * 64L;
     }
 
     public static final class BasicItemCacheUIEventData {

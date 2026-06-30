@@ -38,6 +38,12 @@ public class BasicItemCacheInventoryAdapter implements InventoryAdapter {
 
         BasicItemCacheComponent cache = store.getComponent(entity,
                 HytaleIndustriesPlugin.INSTANCE.getBasicItemCacheComponentType());
+        HytaleIndustriesPlugin.LOGGER.atInfo().log(
+                "[CacheAdapter] at (%d,%d,%d) block=%s component=%s slot=%s slotEmpty=%s",
+                x, y, z, blockId,
+                cache != null ? "FOUND" : "NULL",
+                cache != null && cache.slot != null ? "exists(cap=" + cache.slot.getCapacity() + ",max=" + cache.slot.getMaxStackForSlot((short)0) + ")" : "null",
+                cache != null && cache.slot != null ? cache.slot.isEmpty() : "n/a");
         if (cache == null) return Collections.emptyList();
         ensureContainer(cache);
 

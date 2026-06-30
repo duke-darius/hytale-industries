@@ -133,16 +133,6 @@ public class CacheItemContainer extends ItemContainer {
     protected ItemStack internal_setSlot(short i, ItemStack itemStack) {
         ItemStack prev = slots[i];
         slots[i] = itemStack == null ? ItemStack.EMPTY : itemStack;
-        HytaleIndustriesPlugin.LOGGER.atInfo().log(
-                "[CacheItemContainer] setSlot idx=%d prev=%s(%d) new=%s(%d) locked=%s max=%d",
-                i,
-                prev != null ? prev.getItemId() : "null",
-                prev != null && !ItemStack.isEmpty(prev) ? prev.getQuantity() : 0,
-                slots[i] != null ? slots[i].getItemId() : "null",
-                slots[i] != null && !ItemStack.isEmpty(slots[i]) ? slots[i].getQuantity() : 0,
-                lockedItemId,
-                maxStack
-        );
         return prev;
     }
 
@@ -151,13 +141,6 @@ public class CacheItemContainer extends ItemContainer {
     protected ItemStack internal_removeSlot(short i) {
         ItemStack prev = slots[i];
         slots[i] = ItemStack.EMPTY;
-        HytaleIndustriesPlugin.LOGGER.atInfo().log(
-                "[CacheItemContainer] removeSlot idx=%d removed=%s(%d) locked=%s",
-                i,
-                prev != null ? prev.getItemId() : "null",
-                prev != null && !ItemStack.isEmpty(prev) ? prev.getQuantity() : 0,
-                lockedItemId
-        );
         return prev;
     }
 
@@ -165,43 +148,13 @@ public class CacheItemContainer extends ItemContainer {
     protected boolean cantAddToSlot(short slot, ItemStack existing, ItemStack toAdd) {
         if (toAdd != null && !ItemStack.isEmpty(toAdd)) {
             if (lockedItemId != null && !lockedItemId.equals(toAdd.getItemId())) {
-                HytaleIndustriesPlugin.LOGGER.atInfo().log(
-                        "[CacheItemContainer] deny add idx=%d reason=locked existing=%s(%d) toAdd=%s(%d) locked=%s max=%d",
-                        slot,
-                        existing != null ? existing.getItemId() : "null",
-                        existing != null && !ItemStack.isEmpty(existing) ? existing.getQuantity() : 0,
-                        toAdd.getItemId(),
-                        toAdd.getQuantity(),
-                        lockedItemId,
-                        maxStack
-                );
                 return true;
             }
             int existingQty = existing != null && !ItemStack.isEmpty(existing) ? existing.getQuantity() : 0;
             if (existingQty + toAdd.getQuantity() > maxStack) {
-                HytaleIndustriesPlugin.LOGGER.atInfo().log(
-                        "[CacheItemContainer] deny add idx=%d reason=overflow existing=%s(%d) toAdd=%s(%d) max=%d locked=%s",
-                        slot,
-                        existing != null ? existing.getItemId() : "null",
-                        existingQty,
-                        toAdd.getItemId(),
-                        toAdd.getQuantity(),
-                        maxStack,
-                        lockedItemId
-                );
                 return true;
             }
         }
-        HytaleIndustriesPlugin.LOGGER.atInfo().log(
-                "[CacheItemContainer] allow add idx=%d existing=%s(%d) toAdd=%s(%d) locked=%s max=%d",
-                slot,
-                existing != null ? existing.getItemId() : "null",
-                existing != null && !ItemStack.isEmpty(existing) ? existing.getQuantity() : 0,
-                toAdd != null ? toAdd.getItemId() : "null",
-                toAdd != null && !ItemStack.isEmpty(toAdd) ? toAdd.getQuantity() : 0,
-                lockedItemId,
-                maxStack
-        );
         return false;
     }
 
