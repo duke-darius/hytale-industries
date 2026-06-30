@@ -78,7 +78,7 @@ jobs:
           if git diff --quiet; then
             echo "No changes to commit"
           else
-            git commit -am "chore: bump version to $VERSION\n\nCo-Authored-By: Warp <agent@warp.dev>"
+            git commit -am "chore: bump version to $VERSION"
             git push
           fi
 
