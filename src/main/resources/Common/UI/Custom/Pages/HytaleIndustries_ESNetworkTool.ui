@@ -1,0 +1,91 @@
+$C = "../Common.ui";
+
+Group {
+  Anchor: (Width: 380, Height: 280);
+
+  $C.@Container {
+    Anchor: (Full: 0);
+
+    #Title {
+      Group {
+        $C.@Title {
+          @Text = "Network Tool";
+        }
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Left: 16, Right: 16, Top: 12, Bottom: 12);
+
+      // Device Type
+      Group {
+        Anchor: (Height: 24, Bottom: 8);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Device";
+          Anchor: (Width: 120);
+          Style: (FontSize: 14, TextColor: #8ea0b8);
+        }
+        Label #DeviceType {
+          FlexWeight: 1;
+          Style: (FontSize: 14, RenderBold: true, TextColor: #b7cedd);
+        }
+      }
+
+      // Position
+      Group {
+        Anchor: (Height: 22, Bottom: 6);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Position";
+          Anchor: (Width: 120);
+          Style: (FontSize: 13, TextColor: #7f93a9);
+        }
+        Label #PosValue {
+          FlexWeight: 1;
+          Style: (FontSize: 13, TextColor: #b7cedd);
+        }
+      }
+
+      // Separator
+      Group { Anchor: (Height: 1, Top: 6, Bottom: 10); Background: #1e2634; }
+
+      // Priority
+      Group {
+        Anchor: (Height: 30, Bottom: 8);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Priority";
+          Anchor: (Width: 120);
+          Style: (FontSize: 14, TextColor: #8ea0b8);
+        }
+
+        $C.@SmallSecondaryTextButton #DecreaseBtn {
+          @Text = "-";
+          @Anchor = Anchor(Width: 36, Height: 26);
+        }
+
+        Label #PriorityValue {
+          Anchor: (Width: 50);
+          Style: (FontSize: 16, RenderBold: true, HorizontalAlignment: Center, TextColor: #48d185);
+        }
+
+        $C.@SmallSecondaryTextButton #IncreaseBtn {
+          @Text = "+";
+          @Anchor = Anchor(Width: 36, Height: 26);
+        }
+      }
+
+      // Hint
+      Label {
+        Text: "Higher priority = accessed first";
+        Anchor: (Height: 20, Top: 4);
+        Style: (FontSize: 11, TextColor: #7f93a9);
+      }
+    }
+  }
+}

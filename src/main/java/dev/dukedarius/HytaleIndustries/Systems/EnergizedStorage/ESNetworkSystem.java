@@ -283,7 +283,11 @@ public class ESNetworkSystem extends EntityTickingSystem<ChunkStore> {
                 var curEntity = curChunk.getBlockComponentEntity(cx & 31, cy, cz & 31);
                 if (curEntity != null) {
                     ESDiskHousingComponent housing = curEntity.getStore().getComponent(curEntity, housingType);
-                    if (housing != null) result.add(housing);
+                    if (housing != null) {
+                        ESNetworkMemberComponent member = curEntity.getStore().getComponent(curEntity, memberType);
+                        housing.cachedPriority = member != null ? member.priority : 0;
+                        result.add(housing);
+                    }
                 }
             }
 
@@ -305,6 +309,7 @@ public class ESNetworkSystem extends EntityTickingSystem<ChunkStore> {
                 queue.enqueue(nkey);
             }
         }
+        result.sort((a, b) -> Integer.compare(b.cachedPriority, a.cachedPriority));
         return result;
     }
 

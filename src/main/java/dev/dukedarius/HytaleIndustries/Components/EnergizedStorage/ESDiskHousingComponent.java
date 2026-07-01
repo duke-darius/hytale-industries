@@ -52,6 +52,8 @@ public class ESDiskHousingComponent implements Component<ChunkStore> {
     public transient int networkCheckCounter = 0;
     /** Transient last known network online state: -1=unknown, 0=offline, 1=online */
     public transient int lastNetworkOnline = -1;
+    /** Transient priority from ESNetworkMemberComponent, set by findDiskHousings for sorting */
+    public transient int cachedPriority = 0;
 
     /** Per-disk item storage — unbounded list, each entry is a unique item type with total count as quantity */
     @SuppressWarnings("unchecked")
@@ -238,7 +240,9 @@ public class ESDiskHousingComponent implements Component<ChunkStore> {
             }
             remaining -= canInsert;
         }
-        return toInsert.getQuantity() - remaining;
+        int inserted = toInsert.getQuantity() - remaining;
+        if (inserted > 0) saveAllDisksMetadata();
+        return inserted;
     }
 
     /** Extract items by ID. Returns actual ItemStacks preserving metadata. */
@@ -264,6 +268,7 @@ public class ESDiskHousingComponent implements Component<ChunkStore> {
                 remaining -= take;
             }
         }
+        if (!extracted.isEmpty()) saveAllDisksMetadata();
         return extracted;
     }
 

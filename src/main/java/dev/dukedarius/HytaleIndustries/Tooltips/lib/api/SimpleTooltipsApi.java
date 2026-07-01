@@ -1,0 +1,202 @@
+package dev.dukedarius.HytaleIndustries.Tooltips.lib.api;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+/**
+ * Public API for the SimpleTooltipsLib library.
+ * <p>
+ * Other mods use this to register their {@link TooltipProvider}s, which
+ * contribute dynamic tooltip content to items.
+ * <p>
+ * Obtain an instance via {@link SimpleTooltipsApiProvider#get()}.
+ *
+ * <pre>{@code
+ * SimpleTooltipsApi api = SimpleTooltipsApiProvider.get();
+ * if (api != null) {
+ *     api.registerProvider(new MyTooltipProvider());
+ * }
+ * }</pre>
+ */
+public interface SimpleTooltipsApi {
+
+    /**
+     * Resolves the locale to use for a specific player when composing tooltips.
+     * <p>
+     * If a resolver returns {@code null}, the system falls back to the client's reported language.
+     */
+    @FunctionalInterface
+    interface LanguageResolver {
+        @Nullable
+        String resolveLanguage(@Nonnull java.util.UUID playerUuid);
+    }
+
+    /**
+     * Sets the global language resolver for tooltips.
+     * <p>
+     * This allows other plugins to dictate the exact locale to use for translation lookups
+     * when building tooltips for a specific player (e.g. enforcing a custom language preference
+     * instead of relying strictly on the client's system locale).
+     *
+     * @param resolver the resolver to use, or {@code null} to reset to default behavior
+     */
+    void setLanguageResolver(@Nullable LanguageResolver resolver);
+
+    /**
+     * Registers a tooltip provider.
+     * <p>
+     * If a provider with the same {@link TooltipProvider#getProviderId() ID}
+     * is already registered, it is replaced.
+     *
+     * @param provider the provider to register
+     */
+    void registerProvider(@Nonnull TooltipProvider provider);
+
+    /**
+     * Unregisters a tooltip provider by its ID.
+     *
+     * @param providerId the provider's unique ID
+     * @return {@code true} if a provider was removed, {@code false} if not found
+     */
+    boolean unregisterProvider(@Nonnull String providerId);
+
+    /**
+     * Appends a line to the global tooltip of an item type.
+     * This will affect all items of this type, without using virtual IDs.
+     * @param baseItemId the base item ID
+     * @param line the line to add
+     */
+    void addGlobalLine(@Nonnull String baseItemId, @Nonnull String line);
+
+    /**
+     * Appends a translation key to the global tooltip of an item type.
+     * This will be localized per player when computing the tooltip.
+     * @param baseItemId the base item ID
+     * @param translationKey the translation key to add
+     */
+    void addGlobalTranslationLine(@Nonnull String baseItemId, @Nonnull String translationKey);
+
+    /**
+     * Replaces the global tooltip of an item type with the given lines.
+     * This will affect all items of this type, without using virtual IDs.
+     * @param baseItemId the base item ID
+     * @param lines the lines to replace the description with
+     */
+    void replaceGlobalTooltip(@Nonnull String baseItemId, @Nonnull String... lines);
+
+    /**
+     * Replaces the global tooltip of an item type with the given translation keys.
+     * This will be localized per player when computing the tooltip.
+     * @param baseItemId the base item ID
+     * @param translationKeys the translation keys to replace the description with
+     */
+    void replaceGlobalTranslationTooltip(@Nonnull String baseItemId, @Nonnull String... translationKeys);
+
+    /**
+     * Clears all regular (translation-key-wide) global tooltip overrides for this base item type.
+     * @param baseItemId the base item ID
+     */
+    void clearGlobalTooltips(@Nonnull String baseItemId);
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Item-ID-specific global tooltips
+    // ─────────────────────────────────────────────────────────────────────
+    //
+    //  Unlike the regular global methods above (which modify a shared
+    //  translation key and therefore affect ALL item types that share it),
+    //  these methods only affect the exact item type specified.
+    //
+    //  Internally, the item's definition is overridden to use a unique
+    //  description key, so other items sharing the original key are
+    //  unaffected.
+    //
+
+    /**
+     * Appends a line to the global tooltip of <b>only</b> this exact item type.
+     * Other items sharing the same description translation key are not affected.
+     *
+     * @param baseItemId the base item ID
+     * @param line the line to add
+     */
+    void addItemGlobalLine(@Nonnull String baseItemId, @Nonnull String line);
+
+    /**
+     * Appends a translation key to the item-specific global tooltip.
+     * This will be localized per player when computing the tooltip.
+     *
+     * @param baseItemId the base item ID
+     * @param translationKey the translation key to add
+     */
+    void addItemGlobalTranslationLine(@Nonnull String baseItemId, @Nonnull String translationKey);
+
+    /**
+     * Replaces the global tooltip of <b>only</b> this exact item type with the given lines.
+     * Other items sharing the same description translation key are not affected.
+     *
+     * @param baseItemId the base item ID
+     * @param lines the lines to replace the description with
+     */
+    void replaceItemGlobalTooltip(@Nonnull String baseItemId, @Nonnull String... lines);
+
+    /**
+     * Replaces the global tooltip of <b>only</b> this exact item type with the
+     * given translation keys.
+     *
+     * @param baseItemId the base item ID
+     * @param translationKeys the translation keys to replace the description with
+     */
+    void replaceItemGlobalTranslationTooltip(@Nonnull String baseItemId, @Nonnull String... translationKeys);
+
+    /**
+     * Clears all item-ID-specific global tooltip overrides for this base item type
+     * and restores the item to its original (potentially shared) description key.
+     *
+     * @param baseItemId the base item ID
+     */
+    void clearItemGlobalTooltips(@Nonnull String baseItemId);
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Cache invalidation
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * Invalidates all cached tooltip data for a specific player.
+     * <p>
+     * The next outbound inventory packet for this player will trigger a full
+     * re-composition from all providers — no cached data is reused. Use this
+     * after modifying item metadata that affects tooltips for a single player.
+     *
+     * @param playerUuid the player whose caches should be cleared
+     */
+    void invalidatePlayer(@Nonnull java.util.UUID playerUuid);
+
+    /**
+     * Invalidates <b>all</b> cached tooltip data (global + every player).
+     * <p>
+     * Use this when provider logic changes (e.g. after a config reload) so that
+     * every future packet is recomposed with fresh data.
+     */
+    void invalidateAll();
+
+    /**
+     * Invalidates and immediately refreshes tooltips for a specific player.
+     * <p>
+     * This clears all caches for the player and replays the last known inventory
+     * packet, causing an immediate tooltip update on the client. Use this when
+     * you need the player to see updated tooltips <em>right now</em>, without
+     * waiting for the next natural inventory packet.
+     *
+     * @param playerUuid the player to refresh
+     */
+    void refreshPlayer(@Nonnull java.util.UUID playerUuid);
+
+    /**
+     * Invalidates all caches and immediately refreshes tooltips for every
+     * online player.
+     * <p>
+     * Equivalent to calling {@link #invalidateAll()} followed by
+     * {@link #refreshPlayer(java.util.UUID)} for every online player.
+     * Use after config reloads or provider logic changes that affect all players.
+     */
+    void refreshAllPlayers();
+}

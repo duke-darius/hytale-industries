@@ -1,0 +1,14 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "PlayerAnimationsId": "Pickaxe",
+  "TranslationProperties": {
+    "Name": "Network Tool",
+    "Description": "Right-click an ES device to configure it."
+  },
+  "Interactions": {
+    "Secondary": "HytaleIndustries_ESNetworkTool_Root"
+  },
+  "Model": "Items/HytaleIndustries_ESNetworkTool/HytaleIndustries_ESNetworkTool.blockymodel",
+  "Texture": "Items/HytaleIndustries_ESNetworkTool/HytaleIndustries_ESNetworkTool.png",
+  "MaxStack": 1
+}

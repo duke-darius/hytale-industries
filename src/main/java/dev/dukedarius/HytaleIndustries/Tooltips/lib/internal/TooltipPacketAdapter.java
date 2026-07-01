@@ -1,0 +1,1539 @@
+package dev.dukedarius.HytaleIndustries.Tooltips.lib.internal;
+
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.protocol.ItemBase;
+import com.hypixel.hytale.protocol.ItemWithAllMetadata;
+import com.hypixel.hytale.protocol.InventorySection;
+import com.hypixel.hytale.protocol.Packet;
+import com.hypixel.hytale.protocol.UpdateType;
+import com.hypixel.hytale.protocol.packets.assets.UpdateItems;
+import com.hypixel.hytale.protocol.packets.assets.UpdateTranslations;
+import com.hypixel.hytale.protocol.packets.interaction.SyncInteractionChains;
+import com.hypixel.hytale.protocol.packets.interaction.SyncInteractionChain;
+import com.hypixel.hytale.protocol.packets.inventory.UpdatePlayerInventory;
+import com.hypixel.hytale.protocol.packets.player.JoinWorld;
+import com.hypixel.hytale.protocol.packets.player.MouseInteraction;
+import com.hypixel.hytale.protocol.packets.window.OpenWindow;
+import com.hypixel.hytale.protocol.packets.window.UpdateWindow;
+import com.hypixel.hytale.protocol.packets.window.SendWindowAction;
+import com.hypixel.hytale.protocol.packets.window.CraftRecipeAction;
+import com.hypixel.hytale.protocol.packets.inventory.SetActiveSlot;
+import com.hypixel.hytale.protocol.packets.interface_.CustomPage;
+import com.hypixel.hytale.protocol.packets.interface_.CustomUICommand;
+import com.hypixel.hytale.protocol.packets.interface_.Notification;
+import com.hypixel.hytale.protocol.FormattedMessage;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.HytaleServer;
+import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.io.adapter.PacketAdapters;
+import com.hypixel.hytale.server.core.io.adapter.PacketFilter;
+import com.hypixel.hytale.server.core.io.adapter.PlayerPacketFilter;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import org.bson.BsonDocument;
+import org.bson.BsonValue;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
+
+import com.hypixel.hytale.protocol.packets.entities.EntityUpdates;
+import com.hypixel.hytale.protocol.EntityUpdate;
+import com.hypixel.hytale.protocol.ComponentUpdate;
+import com.hypixel.hytale.protocol.ComponentUpdateType;
+import com.hypixel.hytale.protocol.ItemUpdate;
+import com.hypixel.hytale.protocol.EquipmentUpdate;
+import com.hypixel.hytale.protocol.packets.player.SetClientId;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import dev.dukedarius.HytaleIndustries.Tooltips.lib.api.SimpleTooltipsApi;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+// Additional imports for EntityStore access
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
+
+/**
+ * Bidirectional packet adapter that provides per-item dynamic tooltips
+ * using <b>virtual item IDs</b> for all inventory sections.
+ *
+ * <h2>Problem</h2>
+ * Hytale's tooltip system resolves item descriptions per item <em>type</em>.
+ * Two items of the same type always share the same description key, making it
+ * impossible to show different tooltips on two items of the same base type.
+ *
+ * <h2>Solution: virtual item IDs</h2>
+ * Every item with tooltip data gets a unique virtual item ID (a clone of the
+ * original with modified translation properties). This applies uniformly to
+ * <b>all</b> inventory sections: hotbar, utility, tools, armor, storage,
+ * backpack, builder material, and container windows.
+ *
+ * <h2>Inbound translation</h2>
+ * The inbound filter translates any virtual item IDs in {@link MouseInteraction}
+ * and {@link SyncInteractionChains} packets back to real IDs, ensuring that
+ * interactions work correctly despite the virtual IDs used for display.
+ *
+ * <h2>Generalization</h2>
+ * This adapter is <b>mod-agnostic</b>. It does not contain any enchantment-specific
+ * logic. Instead, it delegates to a {@link TooltipRegistry} which queries all
+ * registered {@link dev.dukedarius.HytaleIndustries.Tooltips.lib.api.TooltipProvider}s to compose the
+ * final tooltip for each item.
+ */
+public class TooltipPacketAdapter {
+
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
+    // Configure JSON output to use standard JSON types (e.g. numbers) instead of
+    // Extended JSON (e.g. {"$numberInt": "1"}), which the client's Gson parser rejects.
+    private static final JsonWriterSettings JSON_SETTINGS = JsonWriterSettings.builder()
+            .outputMode(JsonMode.SHELL)
+            .build();
+
+    private final VirtualItemRegistry virtualItemRegistry;
+    private final TooltipRegistry tooltipRegistry;
+    private final GlobalTooltipManager globalTooltipManager;
+
+    private SimpleTooltipsApi.LanguageResolver languageResolver;
+
+    /** Registered outbound filter handle. */
+    private PacketFilter outboundFilter;
+    /** Registered inbound filter handle. */
+    private PacketFilter inboundFilter;
+
+    private java.lang.reflect.Field outboundHandlersField;
+    private boolean reflectionFailed = false;
+
+    /**
+     * Re-entrancy guard. Set to {@code true} while the outbound filter is
+     * processing a packet and sending auxiliary packets via {@code writeNoCache()}.
+     */
+    private final ThreadLocal<Boolean> isProcessing = ThreadLocal.withInitial(() -> false);
+
+
+    /**
+     * Per-player tracking of last sent translations (for diff-based sending).
+     */
+    private final ConcurrentHashMap<UUID, Map<String, String>> lastSentTranslations = new ConcurrentHashMap<>();
+
+    /**
+     * Per-player cache of the last <em>unprocessed</em> inventory packet.
+     * Deep-cloned before any tooltip processing modifies it.
+     * Used by {@link #refreshPlayer} to replay the packet with fresh data.
+     */
+    private final ConcurrentHashMap<UUID, UpdatePlayerInventory> lastRawInventory = new ConcurrentHashMap<>();
+
+    /**
+     * Per-player cached {@link PlayerRef}, updated on every outbound packet.
+     * Used by {@link #refreshPlayer} and {@link #refreshAllPlayers}.
+     */
+    private final ConcurrentHashMap<UUID, PlayerRef> knownPlayerRefs = new ConcurrentHashMap<>();
+
+    /**
+     * Players currently transitioning between worlds. Set when a {@link JoinWorld}
+     * packet is detected outbound; cleared when the first {@link UpdatePlayerInventory}
+     * arrives for that player. While set, tooltip processing is deferred to avoid
+     * injecting auxiliary packets that delay the client's {@code ClientReady} response
+     * past the portal instance world's timeout.
+     */
+    private final Set<UUID> worldTransitioning = ConcurrentHashMap.newKeySet();
+
+    /** Delay (in seconds) before replaying inventory with tooltips after a world transition. */
+    private static final int POST_TRANSITION_REFRESH_DELAY_SECS = 2;
+
+    /**
+     * Map of Player UUID -> Entity ID (from SetClientId).
+     * Used to identify EntityUpdates that target the local player.
+     */
+    private final ConcurrentHashMap<UUID, Integer> playerEntityIds = new ConcurrentHashMap<>();
+
+    /**
+     * Map of Player UUID -> Active Hotbar Slot Index (0-8).
+     * Tracked from inbound SyncInteractionChain packets.
+     */
+    private final ConcurrentHashMap<UUID, Integer> playerActiveHotbarSlots = new ConcurrentHashMap<>();
+
+    /**
+     * Per-player cache of the last fully-processed {@link com.hypixel.hytale.protocol.ExtraResources}
+     * (server chest items + DTL virtual items) from OpenWindow / UpdateWindow packets.
+     * When the server sends a subsequent {@code null} ExtraResources ("no change"),
+     * this cached result is replayed verbatim so virtual items remain visible for crafting
+     * without losing the chest data.
+     */
+    private final ConcurrentHashMap<UUID, com.hypixel.hytale.protocol.ExtraResources> lastServerExtraResources = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Integer> lastServerExtraResourcesWindowId = new ConcurrentHashMap<>();
+
+    public TooltipPacketAdapter(
+            @Nonnull VirtualItemRegistry virtualItemRegistry,
+            @Nonnull TooltipRegistry tooltipRegistry,
+            @Nonnull GlobalTooltipManager globalTooltipManager) {
+        this.virtualItemRegistry = virtualItemRegistry;
+        this.tooltipRegistry = tooltipRegistry;
+        this.globalTooltipManager = globalTooltipManager;
+    }
+
+    public void setLanguageResolver(@Nullable SimpleTooltipsApi.LanguageResolver resolver) {
+        this.languageResolver = resolver;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Registration / deregistration
+    // ═══════════════════════════════════════════════════════════════════════
+
+
+    public void register() {
+        outboundFilter = PacketAdapters.registerOutbound((PlayerPacketFilter) this::onOutboundPacket);
+        inboundFilter = PacketAdapters.registerInbound((PlayerPacketFilter) this::onInboundPacket);
+        LOGGER.atInfo().log("TooltipPacketAdapter registered (outbound + inbound filters)");
+    }
+
+    public void deregister() {
+        if (outboundFilter != null) {
+            try { PacketAdapters.deregisterOutbound(outboundFilter); } catch (Exception e) {
+                LOGGER.atWarning().log("Failed to deregister outbound filter: " + e.getMessage());
+            }
+            outboundFilter = null;
+        }
+        if (inboundFilter != null) {
+            try { PacketAdapters.deregisterInbound(inboundFilter); } catch (Exception e) {
+                LOGGER.atWarning().log("Failed to deregister inbound filter: " + e.getMessage());
+            }
+            inboundFilter = null;
+        }
+    }
+
+    public void onPlayerLeave(@Nonnull UUID playerUuid) {
+        worldTransitioning.remove(playerUuid);
+        lastSentTranslations.remove(playerUuid);
+        lastRawInventory.remove(playerUuid);
+        knownPlayerRefs.remove(playerUuid);
+        playerEntityIds.remove(playerUuid);
+        playerActiveHotbarSlots.remove(playerUuid);
+        lastServerExtraResources.remove(playerUuid);
+        lastServerExtraResourcesWindowId.remove(playerUuid);
+
+        // Critical Fix: Clear virtual item registry cache for this player so that
+        // on rejoin, all item definitions are resent fresh.
+        virtualItemRegistry.onPlayerLeave(playerUuid);
+    }
+
+    /**
+     * Schedules a deferred tooltip refresh for a player who just transitioned
+     * between worlds. The delay gives the client time to finish the world load
+     * and send {@code ClientReady} before we inject auxiliary tooltip packets.
+     */
+    private void schedulePostTransitionRefresh(@Nonnull UUID playerUuid) {
+        try {
+            HytaleServer.SCHEDULED_EXECUTOR.schedule(() -> {
+                try {
+                    boolean sent = refreshPlayer(playerUuid);
+                } catch (Exception e) {
+                    LOGGER.atWarning().log("Post-transition tooltip refresh failed for "
+                            + playerUuid + ": " + e.getMessage());
+                }
+            }, POST_TRANSITION_REFRESH_DELAY_SECS, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Failed to schedule post-transition refresh for "
+                    + playerUuid + ": " + e.getMessage());
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  INBOUND filter  (client → server)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private boolean onInboundPacket(@Nonnull PlayerRef playerRef, @Nonnull Packet packet) {
+        try {
+            if (packet instanceof MouseInteraction mousePacket) {
+                translateMouseInteraction(mousePacket);
+            } else if (packet instanceof SyncInteractionChains syncPacket) {
+                translateInboundSyncInteractionChains(playerRef, syncPacket);
+            } else if (packet instanceof SendWindowAction windowAction) {
+                translateSendWindowAction(playerRef, windowAction);
+            } else if (packet instanceof SetActiveSlot setSlot) {
+                // Track hotbar slot changes only (Inventory.HOTBAR_SECTION_ID = -1).
+                if (setSlot.inventorySectionId == -1) {
+                    playerActiveHotbarSlots.put(playerRef.getUuid(), setSlot.activeSlot);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Error in inbound packet adapter for "
+                    + playerRef.getUuid() + ": " + e.getMessage());
+        }
+        return false;
+    }
+
+    private void translateMouseInteraction(@Nonnull MouseInteraction packet) {
+        if (packet.itemInHandId != null && VirtualItemRegistry.isVirtualId(packet.itemInHandId)) {
+            String baseId = VirtualItemRegistry.getBaseItemId(packet.itemInHandId);
+            if (baseId != null) packet.itemInHandId = baseId;
+        }
+    }
+
+    private void translateSendWindowAction(@Nonnull PlayerRef playerRef, @Nonnull SendWindowAction packet) {
+        if (packet.action instanceof CraftRecipeAction craftAction) {
+            if (craftAction.recipeId != null && VirtualItemRegistry.isVirtualId(craftAction.recipeId)) {
+                String baseId = VirtualItemRegistry.getBaseItemId(craftAction.recipeId);
+                if (baseId != null) {
+                    craftAction.recipeId = baseId;
+                }
+            }
+        }
+    }
+
+    private String getResolvedLanguage(@Nonnull PlayerRef playerRef) {
+        if (languageResolver != null) {
+            String overridden = languageResolver.resolveLanguage(playerRef.getUuid());
+            if (overridden != null && !overridden.isEmpty()) {
+                return overridden;
+            }
+        }
+        return playerRef.getLanguage();
+    }
+
+    private void translateInboundSyncInteractionChains(@Nonnull PlayerRef playerRef, @Nonnull SyncInteractionChains syncPacket) {
+        for (SyncInteractionChain chain : syncPacket.updates) {
+            // Track the player's active hotbar slot so we can use it to look up
+            // the correct virtual item ID when processing outbound EntityUpdates.
+            if (chain.activeHotbarSlot >= 0) {
+                 playerActiveHotbarSlots.put(playerRef.getUuid(), chain.activeHotbarSlot);
+            }
+            if (chain.data != null && chain.data.targetSlot >= 0) {
+                 playerActiveHotbarSlots.put(playerRef.getUuid(), chain.data.targetSlot);
+            }
+            translateInboundChainItemIds(chain);
+        }
+    }
+
+    private void translateInboundChainItemIds(@Nonnull SyncInteractionChain chain) {
+        if (chain.itemInHandId != null && VirtualItemRegistry.isVirtualId(chain.itemInHandId)) {
+            String baseId = VirtualItemRegistry.getBaseItemId(chain.itemInHandId);
+            if (baseId != null) chain.itemInHandId = baseId;
+        }
+        if (chain.utilityItemId != null && VirtualItemRegistry.isVirtualId(chain.utilityItemId)) {
+            String baseId = VirtualItemRegistry.getBaseItemId(chain.utilityItemId);
+            if (baseId != null) chain.utilityItemId = baseId;
+        }
+        if (chain.toolsItemId != null && VirtualItemRegistry.isVirtualId(chain.toolsItemId)) {
+            String baseId = VirtualItemRegistry.getBaseItemId(chain.toolsItemId);
+            if (baseId != null) chain.toolsItemId = baseId;
+        }
+        if (chain.newForks != null) {
+            for (SyncInteractionChain fork : chain.newForks) {
+                if (fork != null) translateInboundChainItemIds(fork);
+            }
+        }
+    }
+
+    /**
+     * Dynamically ensures that our outbound filter executes last in the chain.
+     * This fixes compatibility issues with other mods (like Simple Claims) that
+     * intercept OpenWindow/UpdateWindow packets and recalculate/overwrite ExtraResources.
+     */
+    private void ensureLastInOutbound() {
+        if (reflectionFailed || outboundFilter == null) return;
+        try {
+            if (outboundHandlersField == null) {
+                outboundHandlersField = PacketAdapters.class.getDeclaredField("outboundHandlers");
+                outboundHandlersField.setAccessible(true);
+            }
+            @SuppressWarnings("unchecked")
+            List<PacketFilter> handlers = (List<PacketFilter>) outboundHandlersField.get(null);
+
+            if (handlers != null && !handlers.isEmpty()) {
+                if (handlers.get(handlers.size() - 1) != outboundFilter) {
+                    handlers.remove(outboundFilter);
+                    handlers.add(outboundFilter);
+                    LOGGER.atFine().log("Moved TooltipPacketAdapter to the end of outbound handlers");
+                }
+            }
+        } catch (Exception e) {
+            reflectionFailed = true;
+            LOGGER.atWarning().log("Failed to inspect/reorder packet adapters: " + e.getMessage());
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  OUTBOUND filter  (server → client)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private boolean onOutboundPacket(@Nonnull PlayerRef playerRef, @Nonnull Packet packet) {
+        if (isProcessing.get()) return false;
+
+        ensureLastInOutbound();
+
+        isProcessing.set(true);
+        try {
+            UUID playerUuid = playerRef.getUuid();
+
+            // Track the PlayerRef for refresh support
+            knownPlayerRefs.put(playerUuid, playerRef);
+
+            // ── World-transition detection ──
+            // When a JoinWorld packet is sent, the client must process it and
+            // respond with ClientReady before the portal instance world's
+            // timeout expires. Injecting auxiliary packets (UpdateItems,
+            // UpdateTranslations) during this window can delay ClientReady
+            // past the timeout, causing the world thread to shut down and
+            // the player to be disconnected. We mark the player as
+            // "transitioning" and defer tooltip processing until afterwards.
+            if (packet instanceof JoinWorld) {
+                worldTransitioning.add(playerUuid);
+            } else if (packet instanceof SetClientId setId) {
+                // Track the local player's entity ID
+                playerEntityIds.put(playerUuid, setId.clientId);
+            } else if (packet instanceof EntityUpdates updates) {
+                // Intercept entity updates to ensure held items use virtual IDs
+                processEntityUpdates(playerRef, updates);
+            } else if (packet instanceof UpdatePlayerInventory invPacket) {
+                // Cache a deep clone of the raw packet BEFORE processing modifies it
+                lastRawInventory.put(playerUuid, deepCloneInventory(invPacket));
+
+                if (worldTransitioning.remove(playerUuid)) {
+                    // Player is mid-transition — let the vanilla inventory packet
+                    // through unmodified so the client can send ClientReady ASAP.
+                    // Tooltips will be applied by a deferred refresh.
+                    schedulePostTransitionRefresh(playerUuid);
+                } else {
+                    processPlayerInventory(playerRef, invPacket);
+                }
+            } else if (packet instanceof OpenWindow openWindow) {
+                processWindowInventory(playerRef, openWindow.inventory);
+                processCraftingWindowExtraResources(playerRef, openWindow);
+            } else if (packet instanceof UpdateWindow updateWindow) {
+                processWindowInventory(playerRef, updateWindow.inventory);
+                processCraftingWindowExtraResources(playerRef, updateWindow);
+            } else if (packet instanceof CustomPage customPage) {
+                processCustomPage(playerRef, customPage);
+            } else if (packet instanceof UpdateItems updateItemsPacket) {
+                // ─────────────────────────────────────────────────────────────────────
+                //  Item Definition Init Injection
+                // ─────────────────────────────────────────────────────────────────────
+                //  When the client first connects, the server sends
+                //  UpdateItems(Init, allItemDefinitions). We inject item-specific
+                //  global tooltip overrides directly into this packet so the
+                //  client's item definitions point to unique description keys
+                //  from the start.
+                if (updateItemsPacket.type == UpdateType.Init && globalTooltipManager != null) {
+                    if (updateItemsPacket.items != null) {
+                        updateItemsPacket.items = new HashMap<>(updateItemsPacket.items);
+                    }
+                    globalTooltipManager.injectIntoInitItemsPacket(updateItemsPacket);
+                }
+            } else if (packet instanceof UpdateTranslations translationsPacket) {
+                // ─────────────────────────────────────────────────────────────────────
+                //  Language Change Detection
+                // ─────────────────────────────────────────────────────────────────────
+                //  When the client changes the game language, the server sends
+                //  UpdateTranslations(Init, fullLanguageMap) which REPLACES all
+                //  client-side translations. This wipes our custom
+                //  "server.items.dynamic.*" description keys (name keys survive
+                //  because they reference standard server.items.*.name keys).
+                //
+                //  Fix: inject our custom translations directly into the Init
+                //  packet (using a mutable copy, since the server's map is
+                //  unmodifiable) so they're included in the full replacement.
+                //  Then schedule a deferred refresh to rebuild descriptions
+                //  with new-language text.
+                if (translationsPacket.type == UpdateType.Init) {
+
+                    if (translationsPacket.translations != null) {
+                        translationsPacket.translations = new HashMap<>(translationsPacket.translations);
+                    }
+
+                    if (globalTooltipManager != null) {
+                        globalTooltipManager.injectIntoInitPacket(translationsPacket, getResolvedLanguage(playerRef));
+                    }
+
+                    // Clear the local language cache so descriptions will be rebuilt
+                    virtualItemRegistry.clearLanguageCaches();
+
+                    // Trigger a deferred refresh to resend virtual item tooltips with the new language
+                    invalidatePlayer(playerUuid);
+                    schedulePostTransitionRefresh(playerUuid);
+                }
+            } else if (packet instanceof Notification) {
+                // ─────────────────────────────────────────────────────────────────────
+                //  Pickup Notifications (Dropped Item Name Fix)
+                // ─────────────────────────────────────────────────────────────────────
+                Notification notification = (Notification) packet;
+                // Target the "picked up item" notification
+                if (notification.message != null && "server.general.pickedUpItem".equals(notification.message.messageId)
+                        && notification.item != null) {
+
+                    String itemId = notification.item.itemId;
+                    String metadata = notification.item.metadata;
+
+                    // If the notification already has a virtual ID (e.g. from a previous update),
+                    // we should look up the base ID to correctly resolve the tooltip.
+                    if (VirtualItemRegistry.isVirtualId(itemId)) {
+                        String baseId = VirtualItemRegistry.getBaseItemId(itemId);
+                        if (baseId != null) {
+                            itemId = baseId;
+                        }
+                    }
+
+                    // We need to resolve the virtual item based on the item in the notification
+                    TooltipRegistry.ComposedTooltip composed = tooltipRegistry.compose(itemId, metadata);
+
+                    if (composed != null) {
+                        String combinedHash = composed.getCombinedHash();
+                        String virtualId = VirtualItemRegistry.generateVirtualId(itemId, combinedHash);
+
+                        // Create the virtual item base using the resolved overrides
+                        ItemBase virtualItem = virtualItemRegistry.getOrCreateVirtualItemBase(
+                                itemId,
+                                virtualId,
+                                composed.getNameOverride(),
+                                composed.getVisualOverrides(),
+                                composed.getNameTranslationKey(),
+                                composed.getDescriptionTranslationKey()
+                        );
+
+                        if (virtualItem != null) {
+                            // Create a new ItemWithAllMetadata with:
+                            // - Virtual Item ID
+                            // - Virtual Max Durability (if overridden)
+                            // - Original Quantity & Current Durability (preserve state)
+                            ItemWithAllMetadata newItem = new ItemWithAllMetadata(
+                                    virtualItem.id, // Use the virtual ID
+                                    notification.item.quantity,
+                                    notification.item.durability,
+                                    virtualItem.durability, // Apply visual max durability override
+                                    notification.item.overrideDroppedItemAnimation,
+                                    notification.item.metadata
+                            );
+
+                            // Replace the item in the packet
+                            notification.item = newItem;
+
+                            // Also update the message param "item" which shows the name
+                            // We must update the "item" entry in the messageParams map
+                            if (notification.message.messageParams != null && notification.message.messageParams.containsKey("item")) {
+                                 // Use the updated name key from the virtual item
+                                String nameKey = virtualItem.translationProperties != null ? virtualItem.translationProperties.name : itemId;
+                                // Create a new FormattedMessage for the name
+                                // We use Message helper to easily create a translation message
+                                FormattedMessage nameMessage = Message.translation(nameKey).getFormattedMessage();
+
+                                // Replace the param
+                                notification.message.messageParams.put("item", nameMessage);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Error in outbound packet adapter for "
+                    + playerRef.getUuid() + ": " + e.getMessage());
+        } finally {
+            isProcessing.set(false);
+        }
+
+        return false;
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    //  Player inventory processing
+    // ───────────────────────────────────────────────────────────────────────
+
+    private void processPlayerInventory(@Nonnull PlayerRef playerRef,
+                                        @Nonnull UpdatePlayerInventory packet) {
+        UUID playerUuid = playerRef.getUuid();
+        String language = getResolvedLanguage(playerRef);
+
+        Map<String, ItemBase> newVirtualItems = new LinkedHashMap<>();
+        Map<String, String> translations = new LinkedHashMap<>();
+
+        try {
+            // All sections use virtual item IDs uniformly.
+            // The inbound filter translates virtual IDs back to real IDs
+            // for SyncInteractionChains and MouseInteraction packets.
+            processSection(playerUuid, "hotbar", packet.hotbar, language, newVirtualItems, translations);
+            processSection(playerUuid, "utility", packet.utility, language, newVirtualItems, translations);
+            processSection(playerUuid, "tools", packet.tools, language, newVirtualItems, translations);
+            processSection(playerUuid, "armor", packet.armor, language, newVirtualItems, translations);
+            processSection(playerUuid, "storage", packet.storage, language, newVirtualItems, translations);
+            processSection(playerUuid, "backpack", packet.backpack, language, newVirtualItems, translations);
+        } catch (Exception e) {
+            LOGGER.atSevere().log("Error in processPlayerInventory for " + playerUuid + ": " + e.getMessage());
+        } finally {
+            sendAuxiliaryPackets(playerRef, newVirtualItems, translations);
+        }
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    //  Window (chest/container) inventory processing
+    // ───────────────────────────────────────────────────────────────────────
+
+    private void processWindowInventory(@Nonnull PlayerRef playerRef,
+                                        @Nullable InventorySection section) {
+        if (section == null) return;
+
+        UUID playerUuid = playerRef.getUuid();
+        String language = getResolvedLanguage(playerRef);
+
+        Map<String, ItemBase> newVirtualItems = new LinkedHashMap<>();
+        Map<String, String> translations = new LinkedHashMap<>();
+
+        processSection(playerUuid, null, section, language, newVirtualItems, translations);
+        sendAuxiliaryPackets(playerRef, newVirtualItems, translations);
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    //  Crafting Workaround (Virtual Items in ExtraResources)
+    // ───────────────────────────────────────────────────────────────────────
+
+    private void processCraftingWindowExtraResources(@Nonnull PlayerRef playerRef, @Nonnull Packet packet) {
+        // Only applies to OpenWindow and UpdateWindow
+        com.hypixel.hytale.protocol.ExtraResources resources = null;
+        if (packet instanceof OpenWindow openWindow) {
+            resources = openWindow.extraResources;
+        } else if (packet instanceof UpdateWindow updateWindow) {
+            resources = updateWindow.extraResources;
+        }
+
+        UUID playerUuid = playerRef.getUuid();
+        UpdatePlayerInventory rawInv = lastRawInventory.get(playerUuid);
+        if (rawInv == null) return;
+
+        // Collect all virtual items from the player's true inventory
+        // and map their BASE IDs to the total quantity held.
+        Map<String, Integer> virtualBaseQuantities = new HashMap<>();
+
+        collectVirtualItemsForCrafting(playerUuid, rawInv.hotbar, virtualBaseQuantities);
+        collectVirtualItemsForCrafting(playerUuid, rawInv.utility, virtualBaseQuantities);
+        collectVirtualItemsForCrafting(playerUuid, rawInv.tools, virtualBaseQuantities);
+        collectVirtualItemsForCrafting(playerUuid, rawInv.armor, virtualBaseQuantities);
+        collectVirtualItemsForCrafting(playerUuid, rawInv.storage, virtualBaseQuantities);
+        collectVirtualItemsForCrafting(playerUuid, rawInv.backpack, virtualBaseQuantities);
+
+        if (virtualBaseQuantities.isEmpty()) return;
+
+        // ── Null ExtraResources handling ──
+        // When the server sends null ExtraResources (= "no change"), the client
+        // may still re-evaluate available resources. We must replay the last
+        // FULLY PROCESSED result (server chest items + virtual items) so the
+        // client continues to see all materials.
+        if (resources == null) {
+            if (packet instanceof OpenWindow openWindow) {
+                // For a new OpenWindow with null ExtraResources (like Pocket Crafting),
+                // do NOT inherit the cached chest items from a previous window.
+                lastServerExtraResources.remove(playerUuid);
+                lastServerExtraResourcesWindowId.remove(playerUuid);
+
+                resources = new com.hypixel.hytale.protocol.ExtraResources(new com.hypixel.hytale.protocol.ItemQuantity[0]);
+                openWindow.extraResources = resources;
+                appendVirtualItemsToResources(resources, virtualBaseQuantities);
+                lastServerExtraResources.put(playerUuid, resources.clone());
+                lastServerExtraResourcesWindowId.put(playerUuid, openWindow.id);
+            } else if (packet instanceof UpdateWindow updateWindow) {
+                com.hypixel.hytale.protocol.ExtraResources cached = lastServerExtraResources.get(playerUuid);
+                Integer cachedId = lastServerExtraResourcesWindowId.get(playerUuid);
+                if (cached != null && cachedId != null && cachedId == updateWindow.id) {
+                    // Replay the exact same ExtraResources the client last received
+                    updateWindow.extraResources = cached.clone();
+                } else {
+                    // No cached data yet or window ID mismatch — create empty + append virtual items
+                    resources = new com.hypixel.hytale.protocol.ExtraResources(new com.hypixel.hytale.protocol.ItemQuantity[0]);
+                    updateWindow.extraResources = resources;
+                    appendVirtualItemsToResources(resources, virtualBaseQuantities);
+                    lastServerExtraResources.put(playerUuid, resources.clone());
+                    lastServerExtraResourcesWindowId.put(playerUuid, updateWindow.id);
+                }
+            }
+            return;
+        }
+
+        // ── Non-null ExtraResources (server provided chest items) ──
+        // Clone the server's resources to avoid modifying cached objects
+        com.hypixel.hytale.protocol.ExtraResources clonedResources = resources.clone();
+
+        // Append virtual item base IDs, then cache the final result.
+        appendVirtualItemsToResources(clonedResources, virtualBaseQuantities);
+
+        // Cache the fully-processed ExtraResources (chest items + virtual items)
+        // so it can be replayed verbatim when the server sends null.
+        lastServerExtraResources.put(playerUuid, clonedResources.clone());
+        if (packet instanceof OpenWindow openWindow) {
+            openWindow.extraResources = clonedResources;
+            lastServerExtraResourcesWindowId.put(playerUuid, openWindow.id);
+        } else if (packet instanceof UpdateWindow updateWindow) {
+            updateWindow.extraResources = clonedResources;
+            lastServerExtraResourcesWindowId.put(playerUuid, updateWindow.id);
+        }
+    }
+
+    /**
+     * Appends virtual item base quantities to the given ExtraResources.
+     */
+    private void appendVirtualItemsToResources(
+            @Nonnull com.hypixel.hytale.protocol.ExtraResources resources,
+            @Nonnull Map<String, Integer> virtualBaseQuantities) {
+        List<com.hypixel.hytale.protocol.ItemQuantity> updatedResources = new ArrayList<>();
+        if (resources.resources != null) {
+            for (com.hypixel.hytale.protocol.ItemQuantity q : resources.resources) {
+                updatedResources.add(q);
+            }
+        }
+        for (Map.Entry<String, Integer> entry : virtualBaseQuantities.entrySet()) {
+            updatedResources.add(new com.hypixel.hytale.protocol.ItemQuantity(entry.getKey(), entry.getValue()));
+        }
+        resources.resources = updatedResources.toArray(new com.hypixel.hytale.protocol.ItemQuantity[0]);
+    }
+
+    private void collectVirtualItemsForCrafting(@Nonnull UUID playerUuid, @Nullable InventorySection section, @Nonnull Map<String, Integer> virtualBaseQuantities) {
+        if (section == null || section.items == null) return;
+
+        for (Map.Entry<Integer, ItemWithAllMetadata> entry : section.items.entrySet()) {
+            ItemWithAllMetadata item = entry.getValue();
+            if (item == null || item.itemId == null) continue;
+
+
+            // If somehow a virtual ID made it into lastRawInventory, resolve it back to base ID first
+            String baseItemId = VirtualItemRegistry.isVirtualId(item.itemId)
+                    ? VirtualItemRegistry.getBaseItemId(item.itemId)
+                    : item.itemId;
+
+            if (baseItemId == null) continue;
+
+            // To do this reliably, we simply try to compose it.
+            // If it has a composed tooltip, then it is virtualized on the client.
+            TooltipRegistry.ComposedTooltip composed = tooltipRegistry.compose(
+                    baseItemId, item.metadata, "en"); // Language doesn't matter here, we only need the base ID
+
+            if (composed != null) {
+                // This item IS virtualized on the client. To allow the client to use it
+                // in crafting, we must append its base ID to ExtraResources.
+                virtualBaseQuantities.merge(baseItemId, item.quantity, Integer::sum);
+            }
+        }
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    //  CustomUI (CustomPage) processing
+    // ───────────────────────────────────────────────────────────────────────
+
+    private void processCustomPage(@Nonnull PlayerRef playerRef,
+                                   @Nonnull CustomPage customPage) {
+        if (customPage.commands == null || customPage.commands.length == 0) return;
+
+        UUID playerUuid = playerRef.getUuid();
+        String language = getResolvedLanguage(playerRef);
+
+        Map<String, ItemBase> newVirtualItems = new LinkedHashMap<>();
+        Map<String, String> translations = new LinkedHashMap<>();
+
+        for (CustomUICommand command : customPage.commands) {
+            if (command.data == null || command.data.isEmpty()) continue;
+
+            String modifiedData = processCustomUICommandData(
+                    playerUuid, language, command.data, newVirtualItems, translations);
+            if (modifiedData != null) {
+                command.data = modifiedData;
+            }
+        }
+
+        sendAuxiliaryPackets(playerRef, newVirtualItems, translations);
+    }
+
+    @Nullable
+    private String processCustomUICommandData(
+            @Nonnull UUID playerUuid,
+            @Nullable String language,
+            @Nonnull String data,
+            @Nonnull Map<String, ItemBase> newVirtualItems,
+            @Nonnull Map<String, String> translations) {
+
+        try {
+            BsonDocument doc = BsonDocument.parse(data);
+            BsonValue value = doc.get("0");
+            if (value == null) return null;
+
+            boolean modified = false;
+
+            if (value.isArray()) {
+                org.bson.BsonArray array = value.asArray();
+                for (int i = 0; i < array.size(); i++) {
+                    BsonValue element = array.get(i);
+                    if (element.isDocument()) {
+                        if (processItemGridSlotDocument(playerUuid, language,
+                                element.asDocument(), newVirtualItems, translations)) {
+                            modified = true;
+                        }
+                    }
+                }
+            }
+
+            return modified ? doc.toJson(JSON_SETTINGS) : null;
+
+        } catch (Exception e) {
+            LOGGER.atFine().log("Could not process CustomUICommand data: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    private boolean processItemGridSlotDocument(
+            @Nonnull UUID playerUuid,
+            @Nullable String language,
+            @Nonnull BsonDocument slotDoc,
+            @Nonnull Map<String, ItemBase> newVirtualItems,
+            @Nonnull Map<String, String> translations) {
+
+        BsonValue itemStackValue = slotDoc.get("ItemStack");
+        if (itemStackValue == null || !itemStackValue.isDocument()) return false;
+
+        BsonDocument itemStackDoc = itemStackValue.asDocument();
+        String idKey = "Id";
+        BsonValue itemIdValue = itemStackDoc.get(idKey);
+
+        if (itemIdValue == null || !itemIdValue.isString()) {
+            idKey = "ItemId";
+            itemIdValue = itemStackDoc.get(idKey);
+            if (itemIdValue == null || !itemIdValue.isString()) return false;
+        }
+
+        String itemId = itemIdValue.asString().getValue();
+        if (VirtualItemRegistry.isVirtualId(itemId)) {
+             // Still need to remove metadata even if already virtual, to prevent client crash
+             itemStackDoc.remove("Metadata");
+             return false;
+        }
+
+        String virtualId = null;
+
+        BsonValue metadataValue = itemStackDoc.get("Metadata");
+        String metadataStr = null;
+        if (metadataValue != null && metadataValue.isDocument()) {
+            metadataStr = metadataValue.asDocument().toJson();
+        }
+
+        TooltipRegistry.ComposedTooltip composed = tooltipRegistry.compose(itemId, metadataStr, language);
+        if (composed != null) {
+            virtualId = VirtualItemRegistry.generateVirtualId(itemId, composed.getCombinedHash());
+            ItemBase virtualBase = virtualItemRegistry.getOrCreateVirtualItemBase(
+                    itemId, virtualId, composed.getNameOverride(), composed.getVisualOverrides(),
+                    composed.getNameTranslationKey(), composed.getDescriptionTranslationKey()
+            );
+
+            if (virtualBase != null) {
+                newVirtualItems.put(virtualId, virtualBase);
+
+                String descKey = VirtualItemRegistry.getVirtualDescriptionKey(virtualId);
+                if (!translations.containsKey(descKey)) {
+                    String originalDesc = globalTooltipManager != null ?
+                            globalTooltipManager.getGlobalDescription(itemId, language) :
+                            virtualItemRegistry.getOriginalDescription(itemId, language);
+                    String enrichedDesc = composed.buildDescription(originalDesc);
+                    translations.put(descKey, enrichedDesc);
+                    virtualItemRegistry.cacheDescription(virtualId, language, enrichedDesc);
+                }
+
+                if (composed.getNameOverride() != null) {
+                    String nameKey = VirtualItemRegistry.getVirtualNameKey(virtualId);
+                    translations.put(nameKey, composed.getNameOverride());
+                }
+            }
+        }
+        // If composed is null, the item has no custom tooltip data.
+        // Do NOT fall back to findVirtualIdForItem() — that would incorrectly
+        // inherit virtual IDs (and their tooltips/visual overrides) from other
+        // items of the same base type in the player's inventory.
+
+        // Always remove Metadata from Custom UI items to prevent ItemGridSlot ArrayCodec client crash
+        itemStackDoc.remove("Metadata");
+
+        if (virtualId != null) {
+            itemStackDoc.put(idKey, new org.bson.BsonString(virtualId));
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+
+    // ───────────────────────────────────────────────────────────────────────
+    //  Entity Update Processing (Visual Reversion Fix)
+    // ───────────────────────────────────────────────────────────────────────
+
+    /**
+     * Inspects outbound EntityUpdates for two purposes:
+     * <ol>
+     *   <li><b>Player equipment:</b> If an update targets the local player and
+     *       modifies Equipment, we replace the real Item ID with the virtual ID
+     *       from the active hotbar/utility slot to prevent visual reversion.</li>
+     *   <li><b>Dropped item entities:</b> If any entity carries an {@code Item(5)}
+     *       component, we resolve the virtual ID via the tooltip registry using
+     *       the item's {@code itemId + metadata}. This makes dropped items on the
+     *       ground render with overridden models/textures.</li>
+     * </ol>
+     */
+    private void processEntityUpdates(@Nonnull PlayerRef playerRef, @Nonnull EntityUpdates packet) {
+        if (packet.updates == null || packet.updates.length == 0) return;
+
+        Integer localEntityId = playerEntityIds.get(playerRef.getUuid());
+
+        // EntityStore for reverse lookup (Network ID -> Entity Ref)
+        // We act largely on the recipient's world view
+        EntityStore entityStore = null;
+        if (playerRef.isValid() && playerRef.getReference() != null) {
+            Store<EntityStore> store = playerRef.getReference().getStore();
+            if (store != null) {
+                entityStore = store.getExternalData();
+            }
+        }
+
+        Map<String, ItemBase> newVirtualItems = new LinkedHashMap<>();
+        Map<String, String> translations = new LinkedHashMap<>();
+
+        for (EntityUpdate update : packet.updates) {
+            if (update.updates == null) continue;
+
+            for (ComponentUpdate comp : update.updates) {
+                // ── Player Equipment (visual reversion fix & multiplayer broadcast) ──
+                if (comp instanceof EquipmentUpdate) {
+                    EquipmentUpdate equipUpdate = (EquipmentUpdate) comp;
+                    if (localEntityId != null && update.networkId == localEntityId) {
+                        // Self-update: The player is updating their own equipment.
+                        // We use the player's own UUID to look up their active slot.
+                        processEquipmentUpdate(playerRef, playerRef, equipUpdate, newVirtualItems, translations);
+                    } else if (localEntityId != null && update.networkId != localEntityId && entityStore != null) {
+                        // Remote-update: Another entity is updating equipment.
+                        // We need to find out WHO this entity is.
+                        Ref<EntityStore> entityRef = entityStore.getRefFromNetworkId(update.networkId);
+                        if (entityRef != null) {
+                            // Check if it's a player
+                            PlayerRef remotePlayerRef = entityRef.getStore().getComponent(entityRef, PlayerRef.getComponentType());
+                            if (remotePlayerRef != null) {
+                                // It IS a player! We can now resolve their active slot and overrides.
+                                processEquipmentUpdate(playerRef, remotePlayerRef, equipUpdate, newVirtualItems, translations);
+                            }
+                        }
+                    }
+                }
+
+                // ── Dropped Item entities (model/texture override) ──
+                if (comp instanceof ItemUpdate) {
+                    ItemUpdate itemUpdate = (ItemUpdate) comp;
+                    if (itemUpdate.item != null
+                        && itemUpdate.item.itemId != null && !itemUpdate.item.itemId.isEmpty()) {
+
+                        String currentItemId = itemUpdate.item.itemId;
+                        boolean alreadyVirtual = VirtualItemRegistry.isVirtualId(currentItemId);
+                        String baseItemId = alreadyVirtual ? VirtualItemRegistry.getBaseItemId(currentItemId) : currentItemId;
+
+                        if (baseItemId != null) {
+                            TooltipRegistry.ComposedTooltip composed = tooltipRegistry.compose(
+                                    baseItemId, itemUpdate.item.metadata, getResolvedLanguage(playerRef));
+                            if (composed != null && composed.getVisualOverrides() != null
+                                    && !composed.getVisualOverrides().isEmpty()) {
+
+                                String effectiveName = composed.getNameOverride();
+                                if (effectiveName == null) {
+                                    effectiveName = virtualItemRegistry.getOriginalName(
+                                            baseItemId, playerRef.getLanguage());
+                                }
+
+                                String virtualId = virtualItemRegistry.generateVirtualId(
+                                        baseItemId, composed.getCombinedHash());
+                                ItemBase virtualBase = virtualItemRegistry.getOrCreateVirtualItemBase(
+                                        baseItemId, virtualId, effectiveName,
+                                        composed.getVisualOverrides(),
+                                        composed.getNameTranslationKey(),
+                                        composed.getDescriptionTranslationKey());
+
+                                if (virtualBase != null) {
+                                    ItemWithAllMetadata clonedItem = itemUpdate.item.clone();
+                                    clonedItem.itemId = virtualId;
+                                    itemUpdate.item = clonedItem;
+                                    newVirtualItems.put(virtualId, virtualBase);
+
+                                    String descKey = VirtualItemRegistry.getVirtualDescriptionKey(virtualId);
+                                    String originalDesc = globalTooltipManager != null ?
+                                            globalTooltipManager.getGlobalDescription(baseItemId, playerRef.getLanguage()) :
+                                            virtualItemRegistry.getOriginalDescription(baseItemId, playerRef.getLanguage());
+                                    String enrichedDesc = composed.buildDescription(originalDesc);
+                                    translations.put(descKey, enrichedDesc);
+
+                                    // Always send the name translation under the virtual key
+                                    String nameKey = VirtualItemRegistry.getVirtualNameKey(virtualId);
+                                    if (effectiveName != null) {
+                                        translations.put(nameKey, effectiveName);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+        }
+    }
+
+        // Send auxiliary packets (UpdateItems + translations) if any items were virtualised
+        if (!newVirtualItems.isEmpty()) {
+            sendAuxiliaryPackets(playerRef, newVirtualItems, translations);
+        }
+    }
+
+    private void processEquipmentUpdate(@Nonnull PlayerRef recipientRef,
+                                        @Nonnull PlayerRef observedPlayerRef,
+                                        @Nonnull EquipmentUpdate equipment,
+                                        @Nonnull Map<String, ItemBase> newVirtualItems,
+                                        @Nonnull Map<String, String> translations) {
+        UUID observedPlayerUuid = observedPlayerRef.getUuid();
+        boolean rightHandVirtualized = false;
+        boolean leftHandVirtualized = false;
+
+        // If the equipment update sets a right-hand item that is NOT virtual,
+        // we check if it matches the base ID of the virtual item in the ACTIVE slot
+        // of the OBSERVED player.
+        if (equipment.rightHandItemId != null) {
+            String currentRightId = equipment.rightHandItemId;
+            boolean rightAlreadyVirtual = VirtualItemRegistry.isVirtualId(currentRightId);
+            String rightBaseId = rightAlreadyVirtual ? VirtualItemRegistry.getBaseItemId(currentRightId) : currentRightId;
+
+            if (rightBaseId != null) {
+                // Fix: Use authoritative active slot from server entity if available
+                Integer slotObj = null;
+                Player player = getObservedPlayerComponent(observedPlayerRef);
+                if (player != null) {
+                    slotObj = (int) player.getInventory().getActiveHotbarSlot();
+                } else {
+                    slotObj = playerActiveHotbarSlots.get(observedPlayerUuid);
+                }
+
+                // Default to slot 0 if unknown (reasonable fallback for initial join)
+                int slot = slotObj != null ? slotObj : 0;
+
+                String virtualId = virtualItemRegistry.getSlotVirtualId(observedPlayerUuid, "hotbar:" + slot);
+                if (virtualId != null) {
+                    String trackedBaseId = VirtualItemRegistry.getBaseItemId(virtualId);
+                    // If the packet assumes the base item, but we know it's virtual, swap it.
+                    if (trackedBaseId != null && trackedBaseId.equals(rightBaseId)) {
+                        equipment.rightHandItemId = virtualId;
+                        addVirtualEquipmentItem(recipientRef, trackedBaseId, virtualId, newVirtualItems, translations);
+                        rightHandVirtualized = true;
+
+                    }
+                }
+            }
+        }
+
+        if (!rightHandVirtualized) {
+            rightHandVirtualized = tryVirtualizeFromObservedInventory(
+                    recipientRef, observedPlayerRef, false, equipment, newVirtualItems, translations);
+        }
+
+        // Fix for off-hand (left hand) items not showing visual overrides.
+        // The off-hand slot maps to "utility:0" in our registry.
+        if (equipment.leftHandItemId != null) {
+            String currentLeftId = equipment.leftHandItemId;
+            boolean leftAlreadyVirtual = VirtualItemRegistry.isVirtualId(currentLeftId);
+            String leftBaseId = leftAlreadyVirtual ? VirtualItemRegistry.getBaseItemId(currentLeftId) : currentLeftId;
+
+            if (leftBaseId != null) {
+                // The off-hand is always utility slot 0 of the observed player
+                String virtualId = virtualItemRegistry.getSlotVirtualId(observedPlayerUuid, "utility:0");
+
+                if (virtualId != null) {
+                    String trackedBaseId = VirtualItemRegistry.getBaseItemId(virtualId);
+                    if (trackedBaseId != null && trackedBaseId.equals(leftBaseId)) {
+                        equipment.leftHandItemId = virtualId;
+                        addVirtualEquipmentItem(recipientRef, trackedBaseId, virtualId, newVirtualItems, translations);
+                        leftHandVirtualized = true;
+                    }
+                }
+            }
+        }
+
+        if (!leftHandVirtualized) {
+            tryVirtualizeFromObservedInventory(
+                    recipientRef, observedPlayerRef, true, equipment, newVirtualItems, translations);
+        }
+    }
+
+    private boolean tryVirtualizeFromObservedInventory(@Nonnull PlayerRef recipientRef,
+                                                       @Nonnull PlayerRef observedPlayerRef,
+                                                       boolean leftHand,
+                                                       @Nonnull EquipmentUpdate equipment,
+                                                       @Nonnull Map<String, ItemBase> newVirtualItems,
+                                                       @Nonnull Map<String, String> translations) {
+        Player observedPlayer = getObservedPlayerComponent(observedPlayerRef);
+        if (observedPlayer == null) return false;
+
+        ItemStack stack = leftHand
+                ? observedPlayer.getInventory().getUtilityItem()
+                : observedPlayer.getInventory().getItemInHand();
+        if (stack == null) return false;
+
+        String stackItemId = stack.getItemId();
+        if (stackItemId == null || stackItemId.isEmpty()) return false;
+        boolean stackAlreadyVirtual = VirtualItemRegistry.isVirtualId(stackItemId);
+        String stackBaseId = stackAlreadyVirtual ? VirtualItemRegistry.getBaseItemId(stackItemId) : stackItemId;
+        if (stackBaseId == null) return false;
+
+        String equipmentItemId = leftHand ? equipment.leftHandItemId : equipment.rightHandItemId;
+        if (equipmentItemId == null || equipmentItemId.isEmpty()) return false;
+        boolean equipAlreadyVirtual = VirtualItemRegistry.isVirtualId(equipmentItemId);
+        String equipBaseId = equipAlreadyVirtual ? VirtualItemRegistry.getBaseItemId(equipmentItemId) : equipmentItemId;
+        if (equipBaseId == null) return false;
+
+        // Guard against desynced snapshots: only rewrite when equipment and inventory agree.
+        if (!stackBaseId.equals(equipBaseId)) {
+            return false;
+        }
+
+        TooltipRegistry.ComposedTooltip composed = tooltipRegistry.compose(
+                stackBaseId, stack.toPacket().metadata, recipientRef.getLanguage());
+        if (composed == null) return false;
+
+        String virtualId = VirtualItemRegistry.generateVirtualId(stackBaseId, composed.getCombinedHash());
+        if (leftHand) {
+            equipment.leftHandItemId = virtualId;
+            virtualItemRegistry.trackSlotVirtualId(observedPlayerRef.getUuid(), "utility:0", virtualId);
+        } else {
+            equipment.rightHandItemId = virtualId;
+            Integer slot = playerActiveHotbarSlots.get(observedPlayerRef.getUuid());
+            if (slot != null && slot >= 0) {
+                virtualItemRegistry.trackSlotVirtualId(observedPlayerRef.getUuid(), "hotbar:" + slot, virtualId);
+            }
+        }
+
+        addVirtualEquipmentItem(recipientRef, stackBaseId, virtualId, newVirtualItems, translations);
+
+        String descKey = VirtualItemRegistry.getVirtualDescriptionKey(virtualId);
+        if (!translations.containsKey(descKey)) {
+            String originalDesc = globalTooltipManager != null ?
+                    globalTooltipManager.getGlobalDescription(stackBaseId, recipientRef.getLanguage()) :
+                    virtualItemRegistry.getOriginalDescription(stackBaseId, recipientRef.getLanguage());
+            String enrichedDesc = composed.buildDescription(originalDesc);
+            translations.put(descKey, enrichedDesc);
+            virtualItemRegistry.cacheDescription(virtualId, recipientRef.getLanguage(), enrichedDesc);
+        }
+        if (composed.getNameOverride() != null) {
+            translations.put(VirtualItemRegistry.getVirtualNameKey(virtualId), composed.getNameOverride());
+        }
+        return true;
+    }
+
+    @Nullable
+    private Player getObservedPlayerComponent(@Nonnull PlayerRef observedPlayerRef) {
+        Ref<EntityStore> ref = observedPlayerRef.getReference();
+        if (ref == null || !ref.isValid()) return null;
+        Store<EntityStore> store = ref.getStore();
+        if (store == null) return null;
+        return store.getComponent(ref, Player.getComponentType());
+    }
+
+    private void addVirtualEquipmentItem(@Nonnull PlayerRef recipientRef,
+                                         @Nonnull String baseId,
+                                         @Nonnull String virtualId,
+                                         @Nonnull Map<String, ItemBase> newVirtualItems,
+                                         @Nonnull Map<String, String> translations) {
+        ItemBase virtualBase = resolveVirtualBaseForEquipment(recipientRef, baseId, virtualId);
+        if (virtualBase == null) return;
+
+        newVirtualItems.put(virtualId, virtualBase);
+
+        String descKey = VirtualItemRegistry.getVirtualDescriptionKey(virtualId);
+        String cachedDesc = virtualItemRegistry.getCachedDescription(virtualId, recipientRef.getLanguage());
+        if (cachedDesc != null) {
+            translations.put(descKey, cachedDesc);
+        }
+
+        // If this virtual item uses a virtual name key, ensure the recipient has the translation.
+        String nameKey = VirtualItemRegistry.getVirtualNameKey(virtualId);
+        if (virtualBase.translationProperties != null && nameKey.equals(virtualBase.translationProperties.name)) {
+            String effectiveName = resolveVirtualName(recipientRef, baseId, virtualId);
+            if (effectiveName != null) {
+                translations.put(nameKey, effectiveName);
+            }
+        }
+    }
+
+    @Nullable
+    private ItemBase resolveVirtualBaseForEquipment(@Nonnull PlayerRef recipientRef,
+                                                    @Nonnull String baseId,
+                                                    @Nonnull String virtualId) {
+        TooltipRegistry.ComposedTooltip composed = findComposedByVirtualId(virtualId);
+        dev.dukedarius.HytaleIndustries.Tooltips.lib.api.ItemVisualOverrides visualOverrides =
+                composed != null ? composed.getVisualOverrides() : null;
+        String nameOverride = composed != null ? composed.getNameOverride() : null;
+
+        ItemBase virtualBase = virtualItemRegistry.getOrCreateVirtualItemBase(
+                baseId, virtualId, nameOverride, visualOverrides,
+                composed != null ? composed.getNameTranslationKey() : null,
+                composed != null ? composed.getDescriptionTranslationKey() : null);
+
+        if (virtualBase != null) {
+            return virtualBase;
+        }
+
+        // Fallback: when we only have a "named" variant cached (e.g. dropped items),
+        // try again with the resolved original name for this recipient language.
+        String originalName = virtualItemRegistry.getOriginalName(baseId, recipientRef.getLanguage());
+        if (originalName != null) {
+            return virtualItemRegistry.getOrCreateVirtualItemBase(baseId, virtualId, originalName, null, null, null);
+        }
+        return null;
+    }
+
+    @Nullable
+    private String resolveVirtualName(@Nonnull PlayerRef recipientRef,
+                                      @Nonnull String baseId,
+                                      @Nonnull String virtualId) {
+        TooltipRegistry.ComposedTooltip composed = findComposedByVirtualId(virtualId);
+        if (composed != null && composed.getNameOverride() != null) {
+            return composed.getNameOverride();
+        }
+        return virtualItemRegistry.getOriginalName(baseId, recipientRef.getLanguage());
+    }
+
+    @Nullable
+    private TooltipRegistry.ComposedTooltip findComposedByVirtualId(@Nonnull String virtualId) {
+        int separatorIndex = virtualId.indexOf(VirtualItemRegistry.VIRTUAL_SEPARATOR);
+        if (separatorIndex <= 0) return null;
+        String hash = virtualId.substring(separatorIndex + VirtualItemRegistry.VIRTUAL_SEPARATOR.length());
+        return tooltipRegistry.getComposed(hash);
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    //  Core section processing (shared by player inventory & containers)
+    // ───────────────────────────────────────────────────────────────────────
+
+    /**
+     * Processes a single display-only {@link InventorySection}: for each item with
+     * tooltip data, clones its {@link ItemWithAllMetadata}, sets the virtual ID on
+     * the clone, and replaces the entry in the section's items map.
+     */
+    private void processSection(
+            @Nonnull UUID playerUuid,
+            @Nullable String sectionName,
+            @Nullable InventorySection section,
+            @Nullable String language,
+            @Nonnull Map<String, ItemBase> newVirtualItems,
+            @Nonnull Map<String, String> translations) {
+
+        if (section == null || section.items == null || section.items.isEmpty()) return;
+
+        for (Map.Entry<Integer, ItemWithAllMetadata> entry : section.items.entrySet()) {
+            int slot = entry.getKey();
+            ItemWithAllMetadata itemPacket = entry.getValue();
+
+            if (itemPacket == null || itemPacket.itemId == null || itemPacket.itemId.isEmpty()) {
+                if (sectionName != null) {
+                    virtualItemRegistry.trackSlotVirtualId(playerUuid, sectionName + ":" + slot, null);
+                }
+                continue;
+            }
+
+            if (VirtualItemRegistry.isVirtualId(itemPacket.itemId)) continue;
+
+            // Query all tooltip providers via the registry (with locale for per-player translations)
+            TooltipRegistry.ComposedTooltip composed = tooltipRegistry.compose(
+                    itemPacket.itemId, itemPacket.metadata, language);
+
+            if (composed == null) {
+                if (sectionName != null) {
+                    virtualItemRegistry.trackSlotVirtualId(playerUuid, sectionName + ":" + slot, null);
+                }
+                continue;
+            }
+
+            String baseItemId = itemPacket.itemId;
+            String virtualId = virtualItemRegistry.generateVirtualId(baseItemId, composed.getCombinedHash());
+
+            // Get or create the virtual ItemBase definition
+            ItemBase virtualBase = virtualItemRegistry.getOrCreateVirtualItemBase(
+                    baseItemId, virtualId, composed.getNameOverride(), composed.getVisualOverrides(),
+                    composed.getNameTranslationKey(), composed.getDescriptionTranslationKey());
+            if (virtualBase == null) {
+                if (sectionName != null) {
+                    virtualItemRegistry.trackSlotVirtualId(playerUuid, sectionName + ":" + slot, null);
+                }
+                continue;
+            }
+
+            newVirtualItems.put(virtualId, virtualBase);
+
+            // Build the description for this virtual item
+            String descKey = VirtualItemRegistry.getVirtualDescriptionKey(virtualId);
+            if (!translations.containsKey(descKey)) {
+                String originalDesc = globalTooltipManager != null ?
+                        globalTooltipManager.getGlobalDescription(baseItemId, language) :
+                        virtualItemRegistry.getOriginalDescription(baseItemId, language);
+                String enrichedDesc = composed.buildDescription(originalDesc);
+                translations.put(descKey, enrichedDesc);
+                virtualItemRegistry.cacheDescription(virtualId, language, enrichedDesc);
+            }
+
+            // Handle name override translation
+            if (composed.getNameOverride() != null) {
+                String nameKey = VirtualItemRegistry.getVirtualNameKey(virtualId);
+                translations.put(nameKey, composed.getNameOverride());
+            }
+
+            // Clone, swap ID, replace in section
+            ItemWithAllMetadata clonedItem = itemPacket.clone();
+            clonedItem.itemId = virtualId;
+            section.items.put(slot, clonedItem);
+
+            if (sectionName != null) {
+                virtualItemRegistry.trackSlotVirtualId(playerUuid, sectionName + ":" + slot, virtualId);
+            }
+        }
+    }
+
+
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Auxiliary packet sending
+    // ═══════════════════════════════════════════════════════════════════════
+
+    public void sendAuxiliaryPackets(@Nonnull PlayerRef playerRef,
+                                     @Nonnull Map<String, ItemBase> newVirtualItems,
+                                     @Nonnull Map<String, String> translations) {
+        if (newVirtualItems.isEmpty() && translations.isEmpty()) return;
+
+        UUID playerUuid = playerRef.getUuid();
+
+        // DEBUG: Log what translations we're about to send
+        {
+            int descCount = 0;
+            for (String key : translations.keySet()) {
+                if (key.endsWith(".description")) descCount++;
+            }
+        }
+
+        // Send custom quality definitions (for nameColor overrides) before
+        // item definitions, so the client has the quality when it processes the item.
+        Set<Integer> customQualityIndices = new HashSet<>();
+        for (ItemBase base : newVirtualItems.values()) {
+            if (base != null && virtualItemRegistry.isCustomQualityIndex(base.qualityIndex)) {
+                customQualityIndices.add(base.qualityIndex);
+            }
+        }
+        if (!customQualityIndices.isEmpty()) {
+            Map<Integer, com.hypixel.hytale.protocol.ItemQuality> unsentQualities =
+                    virtualItemRegistry.markAndGetUnsentQualities(playerUuid, customQualityIndices);
+            if (!unsentQualities.isEmpty()) {
+                sendUpdateItemQualities(playerRef, unsentQualities);
+            }
+
+            // Include quality label translations for custom labels
+            for (int qIdx : customQualityIndices) {
+                String labelText = virtualItemRegistry.getQualityLabelTranslation(qIdx);
+                if (labelText != null) {
+                    com.hypixel.hytale.protocol.ItemQuality q = virtualItemRegistry.getCustomQualityProtocol(qIdx);
+                    if (q != null && q.localizationKey != null) {
+                        translations.put(q.localizationKey, labelText);
+                    }
+                }
+            }
+        }
+
+        // Send virtual item definitions the player hasn't seen yet
+        Set<String> unsentItems = virtualItemRegistry.markAndGetUnsent(
+                playerUuid, newVirtualItems.keySet());
+        if (!unsentItems.isEmpty()) {
+            Map<String, ItemBase> toSend = new LinkedHashMap<>();
+            for (String vId : unsentItems) {
+                ItemBase base = newVirtualItems.get(vId);
+                if (base != null) toSend.put(vId, base);
+            }
+            if (!toSend.isEmpty()) {
+                sendUpdateItems(playerRef, toSend);
+            }
+        }
+
+        // Send translations — only if they differ from what was last sent
+        if (!translations.isEmpty()) {
+            Map<String, String> lastSent = lastSentTranslations.get(playerUuid);
+            Map<String, String> delta = computeTranslationDelta(lastSent, translations);
+
+            // DEBUG: Log delta details
+            {
+                int deltaDescCount = 0;
+                for (Map.Entry<String, String> entry : delta.entrySet()) {
+                    if (entry.getKey().endsWith(".description")) {
+                        deltaDescCount++;
+                        String val = entry.getValue();
+                    }
+                }
+            }
+
+            if (!delta.isEmpty()) {
+                sendTranslations(playerRef, delta);
+                if (lastSent == null) {
+                    lastSentTranslations.put(playerUuid, new ConcurrentHashMap<>(delta));
+                } else {
+                    lastSent.putAll(delta);
+                }
+            }
+        }
+    }
+
+    private void sendUpdateItemQualities(@Nonnull PlayerRef playerRef,
+                                         @Nonnull Map<Integer, com.hypixel.hytale.protocol.ItemQuality> qualities) {
+        try {
+            com.hypixel.hytale.protocol.packets.assets.UpdateItemQualities packet =
+                    new com.hypixel.hytale.protocol.packets.assets.UpdateItemQualities();
+            packet.type = UpdateType.AddOrUpdate;
+            packet.maxId = com.hypixel.hytale.server.core.asset.type.item.config.ItemQuality
+                    .getAssetMap().getNextIndex();
+            packet.itemQualities = qualities;
+            playerRef.getPacketHandler().writeNoCache(packet);
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Failed to send UpdateItemQualities: " + e.getMessage());
+        }
+    }
+
+    private void sendUpdateItems(@Nonnull PlayerRef playerRef,
+                                 @Nonnull Map<String, ItemBase> items) {
+        try {
+            UpdateItems packet = new UpdateItems();
+            packet.type = UpdateType.AddOrUpdate;
+            packet.items = items;
+            packet.removedItems = new String[0];
+            // Virtual items share the exact same model and icon assets as their
+            // base items — only the ID and translation properties differ. Skipping
+            // model/icon reloading avoids a costly client-side stall, especially
+            // during world transitions and first-time container opens.
+            packet.updateModels = false;
+            packet.updateIcons = false;
+            playerRef.getPacketHandler().writeNoCache(packet);
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Failed to send UpdateItems for virtual items: " + e.getMessage());
+        }
+    }
+
+    private void sendTranslations(@Nonnull PlayerRef playerRef,
+                                  @Nonnull Map<String, String> translations) {
+        try {
+            UpdateTranslations packet = new UpdateTranslations(UpdateType.AddOrUpdate, translations);
+            playerRef.getPacketHandler().writeNoCache(packet);
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Failed to send UpdateTranslations for virtual items: " + e.getMessage());
+        }
+    }
+
+
+
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Helper: compute translation diff
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Nonnull
+    private Map<String, String> computeTranslationDelta(
+            @Nullable Map<String, String> lastSent,
+            @Nonnull Map<String, String> current) {
+        if (lastSent == null || lastSent.isEmpty()) return current;
+        Map<String, String> delta = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : current.entrySet()) {
+            String oldValue = lastSent.get(entry.getKey());
+            if (!entry.getValue().equals(oldValue)) {
+                delta.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return delta;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Invalidation & refresh support
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Clears all per-player packet-adapter caches for the given player.
+     * The next outbound inventory packet will be fully reprocessed.
+     */
+    public void invalidatePlayer(@Nonnull UUID playerUuid) {
+        lastSentTranslations.remove(playerUuid);
+        // Note: we intentionally keep lastRawInventory and knownPlayerRefs —
+        // they are needed for a subsequent refreshPlayer call.
+    }
+
+    /**
+     * Clears all per-player caches for <b>every</b> tracked player.
+     */
+    public void invalidateAllPlayers() {
+        lastSentTranslations.clear();
+    }
+
+    /**
+     * Replays the last known inventory packet for a player, triggering a
+     * full recomposition with fresh provider data.
+     *
+     * @param playerUuid the player to refresh
+     * @return {@code true} if a refresh packet was sent
+     */
+    public boolean refreshPlayer(@Nonnull UUID playerUuid) {
+        PlayerRef playerRef = knownPlayerRefs.get(playerUuid);
+        if (playerRef == null || !playerRef.isValid()) return false;
+
+        UpdatePlayerInventory rawPacket = lastRawInventory.get(playerUuid);
+        if (rawPacket == null) return false;
+
+        // Clone again so processing doesn't destroy the cached copy
+        UpdatePlayerInventory clone = deepCloneInventory(rawPacket);
+
+        try {
+            // writeNoCache triggers the outbound filter when called outside
+            // of isProcessing context, which causes full reprocessing.
+            playerRef.getPacketHandler().writeNoCache(clone);
+            return true;
+        } catch (Exception e) {
+            LOGGER.atWarning().log("Failed to send refresh packet for " + playerUuid + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Refreshes every known online player.
+     *
+     * @return the number of players successfully refreshed
+     */
+    public int refreshAllPlayers() {
+        int count = 0;
+        for (UUID uuid : knownPlayerRefs.keySet()) {
+            if (refreshPlayer(uuid)) count++;
+        }
+        return count;
+    }
+
+
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  Deep clone helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Nonnull
+    private static UpdatePlayerInventory deepCloneInventory(@Nonnull UpdatePlayerInventory original) {
+        UpdatePlayerInventory clone = new UpdatePlayerInventory();
+        clone.hotbar = cloneSection(original.hotbar);
+        clone.utility = cloneSection(original.utility);
+        clone.tools = cloneSection(original.tools);
+        clone.armor = cloneSection(original.armor);
+        clone.storage = cloneSection(original.storage);
+        clone.backpack = cloneSection(original.backpack);
+        return clone;
+    }
+
+    @Nullable
+    private static InventorySection cloneSection(@Nullable InventorySection section) {
+        if (section == null) return null;
+        InventorySection clone = new InventorySection();
+        clone.capacity = section.capacity;
+        if (section.items != null) {
+            clone.items = new HashMap<>();
+            for (Map.Entry<Integer, ItemWithAllMetadata> entry : section.items.entrySet()) {
+                clone.items.put(entry.getKey(),
+                        entry.getValue() != null ? entry.getValue().clone() : null);
+            }
+        }
+        return clone;
+    }
+}

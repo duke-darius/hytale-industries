@@ -1,0 +1,442 @@
+package dev.dukedarius.HytaleIndustries.Tooltips.lib.internal;
+
+import com.hypixel.hytale.logger.HytaleLogger;
+import dev.dukedarius.HytaleIndustries.Tooltips.lib.api.ItemVisualOverrides;
+import dev.dukedarius.HytaleIndustries.Tooltips.lib.api.TooltipData;
+import dev.dukedarius.HytaleIndustries.Tooltips.lib.api.TooltipProvider;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.security.MessageDigest;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Central registry that manages all {@link TooltipProvider}s and composes
+ * their contributions into a final tooltip for each item.
+ * <p>
+ * <h2>Composition rules</h2>
+ * Providers are queried in {@linkplain TooltipProvider#getPriority() priority}
+ * order (ascending). The results are composed as follows:
+ * <ul>
+ *   <li><b>Description override</b>: if any provider returns a non-null
+ *       {@link TooltipData#getDescriptionOverride()}, the highest-priority
+ *       one wins and all additive lines are discarded.</li>
+ *   <li><b>Name override</b>: if any provider returns a non-null
+ *       {@link TooltipData#getNameOverride()}, the highest-priority one wins.</li>
+ *   <li><b>Additive lines</b>: all providers' lines are concatenated in
+ *       priority order, separated by newlines.</li>
+ * </ul>
+ *
+ * <h2>Thread safety</h2>
+ * The provider list uses copy-on-write semantics via a volatile snapshot.
+ * {@link #compose} is called from packet-processing threads and is lock-free.
+ */
+public class TooltipRegistry {
+
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
+    /**
+     * Registered providers. Guarded by synchronizing on {@code providerLock}
+     * for writes; reads use the volatile {@code providerSnapshot}.
+     */
+    private final Map<String, TooltipProvider> providers = new LinkedHashMap<>();
+    private final Object providerLock = new Object();
+
+    /** Sorted snapshot for lock-free reads during packet processing. */
+    private volatile List<TooltipProvider> providerSnapshot = Collections.emptyList();
+
+    /** Cache for composed descriptions: combinedHash → composed description. */
+    private final ConcurrentHashMap<String, ComposedTooltip> composedCache = new ConcurrentHashMap<>();
+
+    /**
+     * Fast-path cache: "itemId\0metadata" → ComposedTooltip (or {@link #EMPTY_SENTINEL}).
+     * <p>
+     * This cache sits <em>above</em> the provider calls. If the exact same
+     * (itemId, metadata) pair has been seen before, we return the cached result
+     * without invoking any provider. This eliminates metadata parsing on every
+     * outbound packet for items that haven't changed.
+     * <p>
+     * Bounded to {@link #STATE_CACHE_MAX} entries to prevent unbounded growth.
+     */
+    private final ConcurrentHashMap<String, ComposedTooltip> itemStateCache = new ConcurrentHashMap<>();
+
+    /** Sentinel for items with no tooltip data (caches negative results). */
+    private static final ComposedTooltip EMPTY_SENTINEL = new ComposedTooltip(
+            Collections.emptyList(), null, null, null, null, null, "");
+
+    /** Maximum entries in the item-state cache before new entries are rejected. */
+    private static final int STATE_CACHE_MAX = 4096;
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Provider management
+    // ─────────────────────────────────────────────────────────────────────
+
+    public void registerProvider(@Nonnull TooltipProvider provider) {
+        synchronized (providerLock) {
+            providers.put(provider.getProviderId(), provider);
+            rebuildSnapshot();
+        }
+        LOGGER.atInfo().log("Registered TooltipProvider: " + provider.getProviderId()
+                + " (priority=" + provider.getPriority() + ")");
+        composedCache.clear();
+        itemStateCache.clear();
+    }
+
+    public boolean unregisterProvider(@Nonnull String providerId) {
+        synchronized (providerLock) {
+            TooltipProvider removed = providers.remove(providerId);
+            if (removed == null) return false;
+            rebuildSnapshot();
+        }
+        LOGGER.atInfo().log("Unregistered TooltipProvider: " + providerId);
+        composedCache.clear();
+        itemStateCache.clear();
+        return true;
+    }
+
+    private void rebuildSnapshot() {
+        List<TooltipProvider> sorted = new ArrayList<>(providers.values());
+        sorted.sort(Comparator.comparingInt(TooltipProvider::getPriority));
+        providerSnapshot = Collections.unmodifiableList(sorted);
+    }
+
+    /**
+     * Retrieves a cached composed tooltip by its combined hash.
+     * Useful for looking up visual overrides when reconstructing virtual items.
+     */
+    @Nullable
+    public ComposedTooltip getComposed(@Nonnull String combinedHash) {
+        // Fast path: exact match for locale-less entries
+        ComposedTooltip exact = composedCache.get(combinedHash);
+        if (exact != null) return exact;
+
+        // Fallback: find any locale-specific entry with this hash
+        String prefix = combinedHash + ":";
+        for (Map.Entry<String, ComposedTooltip> entry : composedCache.entrySet()) {
+            if (entry.getKey().startsWith(prefix)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Tooltip composition
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * Queries all registered providers for the given item and composes
+     * their contributions.
+     * <p>
+     * Delegates to {@link #compose(String, String, String)} with {@code null} locale.
+     *
+     * @param itemId   the real item ID
+     * @param metadata the item's metadata JSON, or null
+     * @return a composed tooltip, or {@code null} if no provider has anything
+     */
+    @Nullable
+    public ComposedTooltip compose(@Nonnull String itemId, @Nullable String metadata) {
+        return compose(itemId, metadata, null);
+    }
+
+    /**
+     * Queries all registered providers for the given item and composes
+     * their contributions, with locale context for per-player translations.
+     * <p>
+     * Uses a two-level cache:
+     * <ol>
+     *   <li><b>Item-state cache</b> — keyed by {@code (itemId, metadata, locale)}.
+     *       If the exact same item state has been seen before, returns instantly
+     *       without calling any provider.</li>
+     *   <li><b>Composed cache</b> — keyed by combined hash + locale. If different items
+     *       happen to produce the same provider outputs, they share the composed
+     *       result.</li>
+     * </ol>
+     *
+     * @param itemId   the real item ID
+     * @param metadata the item's metadata JSON, or null
+     * @param locale   the player's language code (e.g. "en-US"), or null if unknown
+     * @return a composed tooltip, or {@code null} if no provider has anything
+     */
+    @Nullable
+    public ComposedTooltip compose(@Nonnull String itemId, @Nullable String metadata,
+                                   @Nullable String locale) {
+        // ── Fast path: item-state cache (locale-aware) ──
+        String localeSuffix = locale != null ? "\1" + locale : "";
+        String stateKey = (metadata != null ? itemId + "\0" + metadata : itemId) + localeSuffix;
+        ComposedTooltip stateCached = itemStateCache.get(stateKey);
+        if (stateCached != null) {
+            return stateCached == EMPTY_SENTINEL ? null : stateCached;
+        }
+
+        List<TooltipProvider> snapshot = providerSnapshot;
+        if (snapshot.isEmpty()) return null;
+
+        List<ProviderResult> results = null;
+
+        for (TooltipProvider provider : snapshot) {
+            try {
+                TooltipData data = provider.getTooltipData(itemId, metadata, locale);
+                if (data != null && !data.isEmpty()) {
+                    if (results == null) results = new ArrayList<>(snapshot.size());
+                    results.add(new ProviderResult(provider, data));
+                }
+            } catch (Exception e) {
+                LOGGER.atWarning().log("TooltipProvider '" + provider.getProviderId()
+                        + "' threw exception for item '" + itemId + "': " + e.getMessage());
+            }
+        }
+
+        if (results == null) {
+            cacheItemState(stateKey, EMPTY_SENTINEL);
+            return null;
+        }
+
+        // Build combined hash input for virtual ID generation
+        StringBuilder hashBuilder = new StringBuilder();
+        for (ProviderResult r : results) {
+            hashBuilder.append(r.provider.getProviderId())
+                    .append(':')
+                    .append(r.data.getStableHashInput());
+
+            // Include translation keys in hash input
+            if (r.data.getNameTranslationKey() != null) {
+                hashBuilder.append(":nk=").append(r.data.getNameTranslationKey());
+            }
+            if (r.data.getDescriptionTranslationKey() != null) {
+                hashBuilder.append(":dk=").append(r.data.getDescriptionTranslationKey());
+            }
+
+            if (r.data.getVisualOverrides() != null) {
+                r.data.getVisualOverrides().appendHashInput(hashBuilder);
+            }
+            hashBuilder.append(';');
+        }
+        String combinedHashInput = hashBuilder.toString();
+        String combinedHash = computeHash(combinedHashInput);
+
+        // Check composed cache (locale-aware key to avoid mixing languages)
+        String composedCacheKey = locale != null ? combinedHash + ":" + locale : combinedHash;
+        final List<ProviderResult> finalResults = results;
+        ComposedTooltip result = composedCache.computeIfAbsent(composedCacheKey, h ->
+                buildComposedTooltip(finalResults, combinedHash));
+
+        cacheItemState(stateKey, result);
+        return result;
+    }
+
+    private void cacheItemState(@Nonnull String stateKey, @Nonnull ComposedTooltip value) {
+        if (itemStateCache.size() < STATE_CACHE_MAX) {
+            itemStateCache.put(stateKey, value);
+        }
+    }
+
+    /**
+     * Builds the final composed tooltip from provider results.
+     */
+    @Nonnull
+    private ComposedTooltip buildComposedTooltip(@Nonnull List<ProviderResult> results,
+                                                  @Nonnull String combinedHash) {
+        String nameOverride = null;
+        String descriptionOverride = null;
+        String nameTranslationKey = null;
+        String descriptionTranslationKey = null;
+        dev.dukedarius.HytaleIndustries.Tooltips.lib.api.ItemVisualOverrides.Builder visualBuilder = dev.dukedarius.HytaleIndustries.Tooltips.lib.api.ItemVisualOverrides.builder();
+        boolean hasVisuals = false;
+        List<String> allLines = new ArrayList<>();
+
+        // Results are already in priority order (ascending).
+        // For overrides, higher priority (later in list) wins.
+        for (ProviderResult r : results) {
+            TooltipData data = r.data;
+
+            if (data.getNameOverride() != null) {
+                nameOverride = data.getNameOverride();
+            }
+            if (data.getNameTranslationKey() != null) {
+                nameTranslationKey = data.getNameTranslationKey();
+                // If a key is set, plain text override is ignored/cleared to avoid ambiguity
+                nameOverride = null;
+            }
+
+            if (data.getDescriptionOverride() != null) {
+                descriptionOverride = data.getDescriptionOverride();
+            }
+            if (data.getDescriptionTranslationKey() != null) {
+                descriptionTranslationKey = data.getDescriptionTranslationKey();
+                // If a key is set, plain text override is ignored/cleared
+                descriptionOverride = null;
+            }
+
+            dev.dukedarius.HytaleIndustries.Tooltips.lib.api.ItemVisualOverrides vo = data.getVisualOverrides();
+            if (vo != null && !vo.isEmpty()) {
+                hasVisuals = true;
+                if (vo.getModel() != null) visualBuilder.model(vo.getModel());
+                if (vo.getTexture() != null) visualBuilder.texture(vo.getTexture());
+                if (vo.getIcon() != null) visualBuilder.icon(vo.getIcon());
+                if (vo.getAnimation() != null) visualBuilder.animation(vo.getAnimation());
+                if (vo.getSoundEventIndex() != null) visualBuilder.soundEventIndex(vo.getSoundEventIndex());
+                if (vo.getScale() != null) visualBuilder.scale(vo.getScale());
+                if (vo.getQualityIndex() != null) visualBuilder.qualityIndex(vo.getQualityIndex());
+                if (vo.getLight() != null) visualBuilder.light(vo.getLight());
+                if (vo.getParticles() != null) visualBuilder.particles(vo.getParticles());
+                if (vo.getReticleIndex() != null) visualBuilder.reticleIndex(vo.getReticleIndex());
+                if (vo.getIconProperties() != null) visualBuilder.iconProperties(vo.getIconProperties());
+                if (vo.getFirstPersonParticles() != null) visualBuilder.firstPersonParticles(vo.getFirstPersonParticles());
+                if (vo.getTrails() != null) visualBuilder.trails(vo.getTrails());
+                if (vo.getDroppedItemAnimation() != null) visualBuilder.droppedItemAnimation(vo.getDroppedItemAnimation());
+                if (vo.getItemSoundSetIndex() != null) visualBuilder.itemSoundSetIndex(vo.getItemSoundSetIndex());
+                if (vo.getItemAppearanceConditions() != null) visualBuilder.itemAppearanceConditions(vo.getItemAppearanceConditions());
+                if (vo.getPullbackConfig() != null) visualBuilder.pullbackConfig(vo.getPullbackConfig());
+                if (vo.getClipsGeometry() != null) visualBuilder.clipsGeometry(vo.getClipsGeometry());
+                if (vo.getRenderDeployablePreview() != null) visualBuilder.renderDeployablePreview(vo.getRenderDeployablePreview());
+                if (vo.getSet() != null) visualBuilder.set(vo.getSet());
+                if (vo.getCategories() != null) visualBuilder.categories(vo.getCategories());
+                if (vo.getDisplayEntityStatsHUD() != null) visualBuilder.displayEntityStatsHUD(vo.getDisplayEntityStatsHUD());
+                if (vo.getItemEntity() != null) visualBuilder.itemEntity(vo.getItemEntity());
+                if (vo.getDurability() != null) visualBuilder.durability(vo.getDurability());
+                if (vo.getArmor() != null) visualBuilder.armor(vo.getArmor());
+                if (vo.getWeapon() != null) visualBuilder.weapon(vo.getWeapon());
+                if (vo.getTool() != null) visualBuilder.tool(vo.getTool());
+                if (vo.getNameColor() != null) visualBuilder.nameColor(vo.getNameColor());
+                if (vo.getQualityLabel() != null) visualBuilder.qualityLabel(vo.getQualityLabel());
+                if (vo.getAdditionalArmorStatModifiers() != null) visualBuilder.addArmorStatModifiers(vo.getAdditionalArmorStatModifiers());
+                if (vo.getAdditionalWeaponStatModifiers() != null) visualBuilder.addWeaponStatModifiers(vo.getAdditionalWeaponStatModifiers());
+            }
+
+            allLines.addAll(data.getLines());
+        }
+
+        return new ComposedTooltip(
+                Collections.unmodifiableList(allLines),
+                nameOverride,
+                descriptionOverride,
+                nameTranslationKey,
+                descriptionTranslationKey,
+                hasVisuals ? visualBuilder.build() : null,
+                combinedHash
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Composed result
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * The final composed tooltip for one item, combining all providers' contributions.
+     */
+    public static final class ComposedTooltip {
+        private final List<String> additiveLines;
+        private final String nameOverride;
+        private final String descriptionOverride;
+        private final String nameTranslationKey;
+        private final String descriptionTranslationKey;
+        private final ItemVisualOverrides visualOverrides;
+        private final String combinedHash;
+
+        ComposedTooltip(List<String> additiveLines,
+                        @Nullable String nameOverride,
+                        @Nullable String descriptionOverride,
+                        @Nullable String nameTranslationKey,
+                        @Nullable String descriptionTranslationKey,
+                        @Nullable ItemVisualOverrides visualOverrides,
+                        @Nonnull String combinedHash) {
+            this.additiveLines = additiveLines;
+            this.nameOverride = nameOverride;
+            this.descriptionOverride = descriptionOverride;
+            this.nameTranslationKey = nameTranslationKey;
+            this.descriptionTranslationKey = descriptionTranslationKey;
+            this.visualOverrides = visualOverrides;
+            this.combinedHash = combinedHash;
+        }
+
+        @Nonnull public List<String> getAdditiveLines() { return additiveLines; }
+        @Nullable public String getNameOverride() { return nameOverride; }
+        @Nullable public String getDescriptionOverride() { return descriptionOverride; }
+        @Nullable public String getNameTranslationKey() { return nameTranslationKey; }
+        @Nullable public String getDescriptionTranslationKey() { return descriptionTranslationKey; }
+        @Nullable public ItemVisualOverrides getVisualOverrides() { return visualOverrides; }
+        @Nonnull public String getCombinedHash() { return combinedHash; }
+
+        /**
+         * Builds the final description string by applying this composed tooltip
+         * to the item's original description.
+         *
+         * @param originalDescription the item's original description text (may be null/empty)
+         * @return the enriched description
+         */
+        @Nonnull
+        public String buildDescription(@Nullable String originalDescription) {
+            // Full description override takes absolute precedence (text or key)
+            // Note: If descriptionTranslationKey is set, this method might not be used
+            // directly for the packet description if we map it to the key instead.
+            // But we keep this for fallback/logic consistency.
+            if (descriptionOverride != null) {
+                return descriptionOverride;
+            }
+            // If we have a translation key, we generally don't build a text description
+            // unless we are simulating it. We will leave this consistent with overrides.
+
+            StringBuilder sb = new StringBuilder();
+
+            if (originalDescription != null && !originalDescription.isEmpty()) {
+                sb.append(originalDescription);
+            }
+
+            if (!additiveLines.isEmpty()) {
+                if (sb.length() > 0) {
+                    sb.append("\n\n");
+                }
+                for (int i = 0; i < additiveLines.size(); i++) {
+                    if (i > 0) sb.append('\n');
+                    sb.append(additiveLines.get(i));
+                }
+            }
+
+            return sb.toString();
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Internal helpers
+    // ─────────────────────────────────────────────────────────────────────
+
+    private static final class ProviderResult {
+        final TooltipProvider provider;
+        final TooltipData data;
+
+        ProviderResult(TooltipProvider provider, TooltipData data) {
+            this.provider = provider;
+            this.data = data;
+        }
+    }
+
+    /**
+     * Computes a deterministic 8-character hex hash from the given input.
+     */
+    @Nonnull
+    static String computeHash(@Nonnull String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (int i = 0; i < 4; i++) {
+                hex.append(String.format("%02x", digest[i]));
+            }
+            return hex.toString();
+        } catch (Exception e) {
+            // Fallback: simple hashCode-based hash
+            return String.format("%08x", input.hashCode());
+        }
+    }
+
+    /**
+     * Clears all caches. Safe to call on reload or when provider logic
+     * changes (e.g. config reload in a consuming mod).
+     */
+    public void clearCache() {
+        composedCache.clear();
+        itemStateCache.clear();
+    }
+}

@@ -97,6 +97,7 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         Interaction.CODEC.register("HytaleIndustries_ESGridInteraction", ESGridInteraction.class, ESGridInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_ESDiskHousingInteraction", ESDiskHousingInteraction.class, ESDiskHousingInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_ESControllerInteraction", ESControllerInteraction.class, ESControllerInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_ESNetworkToolInteraction", dev.dukedarius.HytaleIndustries.Interactions.ESNetworkToolInteraction.class, dev.dukedarius.HytaleIndustries.Interactions.ESNetworkToolInteraction.CODEC);
 
     }
 
@@ -446,6 +447,12 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 this.esDiskHousingType, this.esNetworkMemberType, this.esControllerType));
         this.getChunkStoreRegistry().registerSystem(new ESDiskHousingBreakSystem(
                 this.esDiskHousingType));
+
+        // Initialize tooltip system and register providers
+        dev.dukedarius.HytaleIndustries.Tooltips.lib.SimpleTooltipsLib.initialize(this);
+        dev.dukedarius.HytaleIndustries.Tooltips.TooltipRegistration.addProvider(
+                new dev.dukedarius.HytaleIndustries.Tooltips.ESDiskTooltipProvider());
+        dev.dukedarius.HytaleIndustries.Tooltips.TooltipRegistration.register();
 
         // EntityStore systems
         this.getEntityStoreRegistry().registerSystem(new BasicItemCacheDisplaySystem());
