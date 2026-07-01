@@ -1,0 +1,27 @@
+{
+  "HitBox": {
+    "Max": { "X": 0.1, "Y": 0.1, "Z": 0.1 },
+    "Min": { "X": -0.1, "Y": -0.1, "Z": -0.1 }
+  },
+  "MinScale": 1,
+  "MaxScale": 1,
+  "Model": "Items/HytaleIndustries_ESDisk_4k/HytaleIndustries_ESDisk_4k.blockymodel",
+  "Texture": "Items/HytaleIndustries_ESDisk_4k/HytaleIndustries_ESDisk_4k.png",
+  "AnimationSets": {
+    "On": {
+      "Animations": [
+        { "Animation": "Items/HytaleIndustries_ESDisk_4k/Animations/ESDisk_On.blockyanim" }
+      ]
+    },
+    "PartFull": {
+      "Animations": [
+        { "Animation": "Items/HytaleIndustries_ESDisk_4k/Animations/ESDisk_PartFull.blockyanim" }
+      ]
+    },
+    "Full": {
+      "Animations": [
+        { "Animation": "Items/HytaleIndustries_ESDisk_4k/Animations/ESDisk_Full.blockyanim" }
+      ]
+    }
+  }
+}

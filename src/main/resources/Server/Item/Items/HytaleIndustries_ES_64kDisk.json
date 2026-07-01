@@ -1,0 +1,10 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "TranslationProperties": {
+    "Name": "64k Storage Disk",
+    "Description": "Holds up to 65536 items when inserted into an ES Disk Housing."
+  },
+  "Model": "Items/HytaleIndustries_ESDisk_64k/HytaleIndustries_ESDisk_64k.blockymodel",
+  "Texture": "Items/HytaleIndustries_ESDisk_64k/HytaleIndustries_ESDisk_64k.png",
+  "MaxStack": 1
+}

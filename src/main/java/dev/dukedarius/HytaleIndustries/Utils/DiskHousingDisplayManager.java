@@ -8,7 +8,9 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.asset.type.model.config.Model;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.hypixel.hytale.protocol.AnimationSlot;
 import com.hypixel.hytale.server.core.entity.Frozen;
+import com.hypixel.hytale.server.core.modules.entity.component.ActiveAnimationComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.Intangible;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
@@ -52,7 +54,8 @@ public final class DiskHousingDisplayManager {
      * Called from world.execute() context.
      */
     public static void updateAllSlots(World world, Vector3i pos,
-                                       ESDiskHousingComponent housing, int yawIndex) {
+                                       ESDiskHousingComponent housing, int yawIndex,
+                                       boolean networkOnline) {
         world.execute(() -> {
             try {
                 Store<EntityStore> entityStore = world.getEntityStore().getStore();
@@ -60,22 +63,33 @@ public final class DiskHousingDisplayManager {
                     long key = packKey(pos, slot);
                     boolean active = housing.isDiskActive(slot);
 
-                    Ref<EntityStore> existing = DISPLAY_ENTITIES.get(key);
+                    // Remove existing display — we respawn with correct animation
+                    Ref<EntityStore> existing = DISPLAY_ENTITIES.remove(key);
+                    if (existing != null) {
+                        try { entityStore.removeEntity(existing, RemoveReason.REMOVE); }
+                        catch (Throwable ignored) {}
+                    }
 
-                    if (!active) {
-                        // Remove display if disk removed
-                        if (existing != null) {
-                            DISPLAY_ENTITIES.remove(key);
-                            try { entityStore.removeEntity(existing, RemoveReason.REMOVE); }
-                            catch (Throwable ignored) {}
+                    if (!active) continue;
+
+                    // Determine animation based on power + fill level
+                    String animation = null; // null = default (unpowered)
+                    if (networkOnline) {
+                        long used = housing.getDiskUsed(slot);
+                        long capacity = housing.getDiskCapacity(slot);
+                        if (capacity > 0 && used >= capacity) {
+                            animation = "Full";
+                        } else if (used > 0) {
+                            animation = "PartFull";
+                        } else {
+                            animation = "On";
                         }
-                        continue;
                     }
 
-                    // Disk is active — spawn if not already displayed
-                    if (existing == null || !existing.isValid()) {
-                        spawnDiskDisplay(entityStore, pos, slot, yawIndex, key);
-                    }
+                    String modelAssetId = housing.getDiskModelAssetId(slot);
+                    if (modelAssetId == null) modelAssetId = DISK_MODEL_ASSET_ID;
+
+                    spawnDiskDisplay(entityStore, pos, slot, yawIndex, key, animation, modelAssetId);
                 }
             } catch (Throwable t) {
                 HytaleIndustriesPlugin.LOGGER.atWarning().withCause(t)
@@ -102,7 +116,8 @@ public final class DiskHousingDisplayManager {
     }
 
     private static void spawnDiskDisplay(Store<EntityStore> entityStore, Vector3i pos,
-                                          int slot, int yawIndex, long key) {
+                                          int slot, int yawIndex, long key,
+                                          String animation, String modelAssetId) {
         try {
             int yi = yawIndex & 3;
             int row = slot / 2;
@@ -127,7 +142,7 @@ public final class DiskHousingDisplayManager {
                     pos.z + 0.5 + worldZ);
             Rotation3f rot = new Rotation3f(0f, YAW_RADIANS[yi] + (float)Math.PI, 0f);
 
-            ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(DISK_MODEL_ASSET_ID);
+            ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(modelAssetId);
             if (modelAsset == null) return;
 
             Model model = Model.createScaledModel(modelAsset, SCALE);
@@ -146,6 +161,12 @@ public final class DiskHousingDisplayManager {
             }
             holder.addComponent(NetworkId.getComponentType(),
                     new NetworkId(entityStore.getExternalData().takeNextNetworkId()));
+
+            if (animation != null) {
+                ActiveAnimationComponent anim = new ActiveAnimationComponent();
+                anim.setPlayingAnimation(AnimationSlot.Status, animation);
+                holder.addComponent(ActiveAnimationComponent.getComponentType(), anim);
+            }
 
             holder.ensureComponent(Frozen.getComponentType());
             holder.ensureComponent(Intangible.getComponentType());

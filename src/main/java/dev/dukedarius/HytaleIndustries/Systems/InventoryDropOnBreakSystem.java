@@ -18,6 +18,8 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.component.AddReason;
+import dev.dukedarius.HytaleIndustries.Components.EnergizedStorage.ESDiskHousingComponent;
+import dev.dukedarius.HytaleIndustries.Utils.DiskHousingDisplayManager;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredFurnaceInventory;
 import dev.dukedarius.HytaleIndustries.Components.Processing.PoweredCrusherInventory;
 import dev.dukedarius.HytaleIndustries.Components.Processing.AlloySmelterInventory;
@@ -69,8 +71,15 @@ public class InventoryDropOnBreakSystem extends EntityEventSystem<EntityStore, B
         } else if (asInv != null) {
             var inputs = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(asInv.inputA, asInv.inputB);
             container = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(inputs, asInv.output);
-        } else {
-            // todo: handle InventoryBlockState
+        }
+
+        // ES Disk Housing — save disk contents to metadata, then drop
+        ESDiskHousingComponent diskHousing = stateRef.getStore().getComponent(stateRef,
+                HytaleIndustriesPlugin.INSTANCE.getEsDiskHousingType());
+        if (diskHousing != null) {
+            diskHousing.saveAllDisksMetadata();
+            container = diskHousing.diskSlots;
+            DiskHousingDisplayManager.removeAll(world, pos);
         }
         if(container == null) return;
 

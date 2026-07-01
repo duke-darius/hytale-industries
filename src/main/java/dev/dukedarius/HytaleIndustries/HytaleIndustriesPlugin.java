@@ -52,6 +52,7 @@ import dev.dukedarius.HytaleIndustries.Components.EnergizedStorage.ESNetworkMemb
 import dev.dukedarius.HytaleIndustries.Interactions.ESGridInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.ESDiskHousingInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.ESControllerInteraction;
+import dev.dukedarius.HytaleIndustries.Systems.EnergizedStorage.ESDiskHousingBreakSystem;
 import dev.dukedarius.HytaleIndustries.Systems.EnergizedStorage.ESDiskHousingDisplaySystem;
 import dev.dukedarius.HytaleIndustries.Systems.EnergizedStorage.ESNetworkSystem;
 
@@ -442,6 +443,8 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 this.esControllerType, this.esNetworkMemberType, this.esDiskHousingType,
                 this.esGridType, this.consumesHeType, this.storesHeType));
         this.getChunkStoreRegistry().registerSystem(new ESDiskHousingDisplaySystem(
+                this.esDiskHousingType, this.esNetworkMemberType, this.esControllerType));
+        this.getChunkStoreRegistry().registerSystem(new ESDiskHousingBreakSystem(
                 this.esDiskHousingType));
 
         // EntityStore systems

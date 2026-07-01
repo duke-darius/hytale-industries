@@ -11,13 +11,18 @@
   "BlockType": {
     "Parent": "Debug_Model",
     "DrawType": "Model",
-    "CustomModel": "Blocks/HytaleIndustries_ChunkLoader/HytaleIndustries_ChunkLoader.blockymodel",
+    "CustomModel": "Blocks/HytaleIndustries_ESController/HytaleIndustries_ESController.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_ESController/HytaleIndustries_ESController.png",
+        "Weight": 1
+      }
+    ],
     "BlockEntity": {
       "Components": {
         "ESController": {},
         "ESNetworkMember": {},
         "StoresHE": { "Max": 10000, "Current": 0 },
-        "ConsumesHE": { "HEConsumption": 10, "Enabled": true },
         "CableEndpoint": { "CapacityPerTick": 250, "LossPerMeter": 0.0, "Priority": 0 }
       }
     },

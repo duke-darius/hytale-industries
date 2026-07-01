@@ -11,7 +11,13 @@
   "BlockType": {
     "Parent": "Debug_Model",
     "DrawType": "Model",
-    "CustomModel": "Blocks/HytaleIndustries_ChunkLoader/HytaleIndustries_ChunkLoader.blockymodel",
+    "CustomModel": "Blocks/HytaleIndustries_ESGrid/HytaleIndustries_ESGrid.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_ESGrid/HytaleIndustries_ESGrid.png",
+        "Weight": 1
+      }
+    ],
     "BlockEntity": {
       "Components": {
         "ESGrid": {},

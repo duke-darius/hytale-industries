@@ -1,0 +1,21 @@
+{
+  "formatVersion": 1,
+  "duration": 1,
+  "holdLastKeyframe": true,
+  "nodeAnimations": {
+    "LED": {
+      "position": [],
+      "orientation": [],
+      "scale": [],
+      "shapeStretch": [],
+      "shapeVisible": [],
+      "shapeUvOffset": [
+        {
+          "time": 0,
+          "delta": {"x": 0, "y": -4},
+          "interpolationType": "step"
+        }
+      ]
+    }
+  }
+}

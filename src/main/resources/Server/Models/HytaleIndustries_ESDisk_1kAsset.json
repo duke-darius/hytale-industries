@@ -6,5 +6,22 @@
   "MinScale": 1,
   "MaxScale": 1,
   "Model": "Items/HytaleIndustries_ESDisk_1k/HytaleIndustries_ESDisk_1k.blockymodel",
-  "Texture": "Items/HytaleIndustries_ESDisk_1k/HytaleIndustries_ESDisk_1k.png"
+  "Texture": "Items/HytaleIndustries_ESDisk_1k/HytaleIndustries_ESDisk_1k.png",
+  "AnimationSets": {
+    "On": {
+      "Animations": [
+        { "Animation": "Items/HytaleIndustries_ESDisk_1k/Animations/ESDisk_On.blockyanim" }
+      ]
+    },
+    "PartFull": {
+      "Animations": [
+        { "Animation": "Items/HytaleIndustries_ESDisk_1k/Animations/ESDisk_PartFull.blockyanim" }
+      ]
+    },
+    "Full": {
+      "Animations": [
+        { "Animation": "Items/HytaleIndustries_ESDisk_1k/Animations/ESDisk_Full.blockyanim" }
+      ]
+    }
+  }
 }

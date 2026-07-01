@@ -18,8 +18,12 @@ import dev.dukedarius.HytaleIndustries.Systems.EnergizedStorage.ESNetworkSystem;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import org.joml.Vector3i;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class ESControllerUIPage extends InteractiveCustomUIPage<ESControllerUIPage.EventData> {
     private final int x, y, z;
+    private Timer refreshTimer;
 
     public ESControllerUIPage(@NonNullDecl PlayerRef playerRef, @NonNullDecl Vector3i pos) {
         super(playerRef, CustomPageLifetime.CanDismissOrCloseThroughInteraction, EventData.CODEC);
@@ -33,13 +37,40 @@ public class ESControllerUIPage extends InteractiveCustomUIPage<ESControllerUIPa
                       @NonNullDecl Store<EntityStore> store) {
         cmd.append("Pages/HytaleIndustries_ESController.ui");
         render(cmd, store);
+        startRefreshTimer();
     }
 
     @Override
     public void handleDataEvent(@NonNullDecl Ref<EntityStore> ref,
                                 @NonNullDecl Store<EntityStore> store,
                                 @NonNullDecl EventData data) {
-        // read-only UI, no events to handle
+        if ("refresh".equals(data.action)) {
+            UICommandBuilder cmd = new UICommandBuilder();
+            render(cmd, store);
+            sendUpdate(cmd, false);
+        }
+    }
+
+    private void startRefreshTimer() {
+        stopRefreshTimer();
+        refreshTimer = new Timer("ESControllerUI-refresh", true);
+        refreshTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    sendUpdate();
+                } catch (Throwable ignored) {
+                    stopRefreshTimer();
+                }
+            }
+        }, 250, 250); // 4x per second
+    }
+
+    private void stopRefreshTimer() {
+        if (refreshTimer != null) {
+            refreshTimer.cancel();
+            refreshTimer = null;
+        }
     }
 
     private void render(@NonNullDecl UICommandBuilder cmd, @NonNullDecl Store<EntityStore> store) {
@@ -60,23 +91,14 @@ public class ESControllerUIPage extends InteractiveCustomUIPage<ESControllerUIPa
             return;
         }
 
-        // Status
         cmd.set("#StatusValue.Text", ctrl.networkOnline ? "Online" : "Offline");
-
-        // Power
         cmd.set("#PowerValue.Text", String.format("%d / %d HE", ctrl.energyStored, ctrl.energyMax));
         cmd.set("#PowerUsageValue.Text", String.format("%d HE/t", ctrl.totalPowerUsage));
-
-        // Storage
         cmd.set("#StorageValue.Text", String.format("%d / %d items", ctrl.totalStored, ctrl.maxCapacity));
-
-        // Devices
         cmd.set("#ControllersValue.Text", "1");
         cmd.set("#GridsValue.Text", String.valueOf(ctrl.gridCount));
         cmd.set("#HousingsValue.Text", String.valueOf(ctrl.diskHousingCount));
         cmd.set("#DisksValue.Text", String.valueOf(ctrl.totalDiskCount));
-
-        // Item types
         cmd.set("#ItemTypesValue.Text", String.valueOf(ctrl.itemIndex.size()));
     }
 

@@ -29,6 +29,7 @@ import java.util.Map;
 
 public class ESNetworkSystem extends EntityTickingSystem<ChunkStore> {
 
+    private static final long CONTROLLER_BASE_POWER = 10;
     private static final Vector3i[] DIRECTIONS = {
             new Vector3i(0, 0, -1), new Vector3i(0, 0, 1),
             new Vector3i(-1, 0, 0), new Vector3i(1, 0, 0),
@@ -106,11 +107,7 @@ public class ESNetworkSystem extends EntityTickingSystem<ChunkStore> {
         boolean duplicateController = false;
         int gridCount = 0;
         int totalDisks = 0;
-        long totalPowerUsage = 0;
-
-        // Count controller's own power usage
-        ConsumesHE controllerCons = store.getComponent(ref, consumesHeType);
-        if (controllerCons != null) totalPowerUsage += controllerCons.heConsumption;
+        long totalPowerUsage = CONTROLLER_BASE_POWER;
         LongOpenHashSet visited = new LongOpenHashSet();
         LongArrayFIFOQueue queue = new LongArrayFIFOQueue();
         long startKey = packPos(wx, wy, wz);
@@ -190,6 +187,12 @@ public class ESNetworkSystem extends EntityTickingSystem<ChunkStore> {
                 }
                 if (!merged) newIndex.add(stack);
             }
+        }
+
+        // 6) Drain total network power from controller's energy buffer
+        if (energy != null && !energy.creative) {
+            energy.current = Math.max(0, energy.current - totalPowerUsage);
+            buffer.replaceComponent(ref, storesHeType, energy);
         }
 
         controller.itemIndex = newIndex;

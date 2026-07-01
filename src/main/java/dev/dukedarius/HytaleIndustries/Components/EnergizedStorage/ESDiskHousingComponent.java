@@ -7,31 +7,168 @@ import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.SimpleItemContainer;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 
+import org.bson.BsonArray;
+import org.bson.BsonDocument;
+import org.bson.BsonInt64;
+import org.bson.BsonString;
+
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ESDiskHousingComponent implements Component<ChunkStore> {
     public static final int DISK_SLOT_COUNT = 8;
+
+    private static final Map<String, Integer> DISK_CAPACITIES = new LinkedHashMap<>();
+    static {
+        DISK_CAPACITIES.put("HytaleIndustries_ES_1kDisk", 1024);
+        DISK_CAPACITIES.put("HytaleIndustries_ES_4kDisk", 4096);
+        DISK_CAPACITIES.put("HytaleIndustries_ES_16kDisk", 16384);
+        DISK_CAPACITIES.put("HytaleIndustries_ES_64kDisk", 65536);
+        DISK_CAPACITIES.put("HytaleIndustries_ES_256kDisk", 262144);
+        DISK_CAPACITIES.put("HytaleIndustries_ES_1MDisk", 1048576);
+    }
+
+    private static final Map<String, String> DISK_MODEL_ASSETS = new LinkedHashMap<>();
+    static {
+        DISK_MODEL_ASSETS.put("HytaleIndustries_ES_1kDisk", "HytaleIndustries_ESDisk_1kAsset");
+        DISK_MODEL_ASSETS.put("HytaleIndustries_ES_4kDisk", "HytaleIndustries_ESDisk_4kAsset");
+        DISK_MODEL_ASSETS.put("HytaleIndustries_ES_16kDisk", "HytaleIndustries_ESDisk_16kAsset");
+        DISK_MODEL_ASSETS.put("HytaleIndustries_ES_64kDisk", "HytaleIndustries_ESDisk_64kAsset");
+        DISK_MODEL_ASSETS.put("HytaleIndustries_ES_256kDisk", "HytaleIndustries_ESDisk_256kAsset");
+        DISK_MODEL_ASSETS.put("HytaleIndustries_ES_1MDisk", "HytaleIndustries_ESDisk_1MAsset");
+    }
+
+    /** @deprecated Use DISK_CAPACITIES instead */
     public static final int ITEMS_PER_DISK = 1024;
-    public static final String DISK_ITEM_ID = "HytaleIndustries_ES_1kDisk";
 
     /** 8 slots for inserting/removing disk items */
     public SimpleItemContainer diskSlots = new SimpleItemContainer((short) DISK_SLOT_COUNT);
 
     /** Transient bitmask for display change detection */
     public transient int lastDisplayMask = -1;
+    /** Transient counter for throttled network state checks */
+    public transient int networkCheckCounter = 0;
+    /** Transient last known network online state: -1=unknown, 0=offline, 1=online */
+    public transient int lastNetworkOnline = -1;
 
     /** Per-disk item storage — unbounded list, each entry is a unique item type with total count as quantity */
     @SuppressWarnings("unchecked")
     public List<ItemStack>[] diskStorage = new ArrayList[DISK_SLOT_COUNT];
 
+    /** Tracks which slots had active disks last tick, to detect insert/remove transitions */
+    public transient int lastSlotMask = 0;
+    /** Set true after first syncDiskSlotTransitions — prevents CODEC getter from wiping unloaded data */
+    public transient boolean dataLoaded = false;
+
+    private static final String META_KEY = "ESStoredItems";
+
     public ESDiskHousingComponent() {
         for (int i = 0; i < DISK_SLOT_COUNT; i++) diskStorage[i] = new ArrayList<>();
     }
 
+    /**
+     * Call each tick to detect disk insertions/removals and sync metadata.
+     * When a disk is inserted: load its stored items from ItemStack metadata.
+     * When a disk is removed: save stored items into the ItemStack metadata before it leaves.
+     */
+    public void syncDiskSlotTransitions() {
+        int currentMask = 0;
+        for (int i = 0; i < DISK_SLOT_COUNT; i++) {
+            if (isDiskActive(i)) currentMask |= (1 << i);
+        }
+
+        for (int i = 0; i < DISK_SLOT_COUNT; i++) {
+            boolean wasActive = (lastSlotMask & (1 << i)) != 0;
+            boolean isActive = (currentMask & (1 << i)) != 0;
+
+            if (!wasActive && isActive) {
+                // Disk was just inserted — load items from its metadata
+                loadFromDiskMetadata(i);
+            } else if (wasActive && !isActive) {
+                // Disk was just removed — items already saved (see saveToDiskMetadata)
+                diskStorage[i].clear();
+            }
+        }
+        lastSlotMask = currentMask;
+        dataLoaded = true;
+    }
+
+    /** Save items from diskStorage[slot] into the disk ItemStack's metadata */
+    public void saveToDiskMetadata(int slot) {
+        ItemStack disk = diskSlots.getItemStack((short) slot);
+        if (disk == null || ItemStack.isEmpty(disk)) return;
+
+        BsonArray arr = new BsonArray();
+        for (ItemStack stored : diskStorage[slot]) {
+            BsonDocument entry = new BsonDocument();
+            entry.put("id", new BsonString(stored.getItemId()));
+            entry.put("qty", new BsonInt64(stored.getQuantity()));
+            // Preserve nested metadata if present
+            if (stored.getMetadata() != null && !stored.getMetadata().isEmpty()) {
+                entry.put("meta", stored.getMetadata());
+            }
+            arr.add(entry);
+        }
+
+        BsonDocument meta = disk.getMetadata();
+        if (meta == null) meta = new BsonDocument();
+        meta.put(META_KEY, arr);
+        diskSlots.setItemStackForSlot((short) slot, disk.withMetadata(meta));
+    }
+
+    /** Load items from the disk ItemStack's metadata into diskStorage[slot] */
+    public void loadFromDiskMetadata(int slot) {
+        diskStorage[slot].clear();
+        ItemStack disk = diskSlots.getItemStack((short) slot);
+        if (disk == null || ItemStack.isEmpty(disk)) return;
+
+        BsonDocument meta = disk.getMetadata();
+        if (meta == null || !meta.containsKey(META_KEY)) return;
+
+        try {
+            BsonArray arr = meta.getArray(META_KEY);
+            for (int i = 0; i < arr.size(); i++) {
+                BsonDocument entry = arr.get(i).asDocument();
+                String itemId = entry.getString("id").getValue();
+                long qty = entry.getInt64("qty").getValue();
+                ItemStack restored = new ItemStack(itemId, (int) qty);
+                // Restore nested metadata if present
+                if (entry.containsKey("meta")) {
+                    restored = restored.withMetadata(entry.getDocument("meta"));
+                }
+                diskStorage[slot].add(restored);
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    /** Save ALL active disk slots to their metadata (call before housing breaks) */
+    public void saveAllDisksMetadata() {
+        for (int i = 0; i < DISK_SLOT_COUNT; i++) {
+            if (isDiskActive(i)) saveToDiskMetadata(i);
+        }
+    }
+
     public boolean isDiskActive(int slot) {
         ItemStack stack = diskSlots.getItemStack((short) slot);
-        return stack != null && !ItemStack.isEmpty(stack) && DISK_ITEM_ID.equals(stack.getItemId());
+        return stack != null && !ItemStack.isEmpty(stack) && DISK_CAPACITIES.containsKey(stack.getItemId());
+    }
+
+    public int getDiskCapacity(int slot) {
+        ItemStack stack = diskSlots.getItemStack((short) slot);
+        if (stack == null || ItemStack.isEmpty(stack)) return 0;
+        return DISK_CAPACITIES.getOrDefault(stack.getItemId(), 0);
+    }
+
+    public String getDiskModelAssetId(int slot) {
+        ItemStack stack = diskSlots.getItemStack((short) slot);
+        if (stack == null || ItemStack.isEmpty(stack)) return null;
+        return DISK_MODEL_ASSETS.get(stack.getItemId());
+    }
+
+    public static boolean isStorageDisk(String itemId) {
+        return DISK_CAPACITIES.containsKey(itemId);
     }
 
     public int getActiveDiskCount() {
@@ -47,7 +184,11 @@ public class ESDiskHousingComponent implements Component<ChunkStore> {
     }
 
     public long getTotalCapacity() {
-        return (long) getActiveDiskCount() * ITEMS_PER_DISK;
+        long total = 0;
+        for (int i = 0; i < DISK_SLOT_COUNT; i++) {
+            if (isDiskActive(i)) total += getDiskCapacity(i);
+        }
+        return total;
     }
 
     public long getTotalStored() {
@@ -77,7 +218,7 @@ public class ESDiskHousingComponent implements Component<ChunkStore> {
         for (int d = 0; d < DISK_SLOT_COUNT && remaining > 0; d++) {
             if (!isDiskActive(d)) continue;
             long used = getDiskUsed(d);
-            long space = ITEMS_PER_DISK - used;
+            long space = getDiskCapacity(d) - used;
             if (space <= 0) continue;
 
             int canInsert = (int) Math.min(remaining, space);
@@ -126,56 +267,11 @@ public class ESDiskHousingComponent implements Component<ChunkStore> {
         return extracted;
     }
 
-    // --- serialization: convert List<ItemStack> to/from SimpleItemContainer for CODEC ---
-
-    private SimpleItemContainer listToContainer(List<ItemStack> items) {
-        if (items.isEmpty()) return new SimpleItemContainer((short) 1);
-        SimpleItemContainer c = new SimpleItemContainer((short) items.size());
-        for (int i = 0; i < items.size(); i++) {
-            c.setItemStackForSlot((short) i, items.get(i));
-        }
-        return c;
-    }
-
-    private List<ItemStack> containerToList(SimpleItemContainer c) {
-        List<ItemStack> list = new ArrayList<>();
-        if (c == null) return list;
-        for (short i = 0; i < c.getCapacity(); i++) {
-            ItemStack s = c.getItemStack(i);
-            if (s != null && !ItemStack.isEmpty(s)) list.add(s);
-        }
-        return list;
-    }
-
     public static final BuilderCodec<ESDiskHousingComponent> CODEC = BuilderCodec.builder(
                     ESDiskHousingComponent.class, ESDiskHousingComponent::new)
             .append(new KeyedCodec<>("DiskSlots", SimpleItemContainer.CODEC),
                     (o, v) -> o.diskSlots = v != null ? v : new SimpleItemContainer((short) DISK_SLOT_COUNT),
-                    o -> o.diskSlots)
-            .add()
-            .append(new KeyedCodec<>("Disk0", SimpleItemContainer.CODEC),
-                    (o, v) -> o.diskStorage[0] = o.containerToList(v), o -> o.listToContainer(o.diskStorage[0]))
-            .add()
-            .append(new KeyedCodec<>("Disk1", SimpleItemContainer.CODEC),
-                    (o, v) -> o.diskStorage[1] = o.containerToList(v), o -> o.listToContainer(o.diskStorage[1]))
-            .add()
-            .append(new KeyedCodec<>("Disk2", SimpleItemContainer.CODEC),
-                    (o, v) -> o.diskStorage[2] = o.containerToList(v), o -> o.listToContainer(o.diskStorage[2]))
-            .add()
-            .append(new KeyedCodec<>("Disk3", SimpleItemContainer.CODEC),
-                    (o, v) -> o.diskStorage[3] = o.containerToList(v), o -> o.listToContainer(o.diskStorage[3]))
-            .add()
-            .append(new KeyedCodec<>("Disk4", SimpleItemContainer.CODEC),
-                    (o, v) -> o.diskStorage[4] = o.containerToList(v), o -> o.listToContainer(o.diskStorage[4]))
-            .add()
-            .append(new KeyedCodec<>("Disk5", SimpleItemContainer.CODEC),
-                    (o, v) -> o.diskStorage[5] = o.containerToList(v), o -> o.listToContainer(o.diskStorage[5]))
-            .add()
-            .append(new KeyedCodec<>("Disk6", SimpleItemContainer.CODEC),
-                    (o, v) -> o.diskStorage[6] = o.containerToList(v), o -> o.listToContainer(o.diskStorage[6]))
-            .add()
-            .append(new KeyedCodec<>("Disk7", SimpleItemContainer.CODEC),
-                    (o, v) -> o.diskStorage[7] = o.containerToList(v), o -> o.listToContainer(o.diskStorage[7]))
+                    o -> { if (o.dataLoaded) o.saveAllDisksMetadata(); return o.diskSlots; })
             .add()
             .build();
 
@@ -187,6 +283,8 @@ public class ESDiskHousingComponent implements Component<ChunkStore> {
         for (int i = 0; i < DISK_SLOT_COUNT; i++) {
             copy.diskStorage[i] = new ArrayList<>(this.diskStorage[i]);
         }
+        copy.dataLoaded = this.dataLoaded;
+        copy.lastSlotMask = this.lastSlotMask;
         return copy;
     }
 
