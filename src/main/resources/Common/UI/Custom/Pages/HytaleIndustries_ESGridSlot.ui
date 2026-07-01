@@ -1,0 +1,37 @@
+$C = "../Common.ui";
+
+Group {
+  Anchor: (Width: 70, Height: 70);
+
+  ItemSlotButton #SlotButton {
+    Anchor: (Width: 66, Height: 66);
+    LayoutMode: Full;
+    Padding: 2;
+
+    Group #SlotBorder {
+      Anchor: (Full: 0);
+      Background: #0a0e16;
+      Padding: 2;
+
+      ItemSlot #SlotIcon {
+        Anchor: (Full: 0);
+      }
+    }
+
+    Group {
+      LayoutMode: Right;
+      Anchor: (Width: 60, Left: 2, Top: 48);
+      HitTestVisible: false;
+
+      Label #SlotQty {
+        Style: (
+          FontSize: 11,
+          RenderBold: true,
+          HorizontalAlignment: End,
+          VerticalAlignment: End,
+          TextColor: #ffffff
+        );
+      }
+    }
+  }
+}

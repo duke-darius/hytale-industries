@@ -1,0 +1,179 @@
+$C = "../Common.ui";
+
+Group {
+  Anchor: (Width: 420, Height: 400);
+
+  $C.@Container {
+    Anchor: (Full: 0);
+
+    #Title {
+      Group {
+        $C.@Title {
+          @Text = "ES Controller";
+        }
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Left: 16, Right: 16, Top: 12, Bottom: 12);
+
+      // --- Network Status ---
+      Group {
+        Anchor: (Height: 24, Bottom: 8);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Network Status";
+          Anchor: (Width: 160);
+          Style: (FontSize: 14, TextColor: #8ea0b8);
+        }
+        Label #StatusValue {
+          FlexWeight: 1;
+          Style: (FontSize: 14, RenderBold: true, TextColor: #48d185);
+        }
+      }
+
+      // Separator
+      Group { Anchor: (Height: 1, Bottom: 10); Background: #1e2634; }
+
+      // --- Power ---
+      Group {
+        Anchor: (Height: 22, Bottom: 6);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Power Stored";
+          Anchor: (Width: 160);
+          Style: (FontSize: 13, TextColor: #7f93a9);
+        }
+        Label #PowerValue {
+          FlexWeight: 1;
+          Style: (FontSize: 13, TextColor: #b7cedd);
+        }
+      }
+
+      // --- Power Usage ---
+      Group {
+        Anchor: (Height: 22, Bottom: 6);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Power Usage";
+          Anchor: (Width: 160);
+          Style: (FontSize: 13, TextColor: #7f93a9);
+        }
+        Label #PowerUsageValue {
+          FlexWeight: 1;
+          Style: (FontSize: 13, TextColor: #e8a654);
+        }
+      }
+
+      // --- Storage ---
+      Group {
+        Anchor: (Height: 22, Bottom: 6);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Storage Used";
+          Anchor: (Width: 160);
+          Style: (FontSize: 13, TextColor: #7f93a9);
+        }
+        Label #StorageValue {
+          FlexWeight: 1;
+          Style: (FontSize: 13, TextColor: #b7cedd);
+        }
+      }
+
+      // --- Item Types ---
+      Group {
+        Anchor: (Height: 22, Bottom: 6);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Unique Item Types";
+          Anchor: (Width: 160);
+          Style: (FontSize: 13, TextColor: #7f93a9);
+        }
+        Label #ItemTypesValue {
+          FlexWeight: 1;
+          Style: (FontSize: 13, TextColor: #b7cedd);
+        }
+      }
+
+      // Separator
+      Group { Anchor: (Height: 1, Top: 4, Bottom: 10); Background: #1e2634; }
+
+      // --- Devices Header ---
+      Label {
+        Text: "Connected Devices";
+        Anchor: (Height: 22, Bottom: 8);
+        Style: (FontSize: 14, RenderBold: true, TextColor: #8ea0b8);
+      }
+
+      // Controllers
+      Group {
+        Anchor: (Height: 22, Bottom: 4);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Controllers";
+          Anchor: (Width: 160);
+          Style: (FontSize: 13, TextColor: #7f93a9);
+        }
+        Label #ControllersValue {
+          FlexWeight: 1;
+          Style: (FontSize: 13, TextColor: #b7cedd);
+        }
+      }
+
+      // Grids
+      Group {
+        Anchor: (Height: 22, Bottom: 4);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Grid Terminals";
+          Anchor: (Width: 160);
+          Style: (FontSize: 13, TextColor: #7f93a9);
+        }
+        Label #GridsValue {
+          FlexWeight: 1;
+          Style: (FontSize: 13, TextColor: #b7cedd);
+        }
+      }
+
+      // Disk Housings
+      Group {
+        Anchor: (Height: 22, Bottom: 4);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Disk Housings";
+          Anchor: (Width: 160);
+          Style: (FontSize: 13, TextColor: #7f93a9);
+        }
+        Label #HousingsValue {
+          FlexWeight: 1;
+          Style: (FontSize: 13, TextColor: #b7cedd);
+        }
+      }
+
+      // Storage Disks
+      Group {
+        Anchor: (Height: 22, Bottom: 4);
+        LayoutMode: Left;
+
+        Label {
+          Text: "Storage Disks";
+          Anchor: (Width: 160);
+          Style: (FontSize: 13, TextColor: #7f93a9);
+        }
+        Label #DisksValue {
+          FlexWeight: 1;
+          Style: (FontSize: 13, TextColor: #b7cedd);
+        }
+      }
+    }
+  }
+}

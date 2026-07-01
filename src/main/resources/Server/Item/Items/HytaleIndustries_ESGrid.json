@@ -1,0 +1,39 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "TranslationProperties": {
+    "Name": "ES Grid",
+    "Description": "Terminal for accessing items stored in the Energized Storage network."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlaceBasicItemCache_Root"
+  },
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_ChunkLoader/HytaleIndustries_ChunkLoader.blockymodel",
+    "BlockEntity": {
+      "Components": {
+        "ESGrid": {},
+        "ESNetworkMember": {},
+        "ConsumesHE": { "HEConsumption": 5, "Enabled": true }
+      }
+    },
+    "Flags": { "IsUsable": true, "IsStackable": true },
+    "Interactions": {
+      "Use": "HytaleIndustries_ESGridInteraction_Root"
+    },
+    "State": { "Definitions": { "Default": {} } },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Supporting": {
+      "Up": [ { "FaceType": "Full", "Filler": null } ],
+      "Down": [ { "FaceType": "Full", "Filler": null } ],
+      "North": [ { "FaceType": "Full", "Filler": null } ],
+      "South": [ { "FaceType": "Full", "Filler": null } ],
+      "East": [ { "FaceType": "Full", "Filler": null } ],
+      "West": [ { "FaceType": "Full", "Filler": null } ]
+    }
+  },
+  "MaxStack": 64
+}

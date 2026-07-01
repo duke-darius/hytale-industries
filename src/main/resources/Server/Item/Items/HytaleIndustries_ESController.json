@@ -1,0 +1,41 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "TranslationProperties": {
+    "Name": "ES Controller",
+    "Description": "Brain of the Energized Storage network. Requires HE power."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlaceBasicItemCache_Root"
+  },
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_ChunkLoader/HytaleIndustries_ChunkLoader.blockymodel",
+    "BlockEntity": {
+      "Components": {
+        "ESController": {},
+        "ESNetworkMember": {},
+        "StoresHE": { "Max": 10000, "Current": 0 },
+        "ConsumesHE": { "HEConsumption": 10, "Enabled": true },
+        "CableEndpoint": { "CapacityPerTick": 250, "LossPerMeter": 0.0, "Priority": 0 }
+      }
+    },
+    "Flags": { "IsUsable": true, "IsStackable": true },
+    "Interactions": {
+      "Use": "HytaleIndustries_ESControllerInteraction_Root"
+    },
+    "State": { "Definitions": { "Default": {} } },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Supporting": {
+      "Up": [ { "FaceType": "Full", "Filler": null } ],
+      "Down": [ { "FaceType": "Full", "Filler": null } ],
+      "North": [ { "FaceType": "Full", "Filler": null } ],
+      "South": [ { "FaceType": "Full", "Filler": null } ],
+      "East": [ { "FaceType": "Full", "Filler": null } ],
+      "West": [ { "FaceType": "Full", "Filler": null } ]
+    }
+  },
+  "MaxStack": 64
+}

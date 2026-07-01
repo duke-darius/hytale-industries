@@ -1,0 +1,45 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "TranslationProperties": {
+    "Name": "ES Disk Housing",
+    "Description": "Holds up to 8 storage disks for the Energized Storage network."
+  },
+  "ItemEntity": {},
+  "Interactions": {
+    "Secondary": "HytaleIndustries_PlaceBasicItemCache_Root"
+  },
+  "BlockType": {
+    "Parent": "Debug_Model",
+    "DrawType": "Model",
+    "CustomModel": "Blocks/HytaleIndustries_ESDiskDrive/HytaleIndustries_ESDiskDrive.blockymodel",
+    "CustomModelTexture": [
+      {
+        "Texture": "Blocks/HytaleIndustries_ESDiskDrive/HytaleIndustries_ESDiskDrive.png",
+        "Weight": 1
+      }
+    ],
+    "BlockEntity": {
+      "Components": {
+        "ESDiskHousing": {},
+        "ESNetworkMember": {},
+        "ConsumesHE": { "HEConsumption": 8, "Enabled": true }
+      }
+    },
+    "Flags": { "IsUsable": true, "IsStackable": true },
+    "Interactions": {
+      "Use": "HytaleIndustries_ESDiskHousingInteraction_Root"
+    },
+    "State": { "Definitions": { "Default": {} } },
+    "Material": "Solid",
+    "Opacity": "Solid",
+    "Supporting": {
+      "Up": [ { "FaceType": "Full", "Filler": null } ],
+      "Down": [ { "FaceType": "Full", "Filler": null } ],
+      "North": [ { "FaceType": "Full", "Filler": null } ],
+      "South": [ { "FaceType": "Full", "Filler": null } ],
+      "East": [ { "FaceType": "Full", "Filler": null } ],
+      "West": [ { "FaceType": "Full", "Filler": null } ]
+    }
+  },
+  "MaxStack": 64
+}

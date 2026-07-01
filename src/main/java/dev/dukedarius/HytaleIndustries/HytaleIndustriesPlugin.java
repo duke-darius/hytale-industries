@@ -45,6 +45,16 @@ import dev.dukedarius.HytaleIndustries.Interactions.OpenWindTurbineInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenAlloySmelterInteraction;
 import dev.dukedarius.HytaleIndustries.Interactions.OpenBasicItemCacheInteraction;
 
+import dev.dukedarius.HytaleIndustries.Components.EnergizedStorage.ESControllerComponent;
+import dev.dukedarius.HytaleIndustries.Components.EnergizedStorage.ESGridComponent;
+import dev.dukedarius.HytaleIndustries.Components.EnergizedStorage.ESDiskHousingComponent;
+import dev.dukedarius.HytaleIndustries.Components.EnergizedStorage.ESNetworkMemberComponent;
+import dev.dukedarius.HytaleIndustries.Interactions.ESGridInteraction;
+import dev.dukedarius.HytaleIndustries.Interactions.ESDiskHousingInteraction;
+import dev.dukedarius.HytaleIndustries.Interactions.ESControllerInteraction;
+import dev.dukedarius.HytaleIndustries.Systems.EnergizedStorage.ESDiskHousingDisplaySystem;
+import dev.dukedarius.HytaleIndustries.Systems.EnergizedStorage.ESNetworkSystem;
+
 import dev.dukedarius.HytaleIndustries.Systems.BasicItemCacheDisplaySystem;
 import dev.dukedarius.HytaleIndustries.Systems.BlockBreakSystem;
 import dev.dukedarius.HytaleIndustries.Systems.BlockPlaceSystem;
@@ -83,6 +93,9 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
         Interaction.CODEC.register("HytaleIndustries_OpenQuarry", OpenQuarryInteraction.class, OpenQuarryInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenWindTurbine", OpenWindTurbineInteraction.class, OpenWindTurbineInteraction.CODEC);
         Interaction.CODEC.register("HytaleIndustries_OpenBasicItemCache", OpenBasicItemCacheInteraction.class, OpenBasicItemCacheInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_ESGridInteraction", ESGridInteraction.class, ESGridInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_ESDiskHousingInteraction", ESDiskHousingInteraction.class, ESDiskHousingInteraction.CODEC);
+        Interaction.CODEC.register("HytaleIndustries_ESControllerInteraction", ESControllerInteraction.class, ESControllerInteraction.CODEC);
 
     }
 
@@ -118,6 +131,12 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
 
     // Storage
     private ComponentType<ChunkStore, BasicItemCacheComponent> basicItemCacheComponentType;
+
+    // ES component types
+    private ComponentType<ChunkStore, ESControllerComponent> esControllerType;
+    private ComponentType<ChunkStore, ESGridComponent> esGridType;
+    private ComponentType<ChunkStore, ESDiskHousingComponent> esDiskHousingType;
+    private ComponentType<ChunkStore, ESNetworkMemberComponent> esNetworkMemberType;
 
     public HytaleIndustriesPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -164,6 +183,10 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
     public ComponentType<ChunkStore, WindTurbineComponent> getWindTurbineComponentType() { return windTurbineComponentType; }
     public ComponentType<EntityStore, QuarryProjectileComponent> getQuarryProjectileComponentType() { return quarryProjectileComponentType; }
     public ComponentType<ChunkStore, BasicItemCacheComponent> getBasicItemCacheComponentType() { return basicItemCacheComponentType; }
+    public ComponentType<ChunkStore, ESControllerComponent> getEsControllerType() { return esControllerType; }
+    public ComponentType<ChunkStore, ESGridComponent> getEsGridType() { return esGridType; }
+    public ComponentType<ChunkStore, ESDiskHousingComponent> getEsDiskHousingType() { return esDiskHousingType; }
+    public ComponentType<ChunkStore, ESNetworkMemberComponent> getEsNetworkMemberType() { return esNetworkMemberType; }
 
 
     @Override
@@ -292,6 +315,16 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                 WindTurbineComponent.CODEC
         );
 
+        // ES components
+        this.esNetworkMemberType = this.getChunkStoreRegistry().registerComponent(
+                ESNetworkMemberComponent.class, "ESNetworkMember", ESNetworkMemberComponent.CODEC);
+        this.esControllerType = this.getChunkStoreRegistry().registerComponent(
+                ESControllerComponent.class, "ESController", ESControllerComponent.CODEC);
+        this.esGridType = this.getChunkStoreRegistry().registerComponent(
+                ESGridComponent.class, "ESGrid", ESGridComponent.CODEC);
+        this.esDiskHousingType = this.getChunkStoreRegistry().registerComponent(
+                ESDiskHousingComponent.class, "ESDiskHousing", ESDiskHousingComponent.CODEC);
+
         // EntityStore components
         this.quarryProjectileComponentType = this.getEntityStoreRegistry().registerComponent(
                 QuarryProjectileComponent.class,
@@ -403,6 +436,13 @@ public class HytaleIndustriesPlugin extends JavaPlugin {
                         this.basicItemCacheComponentType
                 )
         );
+
+        // ES systems
+        this.getChunkStoreRegistry().registerSystem(new ESNetworkSystem(
+                this.esControllerType, this.esNetworkMemberType, this.esDiskHousingType,
+                this.esGridType, this.consumesHeType, this.storesHeType));
+        this.getChunkStoreRegistry().registerSystem(new ESDiskHousingDisplaySystem(
+                this.esDiskHousingType));
 
         // EntityStore systems
         this.getEntityStoreRegistry().registerSystem(new BasicItemCacheDisplaySystem());
