@@ -11,10 +11,10 @@
   "BlockType": {
     "Parent": "Debug_Model",
     "DrawType": "Model",
-    "CustomModel": "Blocks/HytaleIndustries_ESDiskDrive/HytaleIndustries_ESDiskDrive.blockymodel",
+    "CustomModel": "Blocks/HytaleIndustries_ESDiskHousing/HytaleIndustries_ESDiskHousing.blockymodel",
     "CustomModelTexture": [
       {
-        "Texture": "Blocks/HytaleIndustries_ESDiskDrive/HytaleIndustries_ESDiskDrive.png",
+        "Texture": "Blocks/HytaleIndustries_ESDiskHousing/HytaleIndustries_ESDiskHousing.png",
         "Weight": 1
       }
     ],

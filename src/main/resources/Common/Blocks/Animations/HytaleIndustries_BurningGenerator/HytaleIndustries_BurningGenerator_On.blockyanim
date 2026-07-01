@@ -9,17 +9,17 @@
         {
           "time": 0,
           "delta": {"x": 0, "y": 0, "z": 0, "w": 1},
-          "interpolationType": "step"
+          "interpolationType": "smooth"
         },
         {
           "time": 30,
           "delta": {"x": 0, "y": 0, "z": 1, "w": 0},
-          "interpolationType": "step"
+          "interpolationType": "smooth"
         },
         {
           "time": 60,
           "delta": {"x": 0, "y": 0, "z": 0, "w": -1},
-          "interpolationType": "step"
+          "interpolationType": "smooth"
         }
       ],
       "shapeStretch": [],

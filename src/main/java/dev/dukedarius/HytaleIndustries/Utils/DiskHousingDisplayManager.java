@@ -6,14 +6,15 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.vector.Rotation3f;
+import com.hypixel.hytale.server.core.asset.type.model.config.Model;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.Frozen;
-import com.hypixel.hytale.server.core.inventory.ItemStack;
-import com.hypixel.hytale.server.core.modules.entity.component.EntityScaleComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.BoundingBox;
 import com.hypixel.hytale.server.core.modules.entity.component.Intangible;
+import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.PersistentModel;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
-import com.hypixel.hytale.server.core.modules.entity.item.ItemComponent;
-import com.hypixel.hytale.server.core.modules.entity.item.PreventItemMerging;
-import com.hypixel.hytale.server.core.modules.entity.item.PreventPickup;
+import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import dev.dukedarius.HytaleIndustries.Components.EnergizedStorage.ESDiskHousingComponent;
@@ -31,6 +32,7 @@ public final class DiskHousingDisplayManager {
 
     // Key: packed(blockPos, slotIndex) → entity ref
     private static final ConcurrentHashMap<Long, Ref<EntityStore>> DISPLAY_ENTITIES = new ConcurrentHashMap<>();
+    private static final String DISK_MODEL_ASSET_ID = "HytaleIndustries_ESDisk_1kAsset";
 
     private static final float[] YAW_RADIANS = {
             0f, (float)(Math.PI * 0.5), (float)Math.PI, (float)(Math.PI * 1.5)
@@ -103,21 +105,19 @@ public final class DiskHousingDisplayManager {
                                           int slot, int yawIndex, long key) {
         try {
             int yi = yawIndex & 3;
-            int row = slot / 2;   // 0,0,1,1,2,2,3,3
-            int col = slot % 2;   // 0,1,0,1,0,1,0,1
+            int row = slot / 2;
+            int col = slot % 2;
 
-            // Compute position on front face
             double localX = COL_X[col];
             double localY = ROW_Y[row];
             double localZ = FORWARD_OFFSET;
 
-            // Rotate local offset by yaw
             double worldX, worldZ;
             switch (yi) {
-                case 0 -> { worldX = localX;  worldZ = localZ; }  // South
-                case 1 -> { worldX = localZ;  worldZ = -localX; } // East
-                case 2 -> { worldX = -localX; worldZ = -localZ; } // North
-                case 3 -> { worldX = -localZ; worldZ = localX; }  // West
+                case 0 -> { worldX = localX;  worldZ = localZ; }
+                case 1 -> { worldX = localZ;  worldZ = -localX; }
+                case 2 -> { worldX = -localX; worldZ = -localZ; }
+                case 3 -> { worldX = -localZ; worldZ = localX; }
                 default -> { worldX = localX; worldZ = localZ; }
             }
 
@@ -127,25 +127,28 @@ public final class DiskHousingDisplayManager {
                     pos.z + 0.5 + worldZ);
             Rotation3f rot = new Rotation3f(0f, YAW_RADIANS[yi] + (float)Math.PI, 0f);
 
-            ItemStack displayStack = new ItemStack(ESDiskHousingComponent.DISK_ITEM_ID, 1);
-            displayStack.setOverrideDroppedItemAnimation(true);
+            ModelAsset modelAsset = ModelAsset.getAssetMap().getAsset(DISK_MODEL_ASSET_ID);
+            if (modelAsset == null) return;
+
+            Model model = Model.createScaledModel(modelAsset, SCALE);
+            if (model == null) return;
 
             Holder<EntityStore> holder = EntityStore.REGISTRY.newHolder();
-
-            ItemComponent itemComp = new ItemComponent(displayStack);
-            itemComp.setPickupDelay(Float.MAX_VALUE);
-            itemComp.setRemovedByPlayerPickup(false);
-            holder.addComponent(ItemComponent.getComponentType(), itemComp);
-
             holder.addComponent(TransformComponent.getComponentType(),
                     new TransformComponent(displayPos, rot));
-            holder.addComponent(EntityScaleComponent.getComponentType(),
-                    new EntityScaleComponent(SCALE));
+            holder.addComponent(PersistentModel.getComponentType(),
+                    new PersistentModel(model.toReference()));
+            holder.addComponent(ModelComponent.getComponentType(),
+                    new ModelComponent(model));
+            if (model.getBoundingBox() != null) {
+                holder.addComponent(BoundingBox.getComponentType(),
+                        new BoundingBox(model.getBoundingBox()));
+            }
+            holder.addComponent(NetworkId.getComponentType(),
+                    new NetworkId(entityStore.getExternalData().takeNextNetworkId()));
 
             holder.ensureComponent(Frozen.getComponentType());
             holder.ensureComponent(Intangible.getComponentType());
-            holder.ensureComponent(PreventPickup.getComponentType());
-            holder.ensureComponent(PreventItemMerging.getComponentType());
             holder.ensureComponent(EntityStore.REGISTRY.getNonSerializedComponentType());
 
             Ref<EntityStore> ref = entityStore.addEntity(holder, AddReason.SPAWN);
@@ -163,4 +166,5 @@ public final class DiskHousingDisplayManager {
                 | (((long) pos.z & 0x3FFFFFFL) << 4)
                 | ((long) slot & 0xFL);
     }
+
 }
