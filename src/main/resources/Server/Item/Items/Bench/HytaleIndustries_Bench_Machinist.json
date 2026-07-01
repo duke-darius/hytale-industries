@@ -70,6 +70,11 @@
           "Name": "Powered Processing"
         },
         {
+          "Id": "Machinists_Intermediates",
+          "Icon": "Icons/CraftingCategories/HytaleIndustries_PoweredFurnace.png",
+          "Name": "Intermediates"
+        },
+        {
           "Id": "Machinists_Storage",
           "Icon": "Icons/CraftingCategories/HytaleIndustries_PoweredFurnace.png",
           "Name": "Advanced Storage"

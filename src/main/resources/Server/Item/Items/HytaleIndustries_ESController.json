@@ -42,5 +42,15 @@
       "West": [ { "FaceType": "Full", "Filler": null } ]
     }
   },
-  "MaxStack": 64
+  "MaxStack": 64,
+  "Recipe": {
+    "OutputQuantity": 1,
+    "PrimaryOutput": { "ItemId": "HytaleIndustries_ESController", "Quantity": 1 },
+    "BenchRequirement": [{ "Id": "Machinists_Bench", "Type": "Crafting", "Categories": ["Machinists_Storage"] }],
+    "Input": [
+      { "ItemId": "HytaleIndustries_ESCore", "Quantity": 4 },
+      { "ItemId": "Ingredient_Bar_Mithril", "Quantity": 4 },
+      { "ItemId": "Ingredient_Life_Essence", "Quantity": 2 }
+    ]
+  }
 }

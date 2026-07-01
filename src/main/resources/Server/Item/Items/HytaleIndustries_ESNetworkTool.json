@@ -1,5 +1,5 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_ESNetworkTool.png",
   "PlayerAnimationsId": "Pickaxe",
   "TranslationProperties": {
     "Name": "Network Tool",
@@ -10,5 +10,14 @@
   },
   "Model": "Items/HytaleIndustries_ESNetworkTool/HytaleIndustries_ESNetworkTool.blockymodel",
   "Texture": "Items/HytaleIndustries_ESNetworkTool/HytaleIndustries_ESNetworkTool.png",
-  "MaxStack": 1
+  "MaxStack": 1,
+  "Recipe": {
+    "OutputQuantity": 1,
+    "PrimaryOutput": { "ItemId": "HytaleIndustries_ESNetworkTool", "Quantity": 1 },
+    "BenchRequirement": [{ "Id": "Machinists_Bench", "Type": "Crafting", "Categories": ["Machinists_Storage"] }],
+    "Input": [
+      { "ItemId": "HytaleIndustries_ESCircuit", "Quantity": 1 },
+      { "ItemId": "Ingredient_Bar_Iron", "Quantity": 2 }
+    ]
+  }
 }

@@ -1,0 +1,29 @@
+{
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_ESCore.png",
+  "Model": "Items/HytaleIndustries_ESCore/HytaleIndustries_ESCore.blockymodel",
+  "Texture": "Items/HytaleIndustries_ESCore/HytaleIndustries_ESCore.png",
+  "TranslationProperties": {
+    "Name": "ES Core",
+    "Description": "An advanced processing core for high-tier Energized Storage devices."
+  },
+  "MaxStack": 64,
+  "Recipe": {
+    "OutputQuantity": 1,
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_ESCore",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Machinists_Bench",
+        "Type": "Crafting",
+        "Categories": ["Machinists_Intermediates"]
+      }
+    ],
+    "Input": [
+      { "ItemId": "HytaleIndustries_ESCircuit", "Quantity": 4 },
+      { "ItemId": "Ingredient_Bar_Mithril", "Quantity": 2 },
+      { "ItemId": "Ingredient_Life_Essence", "Quantity": 2 }
+    ]
+  }
+}

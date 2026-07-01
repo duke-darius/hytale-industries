@@ -6,5 +6,15 @@
   },
   "Model": "Items/HytaleIndustries_ESDisk_1M/HytaleIndustries_ESDisk_1M.blockymodel",
   "Texture": "Items/HytaleIndustries_ESDisk_1M/HytaleIndustries_ESDisk_1M.png",
-  "MaxStack": 1
+  "MaxStack": 1,
+  "Recipe": {
+    "OutputQuantity": 1,
+    "PrimaryOutput": { "ItemId": "HytaleIndustries_ES_1MDisk", "Quantity": 1 },
+    "BenchRequirement": [{ "Id": "Machinists_Bench", "Type": "Crafting", "Categories": ["Machinists_Storage"] }],
+    "Input": [
+      { "ItemId": "HytaleIndustries_ES_256kDisk", "Quantity": 1 },
+      { "ItemId": "HytaleIndustries_ESCore", "Quantity": 4 },
+      { "ItemId": "Ingredient_Bar_Adamantite", "Quantity": 4 }
+    ]
+  }
 }
