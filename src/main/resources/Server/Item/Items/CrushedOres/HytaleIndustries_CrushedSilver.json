@@ -5,5 +5,7 @@
     "Description": "Silver ore that has been crushed into a fine powder."
   },
   "ItemEntity": {},
-  "MaxStack": 64
+  "MaxStack": 64,
+  "Model": "Items/HytaleIndustries_CrushedSilver/HytaleIndustries_CrushedSilver.blockymodel",
+  "Texture": "Items/HytaleIndustries_CrushedSilver/HytaleIndustries_CrushedSilver.png"
 }

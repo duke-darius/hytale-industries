@@ -5,5 +5,7 @@
     "Description": "Cobalt ore that has been crushed into a fine powder."
   },
   "ItemEntity": {},
-  "MaxStack": 64
+  "MaxStack": 64,
+  "Model": "Items/HytaleIndustries_CrushedCobalt/HytaleIndustries_CrushedCobalt.blockymodel",
+  "Texture": "Items/HytaleIndustries_CrushedCobalt/HytaleIndustries_CrushedCobalt.png"
 }

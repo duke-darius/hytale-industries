@@ -1,5 +1,7 @@
 {
   "Icon": "Icons/ItemsGenerated/HytaleIndustries_CrushedIron.png",
+  "Model": "Items/HytaleIndustries_CrushedIron/HytaleIndustries_CrushedIron.blockymodel",
+  "Texture": "Items/HytaleIndustries_CrushedIron/HytaleIndustries_CrushedIron.png",
   "TranslationProperties": {
     "Name": "Crushed Iron",
     "Description": "Iron ore that has been crushed into a fine powder."

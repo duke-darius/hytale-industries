@@ -5,5 +5,7 @@
     "Description": "Mithril ore that has been crushed into a fine powder."
   },
   "ItemEntity": {},
-  "MaxStack": 64
+  "MaxStack": 64,
+  "Model": "Items/HytaleIndustries_CrushedMithril/HytaleIndustries_CrushedMithril.blockymodel",
+  "Texture": "Items/HytaleIndustries_CrushedMithril/HytaleIndustries_CrushedMithril.png"
 }

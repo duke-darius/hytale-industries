@@ -5,5 +5,7 @@
     "Description": "Adamantite ore that has been crushed into a fine powder."
   },
   "ItemEntity": {},
-  "MaxStack": 64
+  "MaxStack": 64,
+  "Model": "Items/HytaleIndustries_CrushedAdamantite/HytaleIndustries_CrushedAdamantite.blockymodel",
+  "Texture": "Items/HytaleIndustries_CrushedAdamantite/HytaleIndustries_CrushedAdamantite.png"
 }

@@ -5,5 +5,7 @@
     "Description": "Onyxium ore that has been crushed into a fine powder."
   },
   "ItemEntity": {},
-  "MaxStack": 64
+  "MaxStack": 64,
+  "Model": "Items/HytaleIndustries_CrushedOnyxium/HytaleIndustries_CrushedOnyxium.blockymodel",
+  "Texture": "Items/HytaleIndustries_CrushedOnyxium/HytaleIndustries_CrushedOnyxium.png"
 }

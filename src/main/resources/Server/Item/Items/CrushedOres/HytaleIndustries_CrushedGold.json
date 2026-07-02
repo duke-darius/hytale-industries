@@ -5,5 +5,7 @@
     "Description": "Gold ore that has been crushed into a fine powder."
   },
   "ItemEntity": {},
-  "MaxStack": 64
+  "MaxStack": 64,
+  "Model": "Items/HytaleIndustries_CrushedGold/HytaleIndustries_CrushedGold.blockymodel",
+  "Texture": "Items/HytaleIndustries_CrushedGold/HytaleIndustries_CrushedGold.png"
 }
