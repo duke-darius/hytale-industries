@@ -17,13 +17,36 @@
       {
         "Id": "Machinists_Bench",
         "Type": "Crafting",
-        "Categories": ["Machinists_Intermediates"]
+        "Categories": [
+          "Machinists_Intermediates"
+        ]
       }
     ],
     "Input": [
-      { "ItemId": "HytaleIndustries_ESCircuit", "Quantity": 4 },
-      { "ItemId": "Ingredient_Bar_Mithril", "Quantity": 2 },
-      { "ItemId": "Ingredient_Life_Essence", "Quantity": 2 }
+      {
+        "ItemId": "HytaleIndustries_ESCircuit",
+        "Quantity": 4
+      },
+      {
+        "ItemId": "Ingredient_Bar_Mithril",
+        "Quantity": 2
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 2
+      }
+    ]
+  },
+  "IconProperties": {
+    "Scale": 1.4,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      1
     ]
   }
 }

@@ -1,5 +1,5 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_BasicItemCache.png",
   "TranslationProperties": {
     "Name": "[BROKEN] Basic Item Cache",
     "Description": "[Will Eventually] Stores a large quantity of a single item and displays it on the front."
@@ -48,12 +48,42 @@
     "Material": "Solid",
     "Opacity": "Solid",
     "Supporting": {
-      "Up": [ { "FaceType": "Full", "Filler": null } ],
-      "Down": [ { "FaceType": "Full", "Filler": null } ],
-      "North": [ { "FaceType": "Full", "Filler": null } ],
-      "South": [ { "FaceType": "Full", "Filler": null } ],
-      "East": [ { "FaceType": "Full", "Filler": null } ],
-      "West": [ { "FaceType": "Full", "Filler": null } ]
+      "Up": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "Down": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "North": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "South": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "East": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "West": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ]
     },
     "IgnoreSupportWhenPlaced": true,
     "Group": "@Tech",
@@ -86,6 +116,18 @@
         "ItemId": "Ingredient_Wood_Plank",
         "Quantity": 8
       }
+    ]
+  },
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
     ]
   }
 }

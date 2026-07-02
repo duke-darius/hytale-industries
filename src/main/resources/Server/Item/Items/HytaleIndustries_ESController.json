@@ -1,5 +1,5 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_ESController.png",
   "TranslationProperties": {
     "Name": "ES Controller",
     "Description": "Brain of the Energized Storage network. Requires HE power."
@@ -22,35 +22,111 @@
       "Components": {
         "ESController": {},
         "ESNetworkMember": {},
-        "StoresHE": { "Max": 10000, "Current": 0 },
-        "CableEndpoint": { "CapacityPerTick": 250, "LossPerMeter": 0.0, "Priority": 0 }
+        "StoresHE": {
+          "Max": 10000,
+          "Current": 0
+        },
+        "CableEndpoint": {
+          "CapacityPerTick": 250,
+          "LossPerMeter": 0.0,
+          "Priority": 0
+        }
       }
     },
-    "Flags": { "IsUsable": true, "IsStackable": true },
+    "Flags": {
+      "IsUsable": true,
+      "IsStackable": true
+    },
     "Interactions": {
       "Use": "HytaleIndustries_ESControllerInteraction_Root"
     },
-    "State": { "Definitions": { "Default": {} } },
+    "State": {
+      "Definitions": {
+        "Default": {}
+      }
+    },
     "Material": "Solid",
     "Opacity": "Solid",
     "Supporting": {
-      "Up": [ { "FaceType": "Full", "Filler": null } ],
-      "Down": [ { "FaceType": "Full", "Filler": null } ],
-      "North": [ { "FaceType": "Full", "Filler": null } ],
-      "South": [ { "FaceType": "Full", "Filler": null } ],
-      "East": [ { "FaceType": "Full", "Filler": null } ],
-      "West": [ { "FaceType": "Full", "Filler": null } ]
+      "Up": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "Down": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "North": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "South": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "East": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "West": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ]
     }
   },
   "MaxStack": 64,
   "Recipe": {
     "OutputQuantity": 1,
-    "PrimaryOutput": { "ItemId": "HytaleIndustries_ESController", "Quantity": 1 },
-    "BenchRequirement": [{ "Id": "Machinists_Bench", "Type": "Crafting", "Categories": ["Machinists_Storage"] }],
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_ESController",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Machinists_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Machinists_Storage"
+        ]
+      }
+    ],
     "Input": [
-      { "ItemId": "HytaleIndustries_ESCore", "Quantity": 4 },
-      { "ItemId": "Ingredient_Bar_Mithril", "Quantity": 4 },
-      { "ItemId": "Ingredient_Life_Essence", "Quantity": 2 }
+      {
+        "ItemId": "HytaleIndustries_ESCore",
+        "Quantity": 4
+      },
+      {
+        "ItemId": "Ingredient_Bar_Mithril",
+        "Quantity": 4
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 2
+      }
+    ]
+  },
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
     ]
   }
 }

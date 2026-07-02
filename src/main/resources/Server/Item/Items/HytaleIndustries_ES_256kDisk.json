@@ -1,5 +1,5 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_ES_256kDisk.png",
   "TranslationProperties": {
     "Name": "256k Storage Disk",
     "Description": "Holds up to 262144 items when inserted into an ES Disk Housing."
@@ -9,12 +9,44 @@
   "MaxStack": 1,
   "Recipe": {
     "OutputQuantity": 1,
-    "PrimaryOutput": { "ItemId": "HytaleIndustries_ES_256kDisk", "Quantity": 1 },
-    "BenchRequirement": [{ "Id": "Machinists_Bench", "Type": "Crafting", "Categories": ["Machinists_Storage"] }],
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_ES_256kDisk",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Machinists_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Machinists_Storage"
+        ]
+      }
+    ],
     "Input": [
-      { "ItemId": "HytaleIndustries_ES_64kDisk", "Quantity": 1 },
-      { "ItemId": "HytaleIndustries_ESCore", "Quantity": 4 },
-      { "ItemId": "Ingredient_Bar_Mithril", "Quantity": 2 }
+      {
+        "ItemId": "HytaleIndustries_ES_64kDisk",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "HytaleIndustries_ESCore",
+        "Quantity": 4
+      },
+      {
+        "ItemId": "Ingredient_Bar_Mithril",
+        "Quantity": 2
+      }
+    ]
+  },
+  "IconProperties": {
+    "Scale": 0.8,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      -4,
+      -2
     ]
   }
 }

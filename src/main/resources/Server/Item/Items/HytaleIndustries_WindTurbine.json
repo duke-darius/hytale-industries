@@ -1,5 +1,5 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_BurningGenerator.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_WindTurbine.png",
   "TranslationProperties": {
     "Name": "Wind Turbine",
     "Description": "Generates HE from wind. Higher Y-level increases production."
@@ -93,6 +93,18 @@
         "ItemId": "Ingredient_Life_Essence",
         "Quantity": 1
       }
+    ]
+  },
+  "IconProperties": {
+    "Scale": 0.3,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -76
     ]
   }
 }

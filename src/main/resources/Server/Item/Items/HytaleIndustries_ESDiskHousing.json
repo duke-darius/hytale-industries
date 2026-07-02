@@ -1,5 +1,5 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredFurnace.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_ESDiskHousing.png",
   "TranslationProperties": {
     "Name": "ES Disk Housing",
     "Description": "Holds up to 8 storage disks for the Energized Storage network."
@@ -22,34 +22,106 @@
       "Components": {
         "ESDiskHousing": {},
         "ESNetworkMember": {},
-        "ConsumesHE": { "HEConsumption": 8, "Enabled": true }
+        "ConsumesHE": {
+          "HEConsumption": 8,
+          "Enabled": true
+        }
       }
     },
-    "Flags": { "IsUsable": true, "IsStackable": true },
+    "Flags": {
+      "IsUsable": true,
+      "IsStackable": true
+    },
     "Interactions": {
       "Use": "HytaleIndustries_ESDiskHousingInteraction_Root"
     },
-    "State": { "Definitions": { "Default": {} } },
+    "State": {
+      "Definitions": {
+        "Default": {}
+      }
+    },
     "Material": "Solid",
     "Opacity": "Solid",
     "Supporting": {
-      "Up": [ { "FaceType": "Full", "Filler": null } ],
-      "Down": [ { "FaceType": "Full", "Filler": null } ],
-      "North": [ { "FaceType": "Full", "Filler": null } ],
-      "South": [ { "FaceType": "Full", "Filler": null } ],
-      "East": [ { "FaceType": "Full", "Filler": null } ],
-      "West": [ { "FaceType": "Full", "Filler": null } ]
+      "Up": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "Down": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "North": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "South": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "East": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ],
+      "West": [
+        {
+          "FaceType": "Full",
+          "Filler": null
+        }
+      ]
     }
   },
   "MaxStack": 64,
   "Recipe": {
     "OutputQuantity": 1,
-    "PrimaryOutput": { "ItemId": "HytaleIndustries_ESDiskHousing", "Quantity": 1 },
-    "BenchRequirement": [{ "Id": "Machinists_Bench", "Type": "Crafting", "Categories": ["Machinists_Storage"] }],
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_ESDiskHousing",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Machinists_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Machinists_Storage"
+        ]
+      }
+    ],
     "Input": [
-      { "ItemId": "HytaleIndustries_ESCircuit", "Quantity": 2 },
-      { "ItemId": "Ingredient_Bar_Iron", "Quantity": 6 },
-      { "ItemId": "Ingredient_Life_Essence", "Quantity": 1 }
+      {
+        "ItemId": "HytaleIndustries_ESCircuit",
+        "Quantity": 2
+      },
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 6
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 1
+      }
+    ]
+  },
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
     ]
   }
 }

@@ -44,9 +44,7 @@
           "Gentle": false,
           "ShowArea": false
         },
-        "ConsumeHE": {
-
-        }
+        "ConsumeHE": {}
       }
     },
     "State": {
@@ -132,6 +130,18 @@
         "ItemId": "Ingredient_Life_Essence",
         "Quantity": 8
       }
+    ]
+  },
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
     ]
   }
 }

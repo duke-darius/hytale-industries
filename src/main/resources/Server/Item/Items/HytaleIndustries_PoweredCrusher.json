@@ -1,5 +1,5 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_BurningGenerator.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_PoweredCrusher.png",
   "TranslationProperties": {
     "Name": "Powered Crusher",
     "Description": "Crushes ores using HE."
@@ -122,6 +122,18 @@
         "ItemId": "Ingredient_Life_Essence",
         "Quantity": 1
       }
+    ]
+  },
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
     ]
   }
 }

@@ -1,5 +1,5 @@
 {
-  "Icon": "Icons/ItemsGenerated/HytaleIndustries_ESDisk_1k.png",
+  "Icon": "Icons/ItemsGenerated/HytaleIndustries_ES_1kDisk.png",
   "TranslationProperties": {
     "Name": "1k Storage Disk",
     "Description": "Holds up to 1024 items when inserted into an ES Disk Housing."
@@ -9,12 +9,44 @@
   "MaxStack": 1,
   "Recipe": {
     "OutputQuantity": 1,
-    "PrimaryOutput": { "ItemId": "HytaleIndustries_ES_1kDisk", "Quantity": 1 },
-    "BenchRequirement": [{ "Id": "Machinists_Bench", "Type": "Crafting", "Categories": ["Machinists_Storage"] }],
+    "PrimaryOutput": {
+      "ItemId": "HytaleIndustries_ES_1kDisk",
+      "Quantity": 1
+    },
+    "BenchRequirement": [
+      {
+        "Id": "Machinists_Bench",
+        "Type": "Crafting",
+        "Categories": [
+          "Machinists_Storage"
+        ]
+      }
+    ],
     "Input": [
-      { "ItemId": "HytaleIndustries_ESCircuit", "Quantity": 1 },
-      { "ItemId": "Ingredient_Bar_Iron", "Quantity": 2 },
-      { "ItemId": "Ingredient_Life_Essence", "Quantity": 1 }
+      {
+        "ItemId": "HytaleIndustries_ESCircuit",
+        "Quantity": 1
+      },
+      {
+        "ItemId": "Ingredient_Bar_Iron",
+        "Quantity": 2
+      },
+      {
+        "ItemId": "Ingredient_Life_Essence",
+        "Quantity": 1
+      }
+    ]
+  },
+  "IconProperties": {
+    "Scale": 0.8,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      -4,
+      -1
     ]
   }
 }

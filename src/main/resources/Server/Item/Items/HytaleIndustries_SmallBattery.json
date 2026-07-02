@@ -40,7 +40,7 @@
       "Use": "HytaleIndustries_OpenSmallBattery_Root"
     },
     "Gathering": {
-      "Breaking": { 
+      "Breaking": {
         "GatherType": "Rocks",
         "Quality": 0,
         "Quantity": 1
@@ -118,5 +118,17 @@
       }
     ]
   },
-  "MaxStack": 64
+  "MaxStack": 64,
+  "IconProperties": {
+    "Scale": 0.58823,
+    "Rotation": [
+      22.5,
+      45,
+      22.5
+    ],
+    "Translation": [
+      0,
+      -13.5
+    ]
+  }
 }
